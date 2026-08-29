@@ -1,0 +1,1942 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+<meta name="theme-color" content="#06b6d4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cakra">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Cakra — Drive Test Intelligence</title>
+
+
+<link rel="stylesheet" href="css/leaflet.min.css"/>
+<style>
+/* RESET & TOKENS */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:   #0a0a0b;
+  --bg2:  #111113;
+  --bg3:  #18181b;
+  --bg4:  #1f1f23;
+  --bg5:  #26262c;
+
+  --border:  rgba(255,255,255,0.055);
+  --border2: rgba(255,255,255,0.09);
+  --border3: rgba(255,255,255,0.14);
+
+  --text:  #ececee;
+  --text2: #8e8e97;
+  --text3: #50505a;
+  --text4: #35353d;
+
+  --cyan:      #06b6d4;
+  --cyan-hi:   #22d3ee;
+  --cyan-dim:  rgba(6,182,212,0.10);
+  --cyan-dim2: rgba(6,182,212,0.06);
+
+  --green:     #22c55e;
+  --green-dim: rgba(34,197,94,0.10);
+
+  --yellow:    #eab308;
+  --yellow-dim:rgba(234,179,8,0.10);
+
+  --orange:    #f97316;
+  --orange-dim:rgba(249,115,22,0.10);
+
+  --red:       #ef4444;
+  --red-dim:   rgba(239,68,68,0.10);
+
+  --purple:    #a855f7;
+  --purple-dim:rgba(168,85,247,0.10);
+
+  --mono: 'Segoe UI Mono','SF Mono','Consolas','Liberation Mono',monospace;
+  --sans: 'Segoe UI','SF Pro Display',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+
+  --radius:    8px;
+  --radius-sm: 5px;
+  --radius-lg: 12px;
+  --sidebar-w: 212px;
+  --topbar-h:  48px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg5); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+/* SIDEBAR */
+.sidebar {
+  position: fixed; top: 0; left: 0;
+  width: var(--sidebar-w); height: 100vh;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  z-index: 100;
+  transition: transform 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+.sidebar-logo {
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.logo {
+  display: flex; align-items: center; gap: 7px;
+  text-decoration: none; color: var(--text);
+}
+.logo-icon { color: var(--cyan); font-size: 14px; line-height: 1; }
+.logo-text {
+  font-family: var(--mono); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.1em;
+}
+.logo-accent { color: var(--cyan); }
+.sidebar-close {
+  display: none; background: none; border: none;
+  color: var(--text3); cursor: pointer; font-size: 15px;
+  padding: 4px; line-height: 1; border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+.sidebar-close:hover { background: var(--bg4); color: var(--text); }
+
+.sidebar-nav {
+  flex: 1; padding: 8px 8px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 1px;
+}
+.nav-group-label {
+  font-family: var(--mono); font-size: 9px; font-weight: 500;
+  letter-spacing: 0.14em; color: var(--text4);
+  text-transform: uppercase;
+  padding: 10px 8px 5px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 9px; border-radius: var(--radius-sm);
+  text-decoration: none; color: var(--text3);
+  font-size: 12.5px; font-weight: 400;
+  transition: all 0.12s;
+  position: relative;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text2); }
+.nav-item.active {
+  background: var(--bg4); color: var(--text);
+}
+.nav-item.active .nav-icon { color: var(--cyan); }
+.nav-icon { font-size: 13px; width: 16px; text-align: center; flex-shrink: 0; }
+.nav-label { flex: 1; }
+.nav-badge {
+  background: var(--bg5); color: var(--text3);
+  font-family: var(--mono); font-size: 9px;
+  padding: 1px 5px; border-radius: 3px;
+  min-width: 18px; text-align: center; flex-shrink: 0;
+}
+.nav-badge-red { background: var(--red-dim); color: var(--red); }
+.nav-badge-ai  { background: var(--cyan-dim); color: var(--cyan); font-weight: 600; }
+.nav-item-ai .nav-icon { color: var(--cyan); }
+
+.sidebar-footer {
+  padding: 10px 8px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.back-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 9px; border-radius: var(--radius-sm);
+  text-decoration: none; color: var(--text3);
+  font-size: 12px; transition: all 0.12s;
+}
+.back-btn:hover { background: var(--bg3); color: var(--text); }
+.back-btn svg { flex-shrink: 0; }
+
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(2px);
+  z-index: 99;
+}
+
+/* TOPBAR */
+.topbar {
+  position: fixed; top: 0; left: var(--sidebar-w); right: 0;
+  height: var(--topbar-h);
+  background: rgba(10,10,11,0.92);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  display: flex; align-items: center;
+  padding: 0 18px; gap: 12px; z-index: 90;
+}
+.menu-toggle {
+  display: none; flex-direction: column; gap: 4px;
+  background: none; border: none; cursor: pointer; padding: 5px;
+  border-radius: var(--radius-sm);
+}
+.menu-toggle span {
+  width: 17px; height: 1.5px; background: var(--text2);
+  border-radius: 1px; transition: 0.2s; display: block;
+}
+.menu-toggle:hover span { background: var(--text); }
+
+.topbar-title {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--text2); flex: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.topbar-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.file-info-badge {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--cyan); padding: 2px 8px;
+  background: var(--cyan-dim2);
+  border: 1px solid rgba(6,182,212,0.18);
+  border-radius: var(--radius-sm);
+  max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* MAIN */
+.dashboard-main {
+  margin-left: var(--sidebar-w);
+  padding-top: var(--topbar-h);
+  min-height: 100vh;
+}
+.no-data-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 70vh; gap: 14px; text-align: center;
+  padding: 24px;
+}
+/* SKELETON */
+.loading-state { display: block; padding: 0; min-height: unset; }
+.skel-page { display: flex; flex-direction: column; gap: 0; min-height: 100vh; }
+.skel-topbar { height: 48px; background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 10px; flex-shrink: 0; }
+.skel-body { display: flex; flex: 1; }
+.skel-sidebar { width: 192px; flex-shrink: 0; background: var(--bg2); border-right: 1px solid var(--border); padding: 14px 10px; display: flex; flex-direction: column; gap: 7px; }
+.skel-main { flex: 1; padding: 24px 20px; display: flex; flex-direction: column; gap: 22px; overflow: hidden; }
+.sk { background: var(--bg3); border-radius: 5px; position: relative; overflow: hidden; flex-shrink: 0; }
+.sk::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.055) 50%, transparent 100%); animation: shimmer 2.4s ease-in-out infinite; transform: translateX(-100%); }
+@keyframes shimmer { to { transform: translateX(200%); } }
+.sk.d1::after{animation-delay:0s}.sk.d2::after{animation-delay:0.22s}.sk.d3::after{animation-delay:0.44s}.sk.d4::after{animation-delay:0.66s}.sk.d5::after{animation-delay:0.88s}
+.skel-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.skel-info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.skel-row { display: flex; gap: 10px; align-items: center; }
+.sk-ml { margin-left: auto; display: flex; gap: 6px; }
+.no-data-icon { font-size: 36px; opacity: 0.6; }
+.no-data-state h2 { font-family: var(--mono); font-size: 16px; }
+.back-home-btn {
+  margin-top: 4px; padding: 7px 16px; border-radius: var(--radius-sm);
+  background: var(--bg3); border: 1px solid var(--border2);
+  color: var(--text); text-decoration: none; font-size: 12px;
+  font-family: var(--mono); transition: 0.15s;
+}
+.back-home-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* SECTIONS */
+.dash-section {
+  padding: 26px 22px;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: calc(var(--topbar-h) + 8px);
+}
+.section-hdr {
+  display: flex; align-items: flex-start; gap: 14px;
+  margin-bottom: 18px;
+}
+.section-num {
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  color: var(--text4); letter-spacing: 0.06em;
+  padding-top: 2px; flex-shrink: 0; min-width: 20px;
+}
+.ai-num { color: var(--cyan); font-size: 14px; }
+.section-title {
+  font-family: var(--mono); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.08em; color: var(--text); margin-bottom: 3px;
+  text-transform: uppercase;
+}
+.section-sub { font-size: 11.5px; color: var(--text2); line-height: 1.55; }
+.ai-title-badge {
+  display: inline-block;
+  font-size: 9px; font-family: var(--mono);
+  color: var(--green); background: var(--green-dim);
+  border: 1px solid rgba(34,197,94,0.2);
+  padding: 2px 6px; border-radius: 3px;
+  margin-left: 8px; vertical-align: middle; font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+/* INFO CARDS */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 8px;
+}
+.info-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 15px;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.info-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+.ic-label {
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  letter-spacing: 0.14em; color: var(--text3);
+  text-transform: uppercase; margin-bottom: 7px;
+}
+.ic-value {
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  color: var(--text); line-height: 1.35;
+}
+.ic-value.mono {
+  font-family: var(--mono); font-size: 12px; font-weight: 400;
+}
+.ic-sub {
+  font-family: var(--mono); font-size: 10px; color: var(--text3);
+  margin-top: 5px; line-height: 1.4;
+}
+
+/* KPI CARDS */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  margin-bottom: 10px;
+}
+.kpi-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px 18px 14px;
+  position: relative; overflow: hidden;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.kpi-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+.kpi-label {
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  letter-spacing: 0.14em; color: var(--text3); margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.kpi-val {
+  font-family: var(--mono); font-size: 30px; font-weight: 600;
+  line-height: 1.05; margin-bottom: 4px; letter-spacing: -0.02em;
+}
+.kpi-rsrp .kpi-val { color: var(--cyan-hi); }
+.kpi-rsrq .kpi-val { color: var(--purple); }
+.kpi-snr  .kpi-val { color: var(--green); }
+.kpi-unit { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-bottom: 6px; }
+.kpi-desc { font-size: 11px; color: var(--text2); margin-bottom: 9px; line-height: 1.4; }
+.kpi-badge-wrap { margin-bottom: 9px; }
+.kpi-badge {
+  display: inline-block; font-family: var(--mono); font-size: 9px; font-weight: 600;
+  padding: 2px 7px; border-radius: 3px; letter-spacing: 0.05em; text-transform: uppercase;
+}
+.badge-best    { background: var(--green-dim);  color: var(--green);  border: 1px solid rgba(34,197,94,0.2); }
+.badge-good    { background: var(--cyan-dim);   color: var(--cyan);   border: 1px solid rgba(6,182,212,0.2); }
+.badge-normal  { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(234,179,8,0.2); }
+.badge-bad     { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(249,115,22,0.2); }
+.badge-worst   { background: var(--red-dim);    color: var(--red);    border: 1px solid rgba(239,68,68,0.2); }
+.kpi-spark { height: 34px; }
+.kpi-extra {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+}
+.kpi-extra-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 9px 11px;
+}
+.kpi-extra-label {
+  font-family: var(--mono); font-size: 9px; color: var(--text3);
+  letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px;
+}
+.kpi-extra-val {
+  font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--text);
+}
+
+/* CHARTS */
+.chart-tabs {
+  display: flex; gap: 3px; margin-bottom: 12px; flex-wrap: wrap;
+}
+.chart-tab {
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  padding: 5px 12px; border-radius: var(--radius-sm);
+  background: var(--bg2); border: 1px solid var(--border);
+  color: var(--text2); cursor: pointer; transition: all 0.12s;
+  letter-spacing: 0.06em;
+}
+.chart-tab:hover { border-color: var(--border2); color: var(--text); }
+.chart-tab.active { background: var(--cyan-dim); border-color: rgba(6,182,212,0.3); color: var(--cyan-hi); }
+.chart-panel { display: none; }
+.chart-panel.active { display: block; }
+.chart-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px;
+}
+.chart-card-hdr {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 12px; margin-bottom: 14px;
+}
+.chart-card-title {
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  color: var(--text3); letter-spacing: 0.06em; margin-bottom: 7px;
+  text-transform: uppercase;
+}
+.chart-legend-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.leg { display: flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 10px; color: var(--text2); }
+.leg-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.chart-wrap { position: relative; height: 200px; }
+.chart-wrap-tall { height: 280px; }
+.dl-btn {
+  font-family: var(--mono); font-size: 9px;
+  padding: 4px 9px; border-radius: var(--radius-sm);
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text2); cursor: pointer; transition: 0.12s;
+  white-space: nowrap; flex-shrink: 0;
+}
+.dl-btn:hover { border-color: var(--border2); color: var(--text); }
+
+/* MAP */
+.map-toolbar {
+  display: flex; align-items: center; gap: 0;
+  margin-bottom: 10px; flex-wrap: nowrap; overflow-x: auto;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 4px 6px;
+  scrollbar-width: none;
+}
+.map-toolbar::-webkit-scrollbar { display: none; }
+.map-toolbar-divider {
+  width: 1px; height: 18px; background: var(--border2);
+  flex-shrink: 0; margin: 0 6px;
+}
+.map-toolbar-label {
+  font-family: var(--mono); font-size: 9px; color: var(--text4);
+  letter-spacing: 0.1em; white-space: nowrap; padding: 0 4px 0 2px;
+  flex-shrink: 0;
+}
+.map-layer-btns, .map-event-btns {
+  display: flex; gap: 2px; align-items: center; flex-shrink: 0;
+}
+.map-btn {
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  padding: 0 9px; height: 26px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  border-radius: 5px;
+  background: transparent; border: 1px solid transparent;
+  color: var(--text2); cursor: pointer; transition: 0.12s;
+  letter-spacing: 0.04em; white-space: nowrap; flex-shrink: 0;
+  line-height: 1;
+}
+.map-btn svg { display: block; flex-shrink: 0; }
+.map-btn:hover { background: var(--bg3); border-color: var(--border); color: var(--text); }
+.map-btn.active { background: var(--cyan-dim); border-color: rgba(6,182,212,0.3); color: var(--cyan-hi); }
+.map-evt-btn {
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  padding: 0 9px; height: 26px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  border-radius: 5px;
+  background: transparent; border: 1px solid transparent;
+  color: var(--text2); cursor: pointer; transition: all 0.12s;
+  letter-spacing: 0.04em; white-space: nowrap; flex-shrink: 0;
+  line-height: 1;
+}
+.map-evt-btn svg { display: block; flex-shrink: 0; }
+.map-evt-btn:hover { border-color: rgba(34,197,94,0.3); color: var(--green); background: rgba(34,197,94,0.08); }
+.map-evt-btn.active, .map-evt-btn[data-active="true"] { background: var(--green-dim); border-color: rgba(34,197,94,0.5); color: var(--green); font-weight: 600; }
+.map-evt-purple:hover { border-color: rgba(168,85,247,0.3); color: var(--purple); background: rgba(168,85,247,0.08); }
+.map-evt-purple.active, .map-evt-purple[data-active="true"] { background: var(--purple-dim); border-color: rgba(168,85,247,0.5); color: var(--purple); font-weight: 600; }
+.map-analysis-btn.active { font-weight: 600; }
+.map-stat-badge {
+  font-family: var(--mono); font-size: 9px; padding: 2px 7px; height: 20px;
+  display: inline-flex; align-items: center; border-radius: 4px;
+  white-space: nowrap; flex-shrink: 0; line-height: 1;
+}
+/* RF Overlay toggle buttons (Opsi A) */
+.map-overlay-btn[data-overlay="gap"]        { color: #f87171; }
+.map-overlay-btn[data-overlay="churn"]      { color: #f97316; }
+.map-overlay-btn[data-overlay="throughput"] { color: #facc15; }
+.map-overlay-btn[data-overlay="gap"]:hover        { background: rgba(248,113,113,0.10); border-color: rgba(248,113,113,0.30); }
+.map-overlay-btn[data-overlay="churn"]:hover      { background: rgba(249,115,22,0.10); border-color: rgba(249,115,22,0.30); }
+.map-overlay-btn[data-overlay="throughput"]:hover { background: rgba(250,204,21,0.10); border-color: rgba(250,204,21,0.30); }
+.map-overlay-btn[data-overlay="gap"].active,
+.map-overlay-btn[data-overlay="gap"][data-active="true"]        { background: rgba(248,113,113,0.16); border-color: rgba(248,113,113,0.55); color: #fca5a5; font-weight: 600; }
+.map-overlay-btn[data-overlay="churn"].active,
+.map-overlay-btn[data-overlay="churn"][data-active="true"]      { background: rgba(249,115,22,0.16); border-color: rgba(249,115,22,0.55); color: #fdba74; font-weight: 600; }
+.map-overlay-btn[data-overlay="throughput"].active,
+.map-overlay-btn[data-overlay="throughput"][data-active="true"] { background: rgba(250,204,21,0.16); border-color: rgba(250,204,21,0.55); color: #fde047; font-weight: 600; }
+.map-stat-gap        { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+.map-stat-churn      { background: rgba(249,115,22,0.12); color: #f97316; border: 1px solid rgba(249,115,22,0.25); }
+.map-stat-throughput { background: rgba(250,204,21,0.12); color: #facc15; border: 1px solid rgba(250,204,21,0.25); }
+.map-container {
+  position: relative; border-radius: var(--radius); overflow: hidden;
+  border: 1px solid var(--border); background: var(--bg2);
+}
+#map { height: 380px; }
+
+/* Compact map overlays */
+.map-legend-panel {
+  position: absolute; bottom: 12px; left: 12px; z-index: 500;
+  background: rgba(10,10,11,0.88);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 1.6;
+  backdrop-filter: blur(10px);
+  display: flex; flex-direction: column; gap: 3px;
+  min-width: 0;
+}
+.map-legend-panel > span {
+  display: flex; align-items: center; gap: 5px;
+  color: var(--text2); white-space: nowrap;
+}
+.map-stats-overlay {
+  position: absolute; top: 10px; right: 10px; z-index: 500;
+  background: rgba(10,10,11,0.88);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 7px 10px;
+  backdrop-filter: blur(10px);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 1.65;
+  color: var(--text2);
+  min-width: 0;
+}
+.map-stats-overlay b { color: var(--text); }
+
+/* Leaflet overrides */
+.leaflet-popup-content-wrapper {
+  background: rgba(10,10,11,0.97) !important;
+  border: 1px solid var(--border2) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
+}
+.leaflet-popup-tip { background: rgba(10,10,11,0.97) !important; }
+.leaflet-popup-content { margin: 10px 13px !important; }
+
+[data-theme="light"] .leaflet-popup-content-wrapper {
+  background: rgba(255,255,255,0.97) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+}
+[data-theme="light"] .leaflet-popup-tip { background: rgba(255,255,255,0.97) !important; }
+
+/* EVENTS */
+.events-summary { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.event-stat {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 10px 14px;
+}
+.event-stat-val {
+  font-family: var(--mono); font-size: 20px; font-weight: 500;
+  color: var(--text); line-height: 1;
+}
+.event-stat-lbl { font-family: var(--mono); font-size: 10px; color: var(--text2); margin-top: 4px; }
+.events-table-wrap {
+  overflow-x: auto; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--bg2);
+}
+.events-table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 580px; }
+.events-table th {
+  background: var(--bg3); padding: 8px 12px;
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  color: var(--text3); letter-spacing: 0.1em; text-align: left;
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+  text-transform: uppercase;
+}
+.events-table td {
+  padding: 7px 12px; border-bottom: 1px solid var(--border);
+  font-family: var(--mono); color: var(--text2); vertical-align: middle;
+}
+.events-table tr:last-child td { border-bottom: none; }
+.events-table tr:hover td { background: rgba(255,255,255,0.03); }
+.tag-ho {
+  background: rgba(234,179,8,0.12); color: var(--yellow);
+  border: 1px solid rgba(234,179,8,0.25);
+  font-family: var(--mono); font-size: 9px;
+  padding: 2px 6px; border-radius: 3px; display: inline-block;
+}
+.tag-rs {
+  background: var(--purple-dim); color: var(--purple);
+  border: 1px solid rgba(168,85,247,0.25);
+  font-family: var(--mono); font-size: 9px;
+  padding: 2px 6px; border-radius: 3px; display: inline-block;
+}
+
+/* DISTRIBUTION */
+.dist-layout {
+  display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start;
+}
+.std-tables { display: flex; flex-direction: column; gap: 10px; }
+.std-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; min-width: 220px;
+}
+.std-card-hdr {
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 7px 12px;
+}
+.std-cyan   { background: var(--cyan-dim);   color: var(--cyan-hi); border-bottom: 1px solid rgba(6,182,212,0.15); }
+.std-purple { background: var(--purple-dim); color: var(--purple);  border-bottom: 1px solid rgba(168,85,247,0.15); }
+.std-green  { background: var(--green-dim);  color: var(--green);   border-bottom: 1px solid rgba(34,197,94,0.15); }
+.std-table { width: 100%; border-collapse: collapse; }
+.std-table th {
+  font-family: var(--mono); font-size: 9px; color: var(--text3);
+  padding: 6px 10px; border-bottom: 1px solid var(--border);
+  text-align: left; letter-spacing: 0.08em; text-transform: uppercase;
+  font-weight: 600;
+}
+.std-table td {
+  font-size: 11px; padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.std-table tr:last-child td { border-bottom: none; }
+.fw { font-weight: 600; }
+.c-blue   { color: #60a5fa; }
+.c-green  { color: var(--green); }
+.c-yellow { color: var(--yellow); }
+.c-orange { color: var(--orange); }
+.c-red    { color: var(--red); }
+.mono     { font-family: var(--mono); font-size: 11px; }
+.clr-tag {
+  display: inline-block;
+  background: color-mix(in srgb, var(--c) 12%, transparent);
+  color: var(--c);
+  border: 1px solid color-mix(in srgb, var(--c) 28%, transparent);
+  font-family: var(--mono); font-size: 9px;
+  padding: 1px 6px; border-radius: 3px;
+}
+.dist-bars-col { display: flex; flex-direction: column; gap: 10px; }
+.dist-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px;
+}
+.dist-card-hdr {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  color: var(--text2); margin-bottom: 11px; letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dist-bars { display: flex; flex-direction: column; gap: 6px; }
+.dist-row { display: flex; align-items: center; gap: 9px; }
+.dist-lbl {
+  font-family: var(--mono); font-size: 9.5px; color: var(--text2);
+  width: 72px; flex-shrink: 0;
+}
+.dist-track {
+  flex: 1; height: 8px; background: var(--bg4); border-radius: 999px;
+  overflow: hidden; position: relative;
+}
+.dist-fill {
+  height: 100%; border-radius: 999px; transition: width 0.65s cubic-bezier(0.4,0,0.2,1);
+  min-width: 6px;
+}
+.dist-pct {
+  position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
+  font-family: var(--mono); font-size: 8px; color: var(--text3);
+}
+.dist-cnt {
+  font-family: var(--mono); font-size: 9.5px; color: var(--text2);
+  width: 44px; text-align: right; flex-shrink: 0;
+}
+
+/* TITIK RAWAN */
+.danger-wrap {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.danger-hdr {
+  padding: 10px 14px; font-family: var(--mono); font-size: 10px;
+  font-weight: 600; color: var(--text2); background: var(--bg3);
+  letter-spacing: 0.06em; border-bottom: 1px solid var(--border);
+}
+.danger-scroll { overflow-x: auto; }
+.rawan-table { width: 100%; border-collapse: collapse; min-width: 680px; }
+.rawan-table th {
+  background: var(--bg2); padding: 8px 12px;
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  color: var(--text3); letter-spacing: 0.1em; text-align: left;
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+  text-transform: uppercase;
+}
+.rawan-table td {
+  padding: 7px 12px; border-bottom: 1px solid var(--border);
+  font-family: var(--mono); font-size: 10.5px; color: var(--text2);
+}
+.rawan-table tr:last-child td { border-bottom: none; }
+.rawan-table tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
+.rawan-table tr:hover td { background: rgba(255,255,255,0.04); }
+.td-bad  { color: var(--red);    font-weight: 600; }
+.td-warn { color: var(--yellow); }
+.badge-bad {
+  display: inline-block; font-family: var(--mono); font-size: 8.5px; font-weight: 600;
+  padding: 1px 5px; border-radius: 3px;
+  background: var(--red-dim); color: var(--red);
+  border: 1px solid rgba(239,68,68,0.2);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.events-pagination, .tbl-pagination {
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: 8px; margin-top: 12px; flex-wrap: wrap;
+}
+.events-pagination button, .tbl-pg-btn {
+  font-family: var(--mono); font-size: 10px; color: var(--text);
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 14px; cursor: pointer; transition: all 0.12s;
+}
+.events-pagination button:hover, .tbl-pg-btn:hover { background: var(--bg2); border-color: var(--cyan); color: var(--cyan); }
+.events-pagination button:disabled, .tbl-pg-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.events-pagination button:disabled:hover, .tbl-pg-btn:disabled:hover { border-color: var(--border); color: var(--text); }
+.events-pagination .page-info, .tbl-pg-info { font-family: var(--mono); font-size: 10px; color: var(--text2); min-width: 120px; text-align: center; }
+
+/* EMPTY STATE */
+.empty-state {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 36px 24px;
+  text-align: center; display: flex; flex-direction: column;
+  align-items: center; gap: 10px;
+}
+.empty-icon { font-size: 28px; opacity: 0.5; }
+.empty-state p { font-size: 13px; color: var(--text2); line-height: 1.55; }
+.empty-state code {
+  font-family: var(--mono); font-size: 12px;
+  background: var(--bg4); padding: 1px 5px; border-radius: 3px;
+  color: var(--cyan);
+}
+.upload-kml-inline {
+  margin-top: 4px; font-family: var(--mono); font-size: 10px; font-weight: 600;
+  padding: 7px 16px; border-radius: var(--radius-sm);
+  background: var(--bg3); border: 1px solid var(--border2);
+  color: var(--text2); cursor: pointer; transition: 0.15s;
+  position: relative; overflow: hidden;
+}
+.upload-kml-inline:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* AI CHATBOT */
+.ai-chatbot-wrap {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden;
+  display: flex; flex-direction: column;
+  min-height: 580px; max-height: 720px;
+}
+.ai-chat-header {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg3); flex-shrink: 0;
+}
+.ai-chat-header-left { display: flex; align-items: center; gap: 9px; }
+.ai-chat-avatar {
+  width: 26px; height: 26px; border-radius: 6px;
+  background: var(--cyan-dim); border: 1px solid rgba(6,182,212,0.2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cyan-hi); font-size: 12px; flex-shrink: 0;
+}
+.ai-chat-name {
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--text); letter-spacing: 0.04em;
+}
+.ai-chat-status {
+  font-family: var(--mono); font-size: 9.5px; color: var(--text2);
+  display: flex; align-items: center; gap: 5px; margin-top: 1px;
+}
+.ai-status-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--green);
+  box-shadow: 0 0 6px rgba(34,197,94,0.7);
+  animation: pulse-dot 2.5s infinite;
+  flex-shrink: 0;
+}
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.ai-model-badge {
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  padding: 2px 7px; border-radius: 3px;
+  background: var(--green-dim); color: var(--green);
+  border: 1px solid rgba(34,197,94,0.2);
+  letter-spacing: 0.04em;
+}
+.ai-quick-bar {
+  padding: 9px 14px; border-bottom: 1px solid var(--border);
+  background: var(--bg); flex-shrink: 0;
+}
+.ai-quick-bar-label {
+  font-family: var(--mono); font-size: 8.5px; font-weight: 600;
+  letter-spacing: 0.14em; color: var(--text4);
+  text-transform: uppercase; margin-bottom: 7px;
+}
+.ai-quick-chips {
+  display: flex; gap: 5px; flex-wrap: wrap;
+}
+.ai-chip {
+  font-family: var(--mono); font-size: 10px;
+  padding: 4px 10px; border-radius: 20px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  color: var(--text2); cursor: pointer; transition: all 0.12s;
+  white-space: nowrap; letter-spacing: 0.02em;
+}
+.ai-chip:hover { background: var(--cyan-dim); border-color: rgba(6,182,212,0.3); color: var(--cyan-hi); }
+.ai-chip.loading { opacity: 0.5; cursor: wait; animation: chip-pulse 1s infinite; }
+@keyframes chip-pulse { 0%,100%{opacity:0.5} 50%{opacity:0.8} }
+.ai-messages {
+  flex: 1; overflow-y: auto; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 12px;
+  scroll-behavior: smooth;
+}
+.ai-welcome {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; flex: 1; text-align: center;
+  padding: 24px; gap: 9px; margin: auto;
+}
+.ai-welcome-icon {
+  font-size: 22px; color: var(--cyan-hi);
+  width: 46px; height: 46px; border-radius: 10px;
+  background: var(--cyan-dim); border: 1px solid rgba(6,182,212,0.2);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 2px;
+}
+.ai-welcome-title {
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  color: var(--text); letter-spacing: 0.02em;
+}
+.ai-welcome-sub { font-size: 12px; color: var(--text2); max-width: 320px; line-height: 1.55; }
+.ai-message { display: flex; gap: 9px; align-items: flex-start; animation: msg-in 0.18s ease; }
+@keyframes msg-in { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
+.ai-message-user { flex-direction: row-reverse; }
+.ai-msg-avatar {
+  width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 11px;
+}
+.ai-msg-avatar-ai { background: var(--cyan-dim); border: 1px solid rgba(6,182,212,0.18); color: var(--cyan-hi); }
+.ai-msg-avatar-user { background: var(--bg4); border: 1px solid var(--border2); color: var(--text2); font-size: 10px; }
+.ai-msg-bubble {
+  max-width: 80%; padding: 10px 13px; border-radius: 9px;
+  font-size: 12.5px; line-height: 1.6;
+}
+.ai-msg-bubble-ai {
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text); border-radius: 2px 9px 9px 9px;
+}
+.ai-msg-bubble-user {
+  background: var(--cyan-dim); border: 1px solid rgba(6,182,212,0.18);
+  color: var(--text); border-radius: 9px 2px 9px 9px; text-align: right;
+}
+.ai-msg-bubble-ai h3 {
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--cyan-hi); margin: 11px 0 5px; letter-spacing: 0.04em;
+}
+.ai-msg-bubble-ai p { margin-bottom: 7px; }
+.ai-msg-bubble-ai ul, .ai-msg-bubble-ai ol { padding-left: 15px; margin-bottom: 7px; }
+.ai-msg-bubble-ai li { margin-bottom: 3px; }
+.ai-msg-bubble-ai strong { color: var(--text); font-weight: 600; }
+.ai-msg-bubble-ai code {
+  font-family: var(--mono); font-size: 10.5px;
+  background: var(--bg4); padding: 1px 5px; border-radius: 3px; color: var(--cyan-hi);
+}
+.ai-msg-bubble-ai pre {
+  font-family: var(--mono); font-size: 10.5px;
+  background: var(--bg4); border: 1px solid var(--border);
+  padding: 9px 11px; border-radius: 6px; overflow-x: auto;
+  margin: 7px 0; white-space: pre-wrap;
+}
+.ai-msg-bubble-ai hr { border: none; border-top: 1px solid var(--border); margin: 9px 0; }
+.ai-badge-good { background: var(--green-dim); color: var(--green); padding: 1px 5px; border-radius: 3px; font-family: var(--mono); font-size: 10.5px; }
+.ai-badge-warn { background: var(--yellow-dim); color: var(--yellow); padding: 1px 5px; border-radius: 3px; font-family: var(--mono); font-size: 10.5px; }
+.ai-badge-bad  { background: var(--red-dim); color: var(--red); padding: 1px 5px; border-radius: 3px; font-family: var(--mono); font-size: 10.5px; }
+.ai-typing {
+  display: none; align-items: center; gap: 9px; padding: 0 16px 11px; flex-shrink: 0;
+}
+.ai-typing-avatar {
+  width: 24px; height: 24px; border-radius: 6px;
+  background: var(--cyan-dim); border: 1px solid rgba(6,182,212,0.18);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cyan-hi); font-size: 11px; flex-shrink: 0;
+}
+.ai-typing-dots { display: flex; gap: 4px; align-items: center; }
+.ai-typing-dots span {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--text3); animation: dot-bounce 1.3s infinite;
+}
+.ai-typing-dots span:nth-child(2) { animation-delay: 0.18s; }
+.ai-typing-dots span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes dot-bounce { 0%,100%{transform:translateY(0)} 40%{transform:translateY(-5px);background:var(--cyan-hi)} }
+.ai-cursor {
+  display: inline-block; width: 2px; height: 12px;
+  background: var(--cyan); border-radius: 1px;
+  margin-left: 2px; vertical-align: middle;
+  animation: blink 0.8s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.ai-chat-input-wrap {
+  padding: 12px 12px; border-top: 1px solid var(--border);
+  background: var(--bg); display: flex; gap: 8px;
+  align-items: flex-end; flex-shrink: 0;
+}
+.ai-chat-input {
+  flex: 1; background: var(--bg3);
+  border: 1px solid var(--border2); border-radius: 9px;
+  color: var(--text); font-family: var(--sans); font-size: 12.5px;
+  padding: 10px 13px; resize: none; outline: none;
+  min-height: 40px; max-height: 130px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  line-height: 1.55;
+}
+.ai-chat-input:focus {
+  border-color: rgba(6,182,212,0.4);
+  box-shadow: 0 0 0 3px rgba(6,182,212,0.07);
+}
+.ai-chat-input::placeholder { color: var(--text4); }
+.ai-send-btn {
+  width: 40px; height: 40px; border-radius: 9px; flex-shrink: 0;
+  background: var(--cyan); border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.12s; color: var(--bg);
+}
+.ai-send-btn:hover { background: var(--cyan-hi); transform: translateY(-1px); }
+.ai-send-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+/* SCROLL TOP & TOAST */
+.scroll-top {
+  position: fixed; bottom: 20px; right: 20px; z-index: 200;
+  width: 34px; height: 34px; border-radius: var(--radius-sm);
+  background: var(--bg3); border: 1px solid var(--border2);
+  color: var(--text2); font-size: 13px; cursor: pointer;
+  display: none; align-items: center; justify-content: center;
+  transition: 0.15s; font-family: var(--mono);
+}
+.scroll-top.visible { display: flex; }
+.scroll-top:hover { border-color: var(--cyan); color: var(--cyan); }
+.toast {
+  position: fixed; bottom: 64px; right: 20px; z-index: 300;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 9px 14px;
+  font-size: 11px; color: var(--text2); font-family: var(--mono);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.toast.show { opacity: 1; }
+
+/* RESPONSIVE — TABLET 900px */
+@media (max-width: 900px) {
+  .dist-layout { grid-template-columns: 1fr; }
+  .std-tables {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+}
+
+/* RESPONSIVE — MOBILE 768px */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 200px; }
+
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: none; }
+  .sidebar.open ~ .sidebar-overlay { display: block; }
+  .sidebar-close { display: flex; }
+
+  .topbar { left: 0; padding: 0 14px; }
+  .dashboard-main { margin-left: 0; }
+  .menu-toggle { display: flex; }
+  .file-info-badge { max-width: 130px; }
+
+  .dash-section { padding: 18px 14px; }
+  .section-hdr { gap: 10px; margin-bottom: 14px; }
+
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .kpi-val { font-size: 24px; }
+  .kpi-extra { grid-template-columns: repeat(2, 1fr); }
+
+  .info-grid { grid-template-columns: repeat(2, 1fr); gap: 7px; }
+
+  .chart-tabs { gap: 3px; }
+  .chart-tab { padding: 4px 9px; font-size: 9.5px; }
+  .chart-wrap { height: 170px; }
+  .chart-wrap-tall { height: 220px; }
+  .chart-card { padding: 13px; }
+
+  #map { height: 280px; }
+  .map-legend-panel { font-size: 8.5px; padding: 6px 8px; gap: 2px; bottom: 8px; left: 8px; }
+  .map-stats-overlay { font-size: 8.5px; padding: 5px 8px; top: 8px; right: 8px; }
+  .map-toolbar { gap: 6px; }
+  .map-btn, .map-evt-btn { font-size: 9.5px; padding: 4px 8px; }
+
+  .dist-layout { grid-template-columns: 1fr; gap: 12px; }
+  .std-tables { display: flex; flex-direction: column; gap: 8px; }
+
+  .ai-chatbot-wrap { min-height: 460px; max-height: calc(100vh - 80px); }
+  .ai-quick-chips { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 3px; }
+  .ai-chip { flex-shrink: 0; }
+  .ai-msg-bubble { max-width: 88%; }
+
+  .events-summary { gap: 6px; }
+  .event-stat { padding: 8px 12px; }
+  .event-stat-val { font-size: 18px; }
+}
+
+/* RESPONSIVE — SMALL MOBILE 480px */
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .info-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .ic-value { font-size: 12px; }
+  .kpi-extra { grid-template-columns: repeat(2, 1fr); }
+
+  .chart-card-hdr { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .section-title { font-size: 11px; }
+
+  .map-stats-overlay { display: none; } /* hide stats on very small, focus on map */
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.dash-section { animation: fadeUp 0.3s ease both; }
+
+/* THEME SYSTEM */
+[data-theme="light"] {
+  --bg:#f8f9fa;--bg2:#ffffff;--bg3:#f1f3f5;--bg4:#e9ecef;--bg5:#dee2e6;
+  --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.11);
+  --text:#0a0a0b;--text2:#495057;--text3:#adb5bd;
+  --cyan-dim:rgba(6,182,212,0.08);
+  --green-dim:rgba(34,197,94,0.08);
+  --purple-dim:rgba(167,139,250,0.08);
+  --popup-text:#1e293b;
+  --popup-label:#64748b;
+}
+[data-theme="light"] .sidebar { background: #ffffff; border-color: rgba(0,0,0,0.1); }
+[data-theme="light"] .topbar  { background: rgba(248,249,250,0.93); border-color: rgba(0,0,0,0.08); }
+[data-theme="light"] .info-card { background: var(--bg3); border-color: var(--border); }
+[data-theme="light"] .events-table tr:hover td { background: rgba(6,182,212,0.06); }
+
+/* FIELD TOOLS */
+.field-tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 12px; }
+.field-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: 12px; padding: 18px; transition: 0.15s; }
+.field-card:hover { border-color: rgba(6,182,212,0.3); }
+.field-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.field-card-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.field-card-title { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--text); }
+.field-card-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+/* Signal Gauge */
+.sig-gauge-wrap { display: flex; flex-direction: column; gap: 8px; }
+.sig-gauge-row { display: flex; align-items: center; gap: 8px; }
+.sig-gauge-label { font-family: var(--mono); font-size: 9.5px; color: var(--text3); width: 52px; flex-shrink: 0; }
+.sig-gauge-bar { flex: 1; height: 6px; background: var(--bg4); border-radius: 3px; overflow: hidden; }
+.sig-gauge-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+.sig-gauge-val { font-family: var(--mono); font-size: 10px; font-weight: 600; width: 60px; text-align: right; flex-shrink: 0; }
+
+/* Checklist */
+.field-checklist { display: flex; flex-direction: column; gap: 6px; }
+.check-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.check-item:last-child { border-bottom: none; }
+.check-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.check-label { font-size: 11px; color: var(--text2); flex: 1; }
+.check-val { font-family: var(--mono); font-size: 10px; font-weight: 600; }
+
+/* Threshold table */
+.threshold-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 9.5px; }
+.threshold-table th { color: var(--text3); font-weight: 500; padding: 4px 6px; text-align: left; border-bottom: 1px solid var(--border); letter-spacing: 0.04em; }
+.threshold-table td { padding: 5px 6px; border-bottom: 1px solid var(--border); color: var(--text2); }
+.threshold-table tr:last-child td { border-bottom: none; }
+.thr-good { color: var(--cyan); font-weight: 600; }
+.thr-warn { color: #facc15; font-weight: 600; }
+.thr-bad  { color: #f87171; font-weight: 600; }
+
+/* Compass / heading */
+.compass-wrap { display: flex; align-items: center; justify-content: center; padding: 8px 0; }
+.compass { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--border2); position: relative; display: flex; align-items: center; justify-content: center; background: var(--bg3); }
+.compass-needle { width: 3px; height: 32px; background: linear-gradient(to bottom, #f87171 50%, var(--text3) 50%); border-radius: 2px; position: absolute; transform-origin: bottom center; bottom: 50%; transition: transform 0.5s ease; }
+.compass-label { font-family: var(--mono); font-size: 8.5px; color: var(--text3); position: absolute; }
+.compass-label.n { top: 4px; left: 50%; transform: translateX(-50%); color: #f87171; }
+.compass-label.s { bottom: 4px; left: 50%; transform: translateX(-50%); }
+.compass-label.e { right: 4px; top: 50%; transform: translateY(-50%); }
+.compass-label.w { left: 4px; top: 50%; transform: translateY(-50%); }
+
+/* Speed card */
+.speed-big { text-align: center; }
+.speed-num { font-family: var(--mono); font-size: 42px; font-weight: 600; color: var(--cyan); line-height: 1; }
+.speed-unit { font-family: var(--mono); font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+</style>
+<script>
+// Inline theme preset (prevents flash) — synced with cakra_theme key
+(function(){var s=sessionStorage.getItem('cakra_theme')||'system';var t=s==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):s;document.documentElement.setAttribute('data-theme',t)})();
+</script>
+</head>
+<body class="dashboard-page">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="index.html" class="logo">
+      <span class="logo-icon">◈</span>
+      <span class="logo-text">CAKRA</span>
+    </a>
+    <button class="sidebar-close" id="sidebarClose" aria-label="Tutup menu">✕</button>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Data</div>
+    <a href="#info" class="nav-item active" data-section="info">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span><span class="nav-label">Info Drive Test</span>
+    </a>
+    <a href="#cell" class="nav-item" data-section="cell">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display:inline-block;vertical-align:middle"><rect x="1" y="13" width="4" height="11" rx="1"/><rect x="9" y="8" width="4" height="16" rx="1"/><rect x="17" y="3" width="4" height="21" rx="1"/></svg></span><span class="nav-label">Serving Cell</span>
+    </a>
+    <div class="nav-group-label">Analisis</div>
+    <a href="#kpi" class="nav-item" data-section="kpi">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span><span class="nav-label">KPI</span>
+    </a>
+    <a href="#grafik" class="nav-item" data-section="grafik">
+      <span class="nav-icon">〰</span><span class="nav-label">Grafik</span>
+    </a>
+    <a href="#peta" class="nav-item" data-section="peta">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span><span class="nav-label">Peta Sinyal</span>
+    </a>
+    <a href="#events" class="nav-item" data-section="events" id="navEvents">
+      <span class="nav-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></span><span class="nav-label">Events</span>
+      <span class="nav-badge" id="eventsBadge" style="display:none">0</span>
+    </a>
+    <a href="#distribusi" class="nav-item" data-section="distribusi">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span class="nav-label">Distribusi</span>
+    </a>
+    <a href="#rawan" class="nav-item" data-section="rawan">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><span class="nav-label">Titik Rawan</span>
+      <span class="nav-badge nav-badge-red" id="rawanBadge">0</span>
+    </a>
+    <div class="nav-group-label">Analisis RF</div>
+    <a href="#covgap" class="nav-item" data-section="covgap">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/><line x1="2" y1="2" x2="22" y2="22"/></svg></span><span class="nav-label">Coverage Gap</span>
+      <span class="nav-badge nav-badge-red" id="gapNavBadge" style="display:none">!</span>
+    </a>
+    <a href="#cellchurn" class="nav-item" data-section="cellchurn">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span class="nav-label">Cell Churn</span>
+    </a>
+    <a href="#throughputcorr" class="nav-item" data-section="throughputcorr">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span class="nav-label">Throughput Corr.</span>
+    </a>
+    <a href="#siteview" class="nav-item" data-section="siteview">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9"/><path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5"/><circle cx="12" cy="9" r="2"/><path d="M16.2 4.8c2 2 2.26 5.11.8 7.47"/><path d="M19.1 1.9a10.75 10.75 0 0 1 0 15.2"/><line x1="12" y1="9" x2="12" y2="22"/></svg></span><span class="nav-label">Site View</span>
+    </a>
+    <a href="#pciconflict" class="nav-item" data-section="pciconflict">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6"/><path d="M12 17v6"/><path d="M4.22 4.22l4.24 4.24"/><path d="M15.54 15.54l4.24 4.24"/><path d="M1 12h6"/><path d="M17 12h6"/></svg></span><span class="nav-label">PCI Mod-3</span>
+    </a>
+    <div class="nav-group-label">AI</div>
+    <a href="#ai" class="nav-item nav-item-ai" data-section="ai">
+      <span class="nav-icon">✦</span><span class="nav-label">AI Analyst</span>
+      <span class="nav-badge nav-badge-ai">AI</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="index.html" class="back-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Upload Baru
+    </a>
+    <div style="font-family:var(--mono);font-size:8px;color:var(--text4);margin-top:10px;letter-spacing:0.06em;line-height:1.7">
+      CAKRA v2.0.1<br>© 2026 · Hak Cipta Dilindungi
+    </div>
+  </div>
+</aside>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topbar-title" id="topbarTitle">Drive Test Analysis</div>
+  <div class="topbar-actions">
+    <div class="file-info-badge" id="fileInfoBadge">—</div>
+    <button id="exportPdfBtn" title="Export PDF" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;color:var(--cyan);transition:all 0.15s;font-size:14px;margin-left:8px;font-weight:600" onclick="CakraExport.exportPDF()" onmouseover="this.style.background='var(--cyan-dim)';this.style.borderColor='var(--cyan)'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></button>
+    <button id="exportExcelBtn" title="Export Excel" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;color:var(--green);transition:all 0.15s;font-size:14px;font-weight:600" onclick="CakraExport.exportExcel()" onmouseover="this.style.background='var(--green-dim)';this.style.borderColor='var(--green)'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg></button>
+    <button id="compareBtn" title="Compare Sessions" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;color:#a78bfa;transition:all 0.15s;font-size:14px;margin-left:4px;font-weight:600" onclick="if(typeof openCompareDialog==='function')openCompareDialog()" onmouseover="this.style.background='rgba(168,85,247,0.1)';this.style.borderColor='#a78bfa'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><rect x="2" y="3" width="7" height="18" rx="1"/><rect x="15" y="3" width="7" height="18" rx="1"/><line x1="12" y1="6" x2="12" y2="18" stroke-dasharray="3 3"/></svg></button>
+    <button id="virtualDtBtn" title="Virtual Drive Test — Prediksi Coverage" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;color:#4ade80;transition:all 0.15s;font-size:14px;margin-left:4px;font-weight:600" onclick="window.location.href='predict.html'" onmouseover="this.style.background='rgba(74,222,128,0.1)';this.style.borderColor='#4ade80'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9"/><path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5"/><circle cx="12" cy="9" r="2"/><path d="M16.2 4.8c2 2 2.26 5.11.8 7.47"/><path d="M19.1 1.9a10.75 10.75 0 0 1 0 15.2"/><line x1="12" y1="9" x2="12" y2="22"/></svg></button>
+    <div id="exportStatus" style="font-size:10px;color:var(--text2);margin-left:12px;min-width:140px;text-align:right;font-family:var(--mono)"></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main class="dashboard-main" id="dashMain">
+  <div class="loading-state" id="loadingState">
+    <div class="skel-page">
+      <div class="skel-topbar">
+        <div class="sk d1" style="width:70px;height:13px"></div>
+        <div class="sk-ml">
+          <div class="sk d2" style="width:28px;height:28px;border-radius:6px"></div>
+          <div class="sk d3" style="width:28px;height:28px;border-radius:6px"></div>
+          <div class="sk d4" style="width:28px;height:28px;border-radius:6px"></div>
+        </div>
+      </div>
+      <div class="skel-body">
+        <div class="skel-sidebar">
+          <div class="sk d1" style="width:100%;height:26px;border-radius:5px"></div>
+          <div class="sk d2" style="width:88%;height:26px;border-radius:5px"></div>
+          <div class="sk d3" style="width:92%;height:26px;border-radius:5px"></div>
+          <div class="sk d2" style="width:80%;height:26px;border-radius:5px"></div>
+          <div class="sk d4" style="width:95%;height:26px;border-radius:5px"></div>
+          <div class="sk d1" style="width:85%;height:26px;border-radius:5px"></div>
+          <div class="sk d3" style="width:90%;height:26px;border-radius:5px"></div>
+          <div class="sk d2" style="width:78%;height:26px;border-radius:5px"></div>
+          <div class="sk d5" style="width:88%;height:26px;border-radius:5px"></div>
+        </div>
+        <div class="skel-main">
+          <div class="sk d1" style="width:180px;height:14px"></div>
+          <div class="skel-info-grid">
+            <div class="sk d1" style="height:44px;border-radius:7px;border:1px solid var(--border)"></div>
+            <div class="sk d2" style="height:44px;border-radius:7px;border:1px solid var(--border)"></div>
+            <div class="sk d3" style="height:44px;border-radius:7px;border:1px solid var(--border)"></div>
+            <div class="sk d2" style="height:44px;border-radius:7px;border:1px solid var(--border)"></div>
+            <div class="sk d4" style="height:44px;border-radius:7px;border:1px solid var(--border)"></div>
+            <div class="sk d1" style="height:44px;border-radius:7px;border:1px solid var(--border)"></div>
+          </div>
+          <div class="sk d2" style="width:140px;height:14px;margin-top:6px"></div>
+          <div class="skel-kpi-grid">
+            <div class="sk d1" style="height:74px;border-radius:8px;border:1px solid var(--border)"></div>
+            <div class="sk d2" style="height:74px;border-radius:8px;border:1px solid var(--border)"></div>
+            <div class="sk d3" style="height:74px;border-radius:8px;border:1px solid var(--border)"></div>
+            <div class="sk d4" style="height:74px;border-radius:8px;border:1px solid var(--border)"></div>
+          </div>
+          <div class="sk d3" style="width:120px;height:14px;margin-top:6px"></div>
+          <div class="sk d2" style="height:140px;border-radius:8px;border:1px solid var(--border)"></div>
+          <div class="sk d4" style="height:180px;border-radius:8px;border:1px solid var(--border)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="no-data-state" id="noDataState" style="display:none">
+    <div class="no-data-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+    <h2>Tidak ada data</h2>
+    <p style="color:var(--text2);font-size:13px">Silakan upload file G-NetTrack Pro terlebih dahulu</p>
+    <a href="index.html" class="back-home-btn">← Kembali ke Upload</a>
+  </div>
+
+  <div id="dashContent" style="display:none">
+
+    <!-- 01 INFO -->
+    <section class="dash-section" id="info">
+      <div class="section-hdr">
+        <div class="section-num">01</div>
+        <div>
+          <div class="section-title">Informasi Drive Test</div>
+          <div class="section-sub">Data umum sesi pengukuran</div>
+        </div>
+      </div>
+      <div class="info-grid" id="infoGrid"></div>
+    </section>
+
+    <!-- 02 SERVING CELL -->
+    <section class="dash-section" id="cell">
+      <div class="section-hdr">
+        <div class="section-num">02</div>
+        <div>
+          <div class="section-title">Data Serving Cell</div>
+          <div class="section-sub">Parameter jaringan aktif</div>
+        </div>
+      </div>
+      <div class="info-grid" id="cellGrid"></div>
+    </section>
+
+    <!-- 03 KPI -->
+    <section class="dash-section" id="kpi">
+      <div class="section-hdr">
+        <div class="section-num">03</div>
+        <div>
+          <div class="section-title">Ringkasan KPI</div>
+          <div class="section-sub">Key Performance Indicators rata-rata</div>
+        </div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-rsrp">
+          <div class="kpi-label">RSRP</div>
+          <div class="kpi-val" id="kpiRsrp">—</div>
+          <div class="kpi-unit">dBm</div>
+          <div class="kpi-desc">Reference Signal Received Power</div>
+          <div id="kpiRsrpBadge" class="kpi-badge-wrap"></div>
+          <div class="kpi-spark" id="sparkRsrp"></div>
+        </div>
+        <div class="kpi-card kpi-rsrq">
+          <div class="kpi-label">RSRQ</div>
+          <div class="kpi-val" id="kpiRsrq">—</div>
+          <div class="kpi-unit">dB</div>
+          <div class="kpi-desc">Reference Signal Received Quality</div>
+          <div id="kpiRsrqBadge" class="kpi-badge-wrap"></div>
+          <div class="kpi-spark" id="sparkRsrq"></div>
+        </div>
+        <div class="kpi-card kpi-snr">
+          <div class="kpi-label">SNR</div>
+          <div class="kpi-val" id="kpiSnr">—</div>
+          <div class="kpi-unit">dB</div>
+          <div class="kpi-desc">Signal to Noise Ratio</div>
+          <div id="kpiSnrBadge" class="kpi-badge-wrap"></div>
+          <div class="kpi-spark" id="sparkSnr"></div>
+        </div>
+      </div>
+      <div class="kpi-extra" id="kpiExtra"></div>
+    </section>
+
+    <!-- 04 GRAFIK -->
+    <section class="dash-section" id="grafik">
+      <div class="section-hdr">
+        <div class="section-num">04</div>
+        <div>
+          <div class="section-title">Grafik Parameter</div>
+          <div class="section-sub">Time series RSRP, RSRQ, SNR, Throughput</div>
+        </div>
+      </div>
+      <div class="chart-tabs">
+        <button class="chart-tab active" data-chart="rsrp">RSRP</button>
+        <button class="chart-tab" data-chart="rsrq">RSRQ</button>
+        <button class="chart-tab" data-chart="snr">SNR</button>
+        <button class="chart-tab" data-chart="tp">Throughput</button>
+        <button class="chart-tab" data-chart="nr_rsrp">NR-RSRP</button>
+        <button class="chart-tab" data-chart="nr_sinr">SS-SINR</button>
+        <button class="chart-tab" data-chart="all">Semua</button>
+      </div>
+      <div class="chart-panels">
+        <div class="chart-panel active" id="panel-rsrp">
+          <div class="chart-card">
+            <div class="chart-card-hdr">
+              <div>
+                <div class="chart-card-title">RSRP — Reference Signal Received Power</div>
+                <div class="chart-legend-row">
+                  <span class="leg"><span class="leg-dot" style="background:#22d3ee"></span>RSRP</span>
+                  <span class="leg"><span class="leg-dot" style="background:#22c55e"></span>−80 dBm</span>
+                  <span class="leg"><span class="leg-dot" style="background:#eab308"></span>−100 dBm</span>
+                </div>
+              </div>
+              <button class="dl-btn" onclick="downloadChart('rsrpChart','RSRP')">⬇ PNG</button>
+            </div>
+            <div class="chart-wrap"><canvas id="rsrpChart"></canvas></div>
+          </div>
+        </div>
+        <div class="chart-panel" id="panel-rsrq">
+          <div class="chart-card">
+            <div class="chart-card-hdr">
+              <div>
+                <div class="chart-card-title">RSRQ — Reference Signal Received Quality</div>
+                <div class="chart-legend-row">
+                  <span class="leg"><span class="leg-dot" style="background:#a855f7"></span>RSRQ</span>
+                </div>
+              </div>
+              <button class="dl-btn" onclick="downloadChart('rsrqChart','RSRQ')">⬇ PNG</button>
+            </div>
+            <div class="chart-wrap"><canvas id="rsrqChart"></canvas></div>
+          </div>
+        </div>
+        <div class="chart-panel" id="panel-snr">
+          <div class="chart-card">
+            <div class="chart-card-hdr">
+              <div>
+                <div class="chart-card-title">SNR — Signal to Noise Ratio</div>
+                <div class="chart-legend-row">
+                  <span class="leg"><span class="leg-dot" style="background:#22c55e"></span>SNR</span>
+                </div>
+              </div>
+              <button class="dl-btn" onclick="downloadChart('snrChart','SNR')">⬇ PNG</button>
+            </div>
+            <div class="chart-wrap"><canvas id="snrChart"></canvas></div>
+          </div>
+        </div>
+        <div class="chart-panel" id="panel-tp">
+          <div class="chart-card">
+            <div class="chart-card-hdr">
+              <div>
+                <div class="chart-card-title">Throughput — DL &amp; UL (Mbps)</div>
+                <div class="chart-legend-row">
+                  <span class="leg"><span class="leg-dot" style="background:#22d3ee"></span>Download</span>
+                  <span class="leg"><span class="leg-dot" style="background:#f97316"></span>Upload</span>
+                </div>
+              </div>
+              <button class="dl-btn" onclick="downloadChart('tpChart','Throughput')">⬇ PNG</button>
+            </div>
+            <div class="chart-wrap"><canvas id="tpChart"></canvas></div>
+          </div>
+        </div>
+        <div class="chart-panel" id="panel-all">
+          <div class="chart-card">
+            <div class="chart-card-hdr">
+              <div class="chart-card-title">RSRP + RSRQ + SNR — Overlay</div>
+            </div>
+            <div class="chart-wrap chart-wrap-tall"><canvas id="allChart"></canvas></div>
+          </div>
+        </div>
+        <div class="chart-panel" id="panel-nr_rsrp">
+          <div class="chart-card">
+            <div class="chart-card-hdr">
+              <div class="chart-card-title">5G NR-RSRP <span style="font-size:9px;color:var(--text3);font-weight:400">SS-RSRP · 3GPP TS 38.215</span></div>
+            </div>
+            <div id="nrRsrpNoData" style="display:none;align-items:center;justify-content:center;height:180px;color:var(--text3);font-family:var(--mono);font-size:11px;text-align:center;padding:20px">
+              Tidak ada data NR-RSRP dalam sesi ini.<br>
+              <span style="font-size:9px;color:var(--text3);margin-top:6px;display:block">File G-NetTrack Pro perlu mengandung kolom <code>NR RSRP</code> atau <code>SS-RSRP</code></span>
+            </div>
+            <div class="chart-wrap"><canvas id="nrRsrpChart"></canvas></div>
+          </div>
+        </div>
+        <div class="chart-panel" id="panel-nr_sinr">
+          <div class="chart-card">
+            <div class="chart-card-hdr">
+              <div class="chart-card-title">5G SS-SINR <span style="font-size:9px;color:var(--text3);font-weight:400">Signal-to-Interference+Noise · 3GPP TS 38.215</span></div>
+            </div>
+            <div id="nrSinrNoData" style="display:none;align-items:center;justify-content:center;height:180px;color:var(--text3);font-family:var(--mono);font-size:11px;text-align:center;padding:20px">
+              Tidak ada data SS-SINR dalam sesi ini.<br>
+              <span style="font-size:9px;color:var(--text3);margin-top:6px;display:block">File G-NetTrack Pro perlu mengandung kolom <code>NR SINR</code> atau <code>SS-SINR</code></span>
+            </div>
+            <div class="chart-wrap"><canvas id="nrSinrChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 PETA -->
+    <section class="dash-section" id="peta">
+      <div class="section-hdr">
+        <div class="section-num">05</div>
+        <div>
+          <div class="section-title">Peta Sinyal</div>
+          <div class="section-sub">Visualisasi geografis parameter jaringan</div>
+        </div>
+      </div>
+      <div class="map-toolbar">
+        <!-- Grup 1: Signal layers -->
+        <div class="map-layer-btns" id="mapLayerBtns">
+          <button class="map-btn active" data-layer="rsrp">RSRP</button>
+          <button class="map-btn" data-layer="rsrq">RSRQ</button>
+          <button class="map-btn" data-layer="snr">SNR</button>
+          <button class="map-btn" data-layer="rawan"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Rawan</button>
+          <button class="map-btn" data-layer="nr_rsrp" style="display:none">NR-RSRP</button>
+          <button class="map-btn" data-layer="nr_sinr" style="display:none">SS-SINR</button>
+        </div>
+
+        <div class="map-toolbar-divider"></div>
+        <span class="map-toolbar-label">RF OVERLAY</span>
+
+        <!-- Grup 2: RF analysis overlay rings (non-exclusive, multi-toggle) -->
+        <div class="map-layer-btns" id="mapOverlayBtns">
+          <button class="map-overlay-btn map-btn" data-overlay="gap" data-active="false" onclick="toggleRfOverlay('gap')" title="Tampilkan ring merah di titik coverage gap"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg> Gap</button>
+          <button class="map-overlay-btn map-btn" data-overlay="churn" data-active="false" onclick="toggleRfOverlay('churn')" title="Tampilkan ring oranye di area cell churn / handover instability"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 3"><circle cx="12" cy="12" r="9"/></svg> Cell Churn</button>
+          <button class="map-overlay-btn map-btn" data-overlay="throughput" data-active="false" onclick="toggleRfOverlay('throughput')" title="Tampilkan ring tier throughput di tiap titik (besar hijau = tinggi, kecil merah = rendah)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Throughput</button>
+          <button class="map-btn" onclick="CakraMap.clearAnalysisOverlays()" title="Matikan semua overlay" style="color:var(--text3)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Clear</button>
+        </div>
+
+        <!-- Stat badges (muncul saat overlay aktif) -->
+        <span id="gapStatBadge" style="display:none" class="map-stat-badge map-stat-gap"></span>
+        <span id="churnStatBadge" style="display:none" class="map-stat-badge map-stat-churn"></span>
+        <span id="throughputStatBadge" style="display:none" class="map-stat-badge map-stat-throughput"></span>
+
+        <div class="map-toolbar-divider"></div>
+
+        <!-- Grup 3: Events + annotation -->
+        <div class="map-event-btns" id="mapEventBtns">
+          <button class="map-evt-btn" id="btnHandover" data-active="false" onclick="toggleEventLayer('handover')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg> HO</button>
+          <button class="map-evt-btn map-evt-purple" id="btnReselect" data-active="false" onclick="toggleEventLayer('reselect')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.67"/></svg> Resel</button>
+          <button class="map-evt-btn" id="mapAnnotateBtn" title="Tambah anotasi peta" onclick="CakraMap.toggleAnnotationMode()" style="color:var(--cyan)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Anotasi</button>
+        </div>
+      </div>
+      <div class="map-container">
+        <div id="map"></div>
+        <div class="map-legend-panel" id="mapLegend"></div>
+        <div class="map-stats-overlay" id="mapStats"></div>
+      </div>
+    </section>
+
+    <!-- 06 EVENTS -->
+    <section class="dash-section" id="events">
+      <div class="section-hdr">
+        <div class="section-num">06</div>
+        <div>
+          <div class="section-title">Events — Handover &amp; Cell Reselection</div>
+          <div class="section-sub">Data perpindahan sel dari file KML</div>
+        </div>
+      </div>
+      <div id="eventsContent">
+        <div class="empty-state">
+          <div class="empty-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+          <p>Upload file <code>.kml</code> events untuk melihat data handover &amp; cell reselection.</p>
+          <button class="upload-kml-inline" onclick="document.getElementById('kmlInlineInput').click()">
+            Upload .KML Sekarang
+            <input type="file" id="kmlInlineInput" accept=".kml" style="display:none" onchange="handleInlineKML(this)">
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 DISTRIBUSI -->
+    <section class="dash-section" id="distribusi">
+      <div class="section-hdr">
+        <div class="section-num">07</div>
+        <div>
+          <div class="section-title">Tabel Standar &amp; Distribusi</div>
+          <div class="section-sub">Kategori parameter dan persentase sebaran data</div>
+        </div>
+      </div>
+      <div class="dist-layout">
+        <div class="std-tables">
+          <div class="std-card">
+            <div class="std-card-hdr std-cyan">Standar RSRP (dBm)</div>
+            <table class="std-table">
+              <thead><tr><th>Kategori</th><th>Range</th><th>Warna</th></tr></thead>
+              <tbody>
+                <tr><td class="c-blue fw">Sangat Baik</td><td class="mono">&gt; −80</td><td><span class="clr-tag" style="--c:#60a5fa">Biru</span></td></tr>
+                <tr><td class="c-green fw">Bagus</td><td class="mono">−80 ~ −90</td><td><span class="clr-tag" style="--c:#4ade80">Hijau</span></td></tr>
+                <tr><td class="c-yellow fw">Normal</td><td class="mono">−90 ~ −100</td><td><span class="clr-tag" style="--c:#facc15">Kuning</span></td></tr>
+                <tr><td class="c-orange fw">Buruk</td><td class="mono">−100 ~ −110</td><td><span class="clr-tag" style="--c:#fb923c">Oranye</span></td></tr>
+                <tr><td class="c-red fw">Sangat Buruk</td><td class="mono">&lt; −110</td><td><span class="clr-tag" style="--c:#f87171">Merah</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="std-card">
+            <div class="std-card-hdr std-purple">Standar RSRQ (dB)</div>
+            <table class="std-table">
+              <thead><tr><th>Kategori</th><th>Range</th></tr></thead>
+              <tbody>
+                <tr><td class="c-blue fw">Excellent</td><td class="mono">&gt; −9</td></tr>
+                <tr><td class="c-green fw">Best</td><td class="mono">−10 ~ −9</td></tr>
+                <tr><td class="c-green fw">Good</td><td class="mono">−15 ~ −10</td></tr>
+                <tr><td class="c-orange fw">Poor</td><td class="mono">−19 ~ −15</td></tr>
+                <tr><td class="c-red fw">Bad</td><td class="mono">&lt; −20</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="std-card">
+            <div class="std-card-hdr std-green">Standar SNR (dB)</div>
+            <table class="std-table">
+              <thead><tr><th>Kategori</th><th>Range</th></tr></thead>
+              <tbody>
+                <tr><td class="c-blue fw">Sangat Baik</td><td class="mono">&gt; 20</td></tr>
+                <tr><td class="c-green fw">Baik</td><td class="mono">10 ~ 20</td></tr>
+                <tr><td class="c-yellow fw">Cukup</td><td class="mono">0 ~ 10</td></tr>
+                <tr><td class="c-orange fw">Buruk</td><td class="mono">−10 ~ 0</td></tr>
+                <tr><td class="c-red fw">Sangat Buruk</td><td class="mono">&lt; −10</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="dist-bars-col">
+          <div class="dist-card">
+            <div class="dist-card-hdr">Distribusi RSRP</div>
+            <div id="distRsrp" class="dist-bars"></div>
+          </div>
+          <div class="dist-card">
+            <div class="dist-card-hdr">Distribusi RSRQ</div>
+            <div id="distRsrq" class="dist-bars"></div>
+          </div>
+          <div class="dist-card">
+            <div class="dist-card-hdr">Distribusi SNR</div>
+            <div id="distSnr" class="dist-bars"></div>
+          </div>
+        </div>
+      </div>
+      <!-- 5G NR distribution (injected by dashboard.js if NR data present) -->
+      <div id="distNrWrap" style="display:none;margin-top:20px;padding-top:18px;border-top:1px solid var(--border)"></div>
+    </section>
+
+    <!-- 08 TITIK RAWAN -->
+    <section class="dash-section" id="rawan">
+      <div class="section-hdr">
+        <div class="section-num">08</div>
+        <div>
+          <div class="section-title">Titik Rawan Sinyal</div>
+          <div class="section-sub">Titik dengan parameter di luar threshold normal</div>
+        </div>
+      </div>
+      <div id="rawanContent"></div>
+    </section>
+
+    <!-- 09 COVERAGE GAP -->
+    <section class="dash-section" id="covgap">
+      <div class="section-hdr">
+        <div class="section-num" style="color:#f87171;display:flex;align-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <div>
+          <div class="section-title">Coverage Gap Detection</div>
+          <div class="section-sub">Segmen rute dengan RSRP di bawah threshold — area blank spot</div>
+        </div>
+      </div>
+      <div id="coverageGapContent"><div class="info-card" style="text-align:center;padding:24px;color:var(--text3)">Memuat...</div></div>
+    </section>
+
+    <!-- 10 CELL CHURN / HANDOVER INSTABILITY -->
+    <section class="dash-section" id="cellchurn">
+      <div class="section-hdr">
+        <div class="section-num" style="color:#f97316;display:flex;align-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <div>
+          <div class="section-title">Cell Churn / Handover Instability</div>
+          <div class="section-sub">Area dengan ≥3 serving cell berbeda dalam window pendek — bisa indikasi pilot pollution, mobility, atau misconfig HO</div>
+        </div>
+      </div>
+      <div id="cellChurnContent"><div class="info-card" style="text-align:center;padding:24px;color:var(--text3)">Memuat...</div></div>
+    </section>
+
+    <!-- 11 THROUGHPUT CORRELATION -->
+    <section class="dash-section" id="throughputcorr">
+      <div class="section-hdr">
+        <div class="section-num" style="color:#22c55e;display:flex;align-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div>
+          <div class="section-title">Throughput Correlation</div>
+          <div class="section-sub">Korelasi DL throughput vs RSRP — identifikasi bottleneck RF vs non-RF</div>
+        </div>
+      </div>
+      <div id="throughputCorrContent"><div class="info-card" style="text-align:center;padding:24px;color:var(--text3)">Memuat...</div></div>
+    </section>
+
+    <!-- 12 SITE VIEW -->
+    <section class="dash-section" id="siteview">
+      <div class="section-hdr">
+        <div class="section-num" style="color:#38bdf8;display:flex;align-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9"/><path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5"/><circle cx="12" cy="9" r="2"/><path d="M16.2 4.8c2 2 2.26 5.11.8 7.47"/><path d="M19.1 1.9a10.75 10.75 0 0 1 0 15.2"/><line x1="12" y1="9" x2="12" y2="22"/></svg></div>
+        <div>
+          <div class="section-title">Site-based View</div>
+          <div class="section-sub">KPI dikelompokkan per site / eNodeB — identifikasi site bermasalah</div>
+        </div>
+      </div>
+      <div id="siteViewContent"><div class="info-card" style="text-align:center;padding:24px;color:var(--text3)">Memuat...</div></div>
+    </section>
+
+    <!-- 13 PCI MOD-3 CONFLICT -->
+    <section class="dash-section" id="pciconflict">
+      <div class="section-hdr">
+        <div class="section-num" style="color:#a78bfa;display:flex;align-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6"/><path d="M12 17v6"/><path d="M4.22 4.22l4.24 4.24"/><path d="M15.54 15.54l4.24 4.24"/><path d="M1 12h6"/><path d="M17 12h6"/></svg></div>
+        <div>
+          <div class="section-title">PCI Mod-3 Conflict Analysis</div>
+          <div class="section-sub">Deteksi cell yang berbagi PCI mod 3 — potensi PSS collision saat initial cell sync</div>
+        </div>
+      </div>
+      <div id="pciConflictContent"><div class="info-card" style="text-align:center;padding:24px;color:var(--text3)">Memuat...</div></div>
+    </section>
+
+    <!-- 14 AI ANALYST -->
+    <section class="dash-section" id="ai">
+      <div class="section-hdr">
+        <div class="section-num ai-num" style="color:#a78bfa">✦</div>
+        <div>
+          <div class="section-title">AI Analyst <span class="ai-title-badge">Groq · Llama 3.3 70B</span></div>
+          <div class="section-sub">Chat interaktif berbasis data drive test LTE/5G Anda</div>
+        </div>
+      </div>
+
+      <div class="ai-chatbot-wrap">
+        <div class="ai-chat-header">
+          <div class="ai-chat-header-left">
+            <div class="ai-chat-avatar">✦</div>
+            <div>
+              <div class="ai-chat-name">Cakra AI</div>
+              <div class="ai-chat-status">
+                <span class="ai-status-dot"></span>
+                Siap menganalisis data drive test
+              </div>
+            </div>
+          </div>
+          <span class="ai-model-badge">Groq · Free</span>
+        </div>
+
+        <div class="ai-quick-bar">
+          <div class="ai-quick-bar-label">Analisis Cepat</div>
+          <div class="ai-quick-chips">
+            <button class="ai-chip" data-prompt="full"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Laporan Lengkap</button>
+            <button class="ai-chip" data-prompt="kpi">Evaluasi KPI</button>
+            <button class="ai-chip" data-prompt="coverage"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> Coverage</button>
+            <button class="ai-chip" data-prompt="handover"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg> Handover</button>
+            <button class="ai-chip" data-prompt="throughput"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg> Throughput</button>
+            <button class="ai-chip" data-prompt="recommend"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Rekomendasi</button>
+          </div>
+        </div>
+
+        <div class="ai-messages" id="aiMessages">
+          <div class="ai-welcome">
+            <div class="ai-welcome-icon">✦</div>
+            <div class="ai-welcome-title">Halo! Saya AI Analyst Drive Test</div>
+            <div class="ai-welcome-sub">Pilih analisis cepat di atas atau ketik pertanyaan tentang data RSRP, RSRQ, SNR, throughput, handover, dan parameter LTE/5G lainnya.</div>
+          </div>
+        </div>
+
+        <div class="ai-typing" id="aiTyping">
+          <div class="ai-typing-avatar">✦</div>
+          <div class="ai-typing-dots"><span></span><span></span><span></span></div>
+        </div>
+
+        <div class="ai-chat-input-wrap">
+          <textarea
+            id="aiChatInput"
+            class="ai-chat-input"
+            placeholder="Tanya tentang data drive test... (Enter kirim, Shift+Enter baris baru)"
+            rows="1"
+          ></textarea>
+          <button class="ai-send-btn" id="aiSendBtn" onclick="AIAnalyst.sendChat()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /dashContent -->
+</main>
+
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<div class="toast" id="toast"></div>
+
+<script src="js/chart.umd.js"></script>
+<script src="js/leaflet.min.js"></script>
+
+<script src="js/parser.js?v=201"></script>
+<script src="js/charts.js?v=201"></script>
+<script src="js/map.js?v=201"></script>
+<script src="js/export.js?v=201"></script>
+<script src="js/ai.js?v=201"></script>
+<script src="js/dashboard.js?v=201"></script>
+
+<script>
+// THEME SYSTEM — Dashboard
+const DASH_THEMES = ['dark','light','system'];
+const DASH_ICONS  = [
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>'
+];
+let dashThemeIdx = 0;
+
+function initThemeDash() {
+  const saved = sessionStorage.getItem('cakra_theme') || 'system';
+  dashThemeIdx = DASH_THEMES.indexOf(saved);
+  if (dashThemeIdx < 0) dashThemeIdx = 0;
+  applyThemeDash();
+}
+function cycleThemeDash() {
+  dashThemeIdx = (dashThemeIdx + 1) % DASH_THEMES.length;
+  sessionStorage.setItem('cakra_theme', DASH_THEMES[dashThemeIdx]);
+  applyThemeDash();
+}
+function applyThemeDash() {
+  const theme = DASH_THEMES[dashThemeIdx];
+  const btn = document.getElementById('themeBtnDash');
+  let isDark = true;
+  if (theme === 'system') {
+    isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  } else {
+    isDark = theme === 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+  if (btn) btn.innerHTML = DASH_ICONS[dashThemeIdx];
+  // Update peta ikut theme
+  if (window.CakraMap) CakraMap.updateTheme(isDark);
+}
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (DASH_THEMES[dashThemeIdx] === 'system') applyThemeDash();
+});
+document.addEventListener('DOMContentLoaded', initThemeDash);
+
+// COMPARE SESSIONS
+function openCompareDialog() {
+  window.location.href = 'compare.html';
+}
+
+// FIELD TOOLS BUILDER
+function buildFieldTools() {
+  const el = document.getElementById('fieldToolsContent');
+  if (!el || !window.DATA || !window.DATA.length) return;
+  const D = window.DATA;
+  const last = D[D.length - 1];
+  const hasGPS = D.some(d => d.lat && d.lon);
+
+  // Signal Quality Gauge
+  const rsrpPct = Math.min(100, Math.max(0, ((last.rsrp + 140) / 90) * 100));
+  const rsrqPct = Math.min(100, Math.max(0, ((last.rsrq + 26) / 23) * 100));
+  const snrPct  = Math.min(100, Math.max(0, ((last.snr + 20) / 48) * 100));
+  const rsrpCol = last.rsrp > -80 ? '#38bdf8' : last.rsrp > -100 ? '#facc15' : '#f87171';
+  const rsrqCol = last.rsrq > -9  ? '#38bdf8' : last.rsrq > -15  ? '#facc15' : '#f87171';
+  const snrCol  = last.snr  > 10  ? '#4ade80' : last.snr  > 0    ? '#facc15' : '#f87171';
+
+  // Speed
+  const avgSpd = (D.reduce((s,d)=>s+d.speed,0)/D.length*3.6).toFixed(1);
+  const maxSpd = (Math.max(...D.map(d=>d.speed))*3.6).toFixed(1);
+  const lastSpd = (last.speed*3.6).toFixed(1);
+
+  // Drive Test Health Checklist
+  const avgRsrp = D.reduce((s,d)=>s+d.rsrp,0)/D.length;
+  const avgRsrq = D.reduce((s,d)=>s+d.rsrq,0)/D.length;
+  const avgSnr  = D.reduce((s,d)=>s+d.snr,0)/D.length;
+  const gpsValid = D.filter(d=>d.lat&&d.lon).length / D.length * 100;
+  const rawanPct = D.filter(d=>d.rsrp<-100||d.rsrq<-19||d.snr<-10).length / D.length * 100;
+  const techOk = D.some(d=>d.tech&&d.tech!=='');
+
+  function check(ok, warn) {
+    if (ok)   return ['#22c55e', 'OK'];
+    if (warn) return ['#facc15', '!'];
+    return ['#f87171', '✗'];
+  }
+
+  const checks = [
+    { label:'RSRP rata-rata',    val:`${avgRsrp.toFixed(1)} dBm`, ...((c=>({color:c[0],icon:c[1]}))(check(avgRsrp>-90, avgRsrp>-100))) },
+    { label:'RSRQ rata-rata',    val:`${avgRsrq.toFixed(1)} dB`,  ...((c=>({color:c[0],icon:c[1]}))(check(avgRsrq>-10, avgRsrq>-15))) },
+    { label:'SNR rata-rata',     val:`${avgSnr.toFixed(1)} dB`,   ...((c=>({color:c[0],icon:c[1]}))(check(avgSnr>10,   avgSnr>0))) },
+    { label:'GPS valid',         val:`${gpsValid.toFixed(0)}%`,   ...((c=>({color:c[0],icon:c[1]}))(check(gpsValid>95, gpsValid>80))) },
+    { label:'Titik rawan',       val:`${rawanPct.toFixed(1)}%`,   ...((c=>({color:c[0],icon:c[1]}))(check(rawanPct<5,  rawanPct<15))) },
+    { label:'Data tech terisi',  val:techOk?'Ya':'Tidak',         ...((c=>({color:c[0],icon:c[1]}))(check(techOk,      techOk))) },
+  ];
+
+  // KPI 3GPP Threshold Reference
+  const threshRef = `
+    <table class="threshold-table">
+      <thead><tr><th>Parameter</th><th>Excellent</th><th>Good</th><th>Poor</th><th>Unit</th></tr></thead>
+      <tbody>
+        <tr><td>RSRP</td><td class="thr-good">> −80</td><td class="thr-warn">−80 ~ −100</td><td class="thr-bad">< −100</td><td>dBm</td></tr>
+        <tr><td>RSRQ</td><td class="thr-good">> −9</td><td class="thr-warn">−9 ~ −15</td><td class="thr-bad">< −15</td><td>dB</td></tr>
+        <tr><td>SNR</td><td class="thr-good">> 20</td><td class="thr-warn">0 ~ 10</td><td class="thr-bad">< 0</td><td>dB</td></tr>
+        <tr><td>NR-RSRP</td><td class="thr-good">> −80</td><td class="thr-warn">−80 ~ −100</td><td class="thr-bad">< −100</td><td>dBm</td></tr>
+        <tr><td>SS-SINR</td><td class="thr-good">> 13</td><td class="thr-warn">0 ~ 13</td><td class="thr-bad">< 0</td><td>dB</td></tr>
+      </tbody>
+    </table>`;
+
+  // Tool badge
+  const tool = (D[0]?._tool) || 'GNET';
+  const toolNames = {GNET:'G-NetTrack Pro',TEMS:'TEMS Investigation',NEMO:'NEMO Outdoor/Handy',SIGMON:'SIGMON'};
+
+  el.innerHTML = `
+    <div class="field-tools-grid">
+
+      <!-- Last Sample Signal -->
+      <div class="field-card">
+        <div class="field-card-header">
+          <div class="field-card-icon" style="background:rgba(56,189,248,0.12);color:#38bdf8"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="1" y="13" width="4" height="11" rx="1"/><rect x="9" y="8" width="4" height="16" rx="1"/><rect x="17" y="3" width="4" height="21" rx="1"/></svg></div>
+          <div>
+            <div class="field-card-title">Sinyal Terakhir</div>
+            <div class="field-card-sub">${last.timePart || last.tsDisp || ''} · ${last.cellname || '—'}</div>
+          </div>
+        </div>
+        <div class="sig-gauge-wrap">
+          <div class="sig-gauge-row">
+            <div class="sig-gauge-label">RSRP</div>
+            <div class="sig-gauge-bar"><div class="sig-gauge-fill" style="width:${rsrpPct}%;background:${rsrpCol}"></div></div>
+            <div class="sig-gauge-val" style="color:${rsrpCol}">${last.rsrp} dBm</div>
+          </div>
+          <div class="sig-gauge-row">
+            <div class="sig-gauge-label">RSRQ</div>
+            <div class="sig-gauge-bar"><div class="sig-gauge-fill" style="width:${rsrqPct}%;background:${rsrqCol}"></div></div>
+            <div class="sig-gauge-val" style="color:${rsrqCol}">${last.rsrq} dB</div>
+          </div>
+          <div class="sig-gauge-row">
+            <div class="sig-gauge-label">SNR</div>
+            <div class="sig-gauge-bar"><div class="sig-gauge-fill" style="width:${snrPct}%;background:${snrCol}"></div></div>
+            <div class="sig-gauge-val" style="color:${snrCol}">${last.snr} dB</div>
+          </div>
+          ${last.nr_rsrp !== null && !isNaN(last.nr_rsrp) ? `
+          <div class="sig-gauge-row">
+            <div class="sig-gauge-label">NR-RSRP</div>
+            <div class="sig-gauge-bar"><div class="sig-gauge-fill" style="width:${Math.min(100,Math.max(0,((last.nr_rsrp+140)/90)*100))}%;background:#22c55e"></div></div>
+            <div class="sig-gauge-val" style="color:#22c55e">${last.nr_rsrp} dBm</div>
+          </div>` : ''}
+          ${last.nr_sinr !== null && !isNaN(last.nr_sinr) ? `
+          <div class="sig-gauge-row">
+            <div class="sig-gauge-label">SS-SINR</div>
+            <div class="sig-gauge-bar"><div class="sig-gauge-fill" style="width:${Math.min(100,Math.max(0,((last.nr_sinr+20)/60)*100))}%;background:#a78bfa"></div></div>
+            <div class="sig-gauge-val" style="color:#a78bfa">${last.nr_sinr} dB</div>
+          </div>` : ''}
+        </div>
+      </div>
+
+      <!-- Speed -->
+      <div class="field-card">
+        <div class="field-card-header">
+          <div class="field-card-icon" style="background:rgba(251,146,60,0.12);color:#fb923c"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+          <div>
+            <div class="field-card-title">Kecepatan Kendaraan</div>
+            <div class="field-card-sub">Live · rata-rata · maksimum</div>
+          </div>
+        </div>
+        <div class="speed-big">
+          <div class="speed-num">${lastSpd}</div>
+          <div class="speed-unit">km/h saat terakhir</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">
+          <div class="info-card" style="padding:10px">
+            <div class="ic-label">Rata-rata</div>
+            <div class="ic-value mono" style="font-size:16px">${avgSpd}</div>
+            <div class="ic-sub">km/h</div>
+          </div>
+          <div class="info-card" style="padding:10px">
+            <div class="ic-label">Maksimum</div>
+            <div class="ic-value mono" style="font-size:16px;color:#fb923c">${maxSpd}</div>
+            <div class="ic-sub">km/h</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drive Test Health Checklist -->
+      <div class="field-card">
+        <div class="field-card-header">
+          <div class="field-card-icon" style="background:rgba(34,197,94,0.12);color:#22c55e"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div>
+            <div class="field-card-title">Health Check</div>
+            <div class="field-card-sub">Kualitas data & kondisi jaringan</div>
+          </div>
+        </div>
+        <div class="field-checklist">
+          ${checks.map(c => `
+          <div class="check-item">
+            <div class="check-dot" style="background:${c.color}"></div>
+            <div class="check-label">${c.label}</div>
+            <div class="check-val" style="color:${c.color}">${c.val}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- KPI Threshold Reference -->
+      <div class="field-card">
+        <div class="field-card-header">
+          <div class="field-card-icon" style="background:rgba(167,139,250,0.12);color:#a78bfa"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 8.7 8.7 21.3c-1 1-2.5 1-3.4 0l-2.6-2.6c-1-1-1-2.5 0-3.4L15.3 2.7c1-1 2.5-1 3.4 0l2.6 2.6c1 1 1 2.5 0 3.4z"/><line x1="7.5" y1="10.5" x2="9.5" y2="12.5"/><line x1="10.5" y1="7.5" x2="12.5" y2="9.5"/></svg></div>
+          <div>
+            <div class="field-card-title">Referensi Threshold 3GPP</div>
+            <div class="field-card-sub">LTE TS 36.214 · NR TS 38.215</div>
+          </div>
+        </div>
+        ${threshRef}
+      </div>
+
+      <!-- Source Tool Info -->
+      <div class="field-card">
+        <div class="field-card-header">
+          <div class="field-card-icon" style="background:rgba(6,182,212,0.12);color:var(--cyan)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></div>
+          <div>
+            <div class="field-card-title">Sumber Data</div>
+            <div class="field-card-sub">Tool drive test terdeteksi</div>
+          </div>
+        </div>
+        <div style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--cyan);margin-bottom:8px">${toolNames[tool]||tool}</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.6">
+          Format: ${tool==='GNET'?'.txt tab-separated':tool==='TEMS'?'.txt/.csv TEMS export':tool==='NEMO'?'.nmf/.csv NEMO export':'.csv SIGMON export'}<br>
+          Data point: ${D.length.toLocaleString()}<br>
+          Teknologi: ${D[0]?._sessionTech==='NSA'?'5G NSA (EN-DC)':D[0]?._sessionTech==='NR'?'5G NR SA':'4G LTE'}<br>
+          GPS valid: ${D.filter(d=>d.lat&&d.lon).length.toLocaleString()} titik
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="field-card">
+        <div class="field-card-header">
+          <div class="field-card-icon" style="background:rgba(250,204,21,0.12);color:#facc15"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+          <div>
+            <div class="field-card-title">Quick Actions</div>
+            <div class="field-card-sub">Shortcut lapangan</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <button onclick="document.getElementById('peta').scrollIntoView({behavior:'smooth'})" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text2);cursor:pointer;text-align:left;transition:0.12s" onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='var(--border2)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> Buka Peta Sinyal</button>
+          <button onclick="document.getElementById('rawanSection').scrollIntoView({behavior:'smooth'})" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text2);cursor:pointer;text-align:left;transition:0.12s" onmouseover="this.style.borderColor='#f87171'" onmouseout="this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Lihat Titik Rawan</button>
+          <button onclick="document.querySelector('[data-prompt=full]').click();document.getElementById('aiSection').scrollIntoView({behavior:'smooth'})" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text2);cursor:pointer;text-align:left;transition:0.12s" onmouseover="this.style.borderColor='#a78bfa'" onmouseout="this.style.borderColor='var(--border2)'">Generate Laporan AI</button>
+          <button onclick="window.location.href='index.html'" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text2);cursor:pointer;text-align:left;transition:0.12s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border2)'">⬆ Upload File Baru</button>
+        </div>
+      </div>
+
+    </div>`;
+}
+
+// Hook into existing loadData
+const _origBuildAll = window.buildAll;
+window.buildFieldTools = buildFieldTools;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "Cakra — Drive Test Intelligence",
+  "short_name": "Cakra",
+  "description": "Professional LTE/5G NR drive test analyzer for RF engineers",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0b",
+  "theme_color": "#06b6d4",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": [
+    "productivity",
+    "utilities"
+  ],
+  "lang": "id",
+  "dir": "ltr",
+  "version": "2.0.1"
+}

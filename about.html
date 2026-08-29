@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<script>
+(function(){
+  var ref = document.referrer;
+  var sameOrigin = ref && (ref.indexOf(location.hostname) !== -1 || location.hostname === "localhost" || location.hostname === "");
+  if (!sameOrigin) {
+    location.replace("index.html");
+  }
+})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tentang Cakra — Drive Test Intelligence</title>
+<meta name="description" content="Tentang Cakra — Platform analisis drive test LTE & 5G NR berbasis web untuk RF Engineer">
+<link rel="icon" href="icons/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg:#0a0a0b;--bg2:#111113;--bg3:#18181b;--bg4:#1f1f23;
+  --border:rgba(255,255,255,0.055);--border2:rgba(255,255,255,0.09);
+  --text:#ececee;--text2:#8e8e97;--text3:#50505a;
+  --cyan:#06b6d4;--cyan-hi:#22d3ee;--cyan-dim:rgba(6,182,212,0.10);
+  --green:#22c55e;--green-dim:rgba(34,197,94,0.10);
+  --amber:#f59e0b;--purple:#a78bfa;--purple-dim:rgba(167,139,250,0.10);
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',system-ui,sans-serif;
+}
+@media(prefers-color-scheme:light){
+  :root{--bg:#f4f5f7;--bg2:#fff;--bg3:#f1f3f5;--bg4:#e9ecef;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.11);--text:#0a0a0b;--text2:#495057;--text3:#adb5bd;--cyan-dim:rgba(6,182,212,0.08)}
+}
+[data-theme="dark"]{--bg:#0a0a0b;--bg2:#111113;--bg3:#18181b;--bg4:#1f1f23;--border:rgba(255,255,255,0.055);--border2:rgba(255,255,255,0.09);--text:#ececee;--text2:#8e8e97;--text3:#50505a;--cyan-dim:rgba(6,182,212,0.10)}
+[data-theme="light"]{--bg:#f4f5f7;--bg2:#fff;--bg3:#f1f3f5;--bg4:#e9ecef;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.11);--text:#0a0a0b;--text2:#495057;--text3:#adb5bd;--cyan-dim:rgba(6,182,212,0.08)}
+
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 24px;height:52px;background:var(--bg2);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);display:flex;align-items:center;gap:12px}
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text)}
+.nav-icon{color:var(--cyan);font-size:18px}
+.nav-text{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:0.08em}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.nav-btn{font-family:var(--mono);font-size:10px;font-weight:500;padding:5px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;text-decoration:none;transition:0.15s;letter-spacing:0.04em}
+.nav-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.nav-cta{background:var(--cyan);color:#000;border-color:var(--cyan);font-weight:600}
+.nav-cta:hover{background:var(--cyan-hi)}
+.theme-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;cursor:pointer;font-size:13px;transition:0.15s}
+.theme-btn:hover{border-color:var(--cyan)}
+
+/* HERO */
+.about-hero{padding:120px 24px 64px;text-align:center;max-width:720px;margin:0 auto}
+.hero-tag{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:0.14em;color:var(--cyan);background:var(--cyan-dim);border:1px solid rgba(6,182,212,0.2);padding:4px 14px;border-radius:20px;margin-bottom:28px;text-transform:uppercase}
+.hero-dot{width:5px;height:5px;border-radius:50%;background:var(--cyan);animation:blink 2s infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero-title{font-family:var(--mono);font-size:clamp(42px,8vw,72px);font-weight:600;line-height:0.95;letter-spacing:-0.04em;margin-bottom:12px}
+.hero-sub{font-size:15px;color:var(--text2);line-height:1.75;max-width:540px;margin:0 auto 32px}
+
+/* CONTENT */
+.about-content{max-width:760px;margin:0 auto;padding:0 24px 80px}
+
+.about-section{margin-bottom:56px}
+.about-section h2{font-family:var(--mono);font-size:18px;font-weight:600;letter-spacing:-0.01em;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.about-section h2::before{content:'';display:block;width:3px;height:18px;background:var(--cyan);border-radius:2px;flex-shrink:0}
+.about-section p{font-size:14.5px;color:var(--text2);line-height:1.8;margin-bottom:12px}
+.about-section p strong{color:var(--text);font-weight:600}
+
+/* LOGO SECTION */
+.logo-display{display:flex;align-items:center;justify-content:center;gap:16px;margin:32px 0;padding:40px;background:var(--bg2);border:1px solid var(--border2);border-radius:16px}
+.logo-big{font-size:56px;color:var(--cyan)}
+.logo-info h3{font-family:var(--mono);font-size:28px;font-weight:600;letter-spacing:-0.02em;margin-bottom:4px}
+.logo-info p{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:0.14em;text-transform:uppercase}
+
+/* PHILOSOPHY GRID */
+.phil-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:20px}
+.phil-card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:20px;position:relative;overflow:hidden}
+.phil-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.phil-card.cyan::before{background:var(--cyan)}
+.phil-card.green::before{background:var(--green)}
+.phil-card.purple::before{background:var(--purple)}
+.phil-card.amber::before{background:var(--amber)}
+.phil-icon{font-size:22px;margin-bottom:10px}
+.phil-title{font-family:var(--mono);font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text)}
+.phil-desc{font-size:12.5px;color:var(--text3);line-height:1.6}
+
+/* TECH STACK */
+.tech-list{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.tech-item{display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;transition:0.15s}
+.tech-item:hover{border-color:var(--border2)}
+.tech-name{font-family:var(--mono);font-size:12px;font-weight:600;min-width:120px;color:var(--text)}
+.tech-ver{font-family:var(--mono);font-size:10px;color:var(--cyan);background:var(--cyan-dim);border:1px solid rgba(6,182,212,0.2);padding:1px 6px;border-radius:3px}
+.tech-desc{font-size:12px;color:var(--text3);flex:1}
+
+/* NAMING */
+.name-card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:28px 24px;margin:20px 0;display:flex;gap:20px;align-items:flex-start}
+.name-symbol{font-size:40px;flex-shrink:0;line-height:1}
+.name-body h3{font-family:var(--mono);font-size:15px;font-weight:600;margin-bottom:8px;color:var(--text)}
+.name-body p{font-size:13.5px;color:var(--text2);line-height:1.7}
+
+/* VERSION HISTORY */
+.version-list{display:flex;flex-direction:column;gap:0;margin-top:16px}
+.version-item{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)}
+.version-item:last-child{border-bottom:none}
+.version-tag{font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px;background:var(--cyan-dim);border:1px solid rgba(6,182,212,0.2);color:var(--cyan);flex-shrink:0;height:fit-content;margin-top:2px}
+.version-body h4{font-family:var(--mono);font-size:12.5px;font-weight:600;margin-bottom:4px;color:var(--text)}
+.version-body p{font-size:12.5px;color:var(--text2);line-height:1.6}
+
+/* CTA SECTION */
+.cta-section{text-align:center;padding:48px 24px;background:var(--bg2);border:1px solid var(--border2);border-radius:16px;margin:48px 0 0}
+.cta-title{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:-0.02em;margin-bottom:10px}
+.cta-sub{font-size:14px;color:var(--text2);margin-bottom:24px}
+.cta-buttons{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.cta-btn{font-family:var(--mono);font-size:11px;font-weight:600;padding:11px 20px;border-radius:8px;cursor:pointer;text-decoration:none;transition:0.15s;letter-spacing:0.06em}
+.cta-primary{background:var(--cyan);color:#000;border:none}
+.cta-primary:hover{background:var(--cyan-hi);transform:translateY(-1px)}
+.cta-secondary{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.cta-secondary:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* FOOTER */
+.footer{padding:24px;text-align:center;border-top:1px solid var(--border)}
+.footer-text{font-family:var(--mono);font-size:9.5px;color:var(--text3);margin-bottom:8px}
+.footer-links{display:flex;gap:16px;justify-content:center}
+.footer-link{font-family:var(--mono);font-size:9.5px;color:var(--text3);text-decoration:none;transition:0.12s}
+.footer-link:hover{color:var(--cyan)}
+
+@media(max-width:600px){
+  .logo-display{flex-direction:column;text-align:center}
+  .name-card{flex-direction:column}
+}
+</style>
+<script>
+// Inline theme preset (prevents flash) — synced with cakra_theme key
+(function(){var s=sessionStorage.getItem('cakra_theme')||'system';var t=s==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):s;document.documentElement.setAttribute('data-theme',t)})();
+</script>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">
+    <span class="nav-icon">◈</span>
+    <span class="nav-text">CAKRA</span>
+  </a>
+  <div class="nav-right">
+    <a href="docs.html" class="nav-btn">Dokumentasi</a>
+    <a href="index.html" class="nav-btn nav-cta">Buka Aplikasi →</a>
+    <button class="theme-btn" id="themeBtn" onclick="cycleTheme()" title="Ganti tema"></button>
+  </div>
+</nav>
+
+<div class="about-hero">
+  <div class="hero-tag">
+    <span class="hero-dot"></span>
+    Tentang Platform
+  </div>
+  <h1 class="hero-title">CAKRA</h1>
+  <p class="hero-sub">
+    Platform analisis drive test berbasis web generasi baru — dirancang dari bawah untuk kebutuhan RF Engineer di lapangan, berjalan sepenuhnya di browser tanpa instalasi.
+  </p>
+</div>
+
+<div class="about-content">
+
+  <!-- WHAT IS CAKRA -->
+  <div class="about-section">
+    <h2>Apa itu Cakra?</h2>
+
+    <div class="logo-display">
+      <div class="logo-big">◈</div>
+      <div class="logo-info">
+        <h3>CAKRA</h3>
+        <p>Drive Test Intelligence · LTE & 5G NR</p>
+      </div>
+    </div>
+
+    <p>
+      <strong>Cakra</strong> adalah platform analisis drive test berbasis web yang berjalan sepenuhnya di browser — tanpa instalasi aplikasi, tanpa backend server, tanpa biaya lisensi. Upload file log dari tool drive test favorit Anda, dan dalam hitungan detik Cakra menyajikan analisis lengkap: grafik interaktif, peta sinyal, distribusi KPI, deteksi titik rawan, hingga laporan AI otomatis.
+    </p>
+    <p>
+      Cakra mendukung semua tool drive test utama yang digunakan di industri telekomunikasi Indonesia — <strong>G-NetTrack Pro</strong>, <strong>TEMS Investigation</strong>, <strong>NEMO Outdoor/Handy</strong>, dan <strong>SIGMON</strong> — dalam satu antarmuka yang konsisten dan intuitif.
+    </p>
+  </div>
+
+  <!-- ASAL NAMA -->
+  <div class="about-section">
+    <h2>Asal Nama</h2>
+    <div class="name-card">
+      <div class="name-symbol">◈</div>
+      <div class="name-body">
+        <h3>Mengapa "Cakra"?</h3>
+        <p>
+          <strong>Cakra</strong> (Sanskrit: <em>cakra</em>, ꦕꦏꦿ) berarti roda atau lingkaran — simbol perputaran, aliran, dan siklus yang tak berhenti. Dalam konteks drive test, nama ini mencerminkan sifat pekerjaan RF engineer: rute yang dilalui berulang, sinyal yang dipantau terus-menerus, dan jaringan yang senantiasa bergerak.
+        </p>
+        <p>
+          Simbol <strong>◈</strong> merepresentasikan sel radio — titik pusat yang memancarkan sinyal ke segala arah, seperti yang dipetakan dalam setiap sesi drive test.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILOSOFI DESAIN -->
+  <div class="about-section">
+    <h2>Filosofi Desain</h2>
+    <p>Cakra dibangun di atas empat prinsip utama:</p>
+    <div class="phil-grid">
+      <div class="phil-card cyan">
+        <div class="phil-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div class="phil-title">Privasi Pertama</div>
+        <div class="phil-desc">Data drive test tidak pernah meninggalkan perangkat. Semua kalkulasi dilakukan di browser — tanpa upload, tanpa server, tanpa risiko kebocoran data jaringan operator.</div>
+      </div>
+      <div class="phil-card green">
+        <div class="phil-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <div class="phil-title">Zero Friction</div>
+        <div class="phil-desc">Tidak ada instalasi, tidak ada akun, tidak ada konfigurasi. Buka browser, upload file, langsung analisis. Desain untuk kecepatan kerja di lapangan.</div>
+      </div>
+      <div class="phil-card purple">
+        <div class="phil-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 22h20L12 2z"/><line x1="12" y1="9" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg></div>
+        <div class="phil-title">Engineer-First</div>
+        <div class="phil-desc">Antarmuka dirancang untuk RF Engineer — bukan manajemen, bukan end-user. Data ditampilkan dengan presisi dan konteks teknis yang dibutuhkan untuk pengambilan keputusan.</div>
+      </div>
+      <div class="phil-card amber">
+        <div class="phil-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+        <div class="phil-title">Universal</div>
+        <div class="phil-desc">Satu platform untuk semua tool. Tidak perlu belajar ulang software berbeda untuk setiap project. Cakra unifies format dari G-NetTrack, TEMS, NEMO, dan SIGMON.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FITUR UNGGULAN -->
+  <div class="about-section">
+    <h2>Fitur Unggulan</h2>
+    <p>
+      Cakra tidak sekadar menampilkan ulang data mentah. Platform ini mengolah, menganalisis, dan menyajikan insight yang actionable untuk RF Engineer.
+    </p>
+    <p>
+      Fitur <strong>AI Analyst</strong> berbasis Groq LLM memungkinkan analisis otomatis mendalam: dari evaluasi KPI terhadap standar 3GPP, identifikasi pola masalah coverage, hingga rekomendasi teknis spesifik. AI dapat diajak berdiskusi interaktif tentang data drive test yang sedang dianalisis — sebuah kapabilitas yang sebelumnya hanya tersedia di platform enterprise berbayar.
+    </p>
+    <p>
+      Peta interaktif dengan multi-layer (RSRP, RSRQ, SNR, Rawan, Events) memungkinkan RF Engineer untuk langsung memvisualisasikan dan mengkomunikasikan kondisi jaringan di lapangan — perfect untuk presentasi client dan laporan internal.
+    </p>
+  </div>
+
+  <!-- TECH STACK -->
+  <div class="about-section">
+    <h2>Teknologi</h2>
+    <p>Cakra dibangun dengan teknologi web modern yang ringan, cepat, dan tidak memerlukan runtime tambahan:</p>
+    <div class="tech-list">
+      <div class="tech-item">
+        <div class="tech-name">Chart.js</div>
+        <div class="tech-ver">v4.4.1</div>
+        <div class="tech-desc">Grafik interaktif RSRP, RSRQ, SNR, Throughput dengan animasi dan zoom</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-name">Leaflet.js</div>
+        <div class="tech-ver">v1.9.4</div>
+        <div class="tech-desc">Peta interaktif multi-layer dengan marker events dan heat-map sinyal</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-name">Groq API</div>
+        <div class="tech-ver">llama-3.3-70b</div>
+        <div class="tech-desc">AI Analyst berbasis Llama 3.3 70B (via Groq) untuk analisis otomatis dan chat interaktif</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-name">CARTO Tiles</div>
+        <div class="tech-ver">Dark Matter</div>
+        <div class="tech-desc">Basemap gelap yang memaksimalkan kontras warna sinyal di peta</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-name">Service Worker</div>
+        <div class="tech-ver">PWA</div>
+        <div class="tech-desc">Cache offline untuk penggunaan tanpa koneksi internet</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-name">Vanilla JS</div>
+        <div class="tech-ver">ES2020+</div>
+        <div class="tech-desc">Zero framework — performa maksimal tanpa bundle overhead</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERSI -->
+  <div class="about-section">
+    <h2>Riwayat Versi</h2>
+    <div class="version-list">
+      <div class="version-item">
+        <div class="version-tag">v2.0.1</div>
+        <div class="version-body">
+          <h4>Bug Fix — Parser Hardening &amp; PDF Report Accuracy</h4>
+        </div>
+      </div>
+      <div class="version-item">
+        <div class="version-tag">v2.0.0</div>
+        <div class="version-body">
+          <h4>Multi-tool Support, AI Analyst &amp; 5G NR</h4>
+        </div>
+      </div>
+      <div class="version-item">
+        <div class="version-tag">v1.1.0</div>
+        <div class="version-body">
+          <h4>Audit Fix &amp; Map UX Refactor</h4>
+        </div>
+      </div>
+      <div class="version-item">
+        <div class="version-tag">v1.0.0</div>
+        <div class="version-body">
+          <h4>Initial Release — Cakra</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <div class="cta-title">Siap mulai analisis?</div>
+    <p class="cta-sub">Upload file drive test Anda sekarang — gratis, tanpa registrasi, tanpa batas.</p>
+    <div class="cta-buttons">
+      <a href="index.html" class="cta-btn cta-primary">◈ Buka Cakra →</a>
+      <a href="docs.html" class="cta-btn cta-secondary">Baca Dokumentasi</a>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <div class="footer-text">CAKRA v2.0.1 — Drive Test Intelligence · © 2026 · Hak Cipta Dilindungi</div>
+  <div class="footer-links">
+    <a href="docs.html" class="footer-link">Panduan Penggunaan</a>
+    <a href="about.html" class="footer-link">Tentang Cakra</a>
+    <a href="index.html" class="footer-link">Buka Aplikasi</a>
+  </div>
+</footer>
+
+<script>
+// ── THEME (synced with cakra_theme key across all pages) ──
+const THEMES = ['dark','light','system'];
+const THEME_ICONS = [
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>'
+];
+let themeIdx = 0;
+function getSystemTheme(){return window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}
+function applyTheme(){
+  const theme = THEMES[themeIdx];
+  const resolved = theme === 'system' ? getSystemTheme() : theme;
+  document.documentElement.setAttribute('data-theme', resolved);
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.innerHTML = THEME_ICONS[themeIdx];
+}
+function cycleTheme(){
+  themeIdx = (themeIdx + 1) % THEMES.length;
+  sessionStorage.setItem('cakra_theme', THEMES[themeIdx]);
+  applyTheme();
+}
+function initTheme(){
+  const saved = sessionStorage.getItem('cakra_theme') || 'system';
+  themeIdx = THEMES.indexOf(saved);
+  if (themeIdx < 0) themeIdx = THEMES.indexOf('system');
+  applyTheme();
+}
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (THEMES[themeIdx] === 'system') applyTheme();
+});
+initTheme();
+</script>
+</body>
+</html>

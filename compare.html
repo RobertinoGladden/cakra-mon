@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#06b6d4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Cakra Compare — Bandingkan beberapa sesi drive test LTE &amp; 5G NR secara berdampingan.">
+<link rel="icon" href="icons/icon.svg">
+<title>Compare Sessions — Cakra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0b;--bg2:#111113;--bg3:#18181b;--bg4:#1f1f23;--bg5:#26262c;--border:rgba(255,255,255,0.055);--border2:rgba(255,255,255,0.09);--text:#ececee;--text2:#8e8e97;--text3:#50505a;--cyan:#06b6d4;--cyan-hi:#22d3ee;--cyan-dim:rgba(6,182,212,0.10);--green:#22c55e;--green-dim:rgba(34,197,94,0.10);--red:#ef4444;--red-dim:rgba(239,68,68,0.10);--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',system-ui,sans-serif}
+[data-theme="light"]{--bg:#f8f9fa;--bg2:#ffffff;--bg3:#f1f3f5;--bg4:#e9ecef;--bg5:#dee2e6;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.12);--text:#0a0a0b;--text2:#495057;--text3:#adb5bd;--cyan-dim:rgba(6,182,212,0.08)}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 24px;height:52px;background:rgba(10,10,11,0.9);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:space-between}
+[data-theme="light"] .nav{background:rgba(248,249,250,0.92)}
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text)}
+.nav-logo-icon{color:var(--cyan);font-size:18px}
+.nav-logo-text{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:0.08em}
+.theme-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;cursor:pointer;color:var(--text2);transition:0.15s}
+.theme-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.container{max-width:1300px;margin:0 auto;padding:20px}
+.header{text-align:center;margin:80px 0 28px;padding:28px}
+.title{font-family:var(--mono);font-size:38px;font-weight:600;margin-bottom:10px}
+.subtitle{font-size:14px;color:var(--text2)}
+
+/* PANEL */
+.panel-grid{display:grid;grid-template-columns:320px 1fr;gap:20px;margin-bottom:24px;align-items:start}
+@media(max-width:900px){.panel-grid{grid-template-columns:1fr}}
+.card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:20px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.card-label{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em}
+
+/* BADGES */
+.badge{font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:0.05em}
+.b0{background:rgba(6,182,212,0.12);color:#06b6d4;border:1px solid rgba(6,182,212,0.22)}
+.b1{background:rgba(34,197,94,0.10);color:#22c55e;border:1px solid rgba(34,197,94,0.22)}
+.b2{background:rgba(249,115,22,0.10);color:#f97316;border:1px solid rgba(249,115,22,0.22)}
+.b3{background:rgba(168,85,247,0.10);color:#a855f7;border:1px solid rgba(168,85,247,0.22)}
+.b4{background:rgba(234,179,8,0.10);color:#eab308;border:1px solid rgba(234,179,8,0.22)}
+.b5{background:rgba(236,72,153,0.10);color:#ec4899;border:1px solid rgba(236,72,153,0.22)}
+.b6{background:rgba(20,184,166,0.10);color:#14b8a6;border:1px solid rgba(20,184,166,0.22)}
+.b7{background:rgba(251,146,60,0.10);color:#fb923c;border:1px solid rgba(251,146,60,0.22)}
+
+/* SESSION 1 */
+.s1-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:100px;color:var(--text3);font-size:12px}
+.spin{animation:spin 2s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.file-row{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;word-break:break-all;margin-bottom:6px}
+.file-row svg{flex-shrink:0;color:var(--cyan)}
+.stat-row{display:flex;justify-content:space-between;padding:6px 0;font-size:11.5px;border-bottom:1px solid var(--border)}
+.stat-row:last-child{border-bottom:none}
+.stat-label{color:var(--text2)}
+.stat-value{font-family:var(--mono);font-weight:600;color:var(--cyan)}
+
+/* UPLOAD ZONE */
+.upload-zone{background:var(--bg3);border:2px dashed var(--border2);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border-color 0.2s,background 0.2s;display:flex;flex-direction:column;align-items:center;gap:8px;min-height:110px;justify-content:center}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--cyan);background:var(--cyan-dim)}
+.upload-icon{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:var(--bg4);border-radius:10px;color:var(--text3);transition:0.2s}
+.upload-zone:hover .upload-icon,.upload-zone.drag-over .upload-icon{background:var(--cyan-dim);color:var(--cyan)}
+
+/* SESSION LIST */
+.sess-list{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.sess-empty{text-align:center;padding:14px;color:var(--text3);font-size:11.5px;font-style:italic}
+.sess-item{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.sess-item:hover{border-color:var(--border2)}
+.sess-item-info{flex:1;min-width:0}
+.sess-item-name{font-size:11.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sess-item-meta{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:2px}
+.sess-remove{width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid var(--border);border-radius:5px;cursor:pointer;color:var(--text3);transition:0.15s;flex-shrink:0}
+.sess-remove:hover{color:var(--red);border-color:var(--red);background:var(--red-dim)}
+
+/* ACTIONS */
+.actions{display:flex;gap:12px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.btn{font-family:var(--mono);font-size:11px;font-weight:600;padding:11px 22px;border-radius:8px;border:none;cursor:pointer;transition:0.15s;letter-spacing:0.04em;display:inline-flex;align-items:center;gap:7px}
+.btn-primary{background:var(--cyan);color:#000}
+.btn-primary:hover{background:var(--cyan-hi)}
+.btn-primary:disabled{opacity:0.35;cursor:not-allowed}
+.btn-secondary{background:var(--bg3);border:1px solid var(--border2);color:var(--text2)}
+.btn-secondary:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* RESULT TABLES */
+.result-section{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;margin-bottom:20px;overflow:hidden}
+.sect-title{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.cmp-table{width:100%;border-collapse:collapse;font-size:12px}
+.cmp-table th{background:var(--bg3);padding:10px 14px;text-align:left;font-family:var(--mono);font-size:10px;font-weight:700;border-bottom:2px solid var(--border2);white-space:nowrap}
+.cmp-table td{padding:9px 14px;border-bottom:1px solid var(--border);white-space:nowrap}
+.cmp-table tr:last-child td{border-bottom:none}
+.cmp-table tr:hover td{background:rgba(255,255,255,0.02)}
+.col-metric{color:var(--text2);font-family:var(--mono);font-size:11px}
+.val-better{color:var(--green)}
+.val-worse{color:var(--red)}
+
+/* per-session col colors */
+.th0{background:rgba(6,182,212,0.09)!important;color:#06b6d4!important}
+.th1{background:rgba(34,197,94,0.08)!important;color:#22c55e!important}
+.th2{background:rgba(249,115,22,0.08)!important;color:#f97316!important}
+.th3{background:rgba(168,85,247,0.08)!important;color:#a855f7!important}
+.th4{background:rgba(234,179,8,0.08)!important;color:#eab308!important}
+.th5{background:rgba(236,72,153,0.08)!important;color:#ec4899!important}
+.th6{background:rgba(20,184,166,0.08)!important;color:#14b8a6!important}
+.th7{background:rgba(251,146,60,0.08)!important;color:#fb923c!important}
+.td0{background:rgba(6,182,212,0.04)!important}
+.td1{background:rgba(34,197,94,0.03)!important}
+.td2{background:rgba(249,115,22,0.03)!important}
+.td3{background:rgba(168,85,247,0.03)!important}
+.td4{background:rgba(234,179,8,0.03)!important}
+.td5{background:rgba(236,72,153,0.03)!important}
+.td6{background:rgba(20,184,166,0.03)!important}
+.td7{background:rgba(251,146,60,0.03)!important}
+
+.back-btn{font-family:var(--mono);font-size:11px;color:var(--cyan);text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-bottom:18px}
+.back-btn:hover{color:var(--cyan-hi)}
+</style>
+</head>
+<body>
+<script>
+(function(){var s=sessionStorage.getItem('cakra_theme')||'system';var t=s==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):s;document.documentElement.setAttribute('data-theme',t)})();
+</script>
+
+<nav class="nav">
+  <a href="dashboard.html" class="nav-logo">
+    <span class="nav-logo-icon">◈</span>
+    <span class="nav-logo-text">CAKRA</span>
+  </a>
+  <button class="theme-btn" id="themeBtn" onclick="cycleTheme()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</nav>
+
+<div class="container">
+  <div class="header">
+    <div class="title">Bandingkan Sesi</div>
+    <div class="subtitle">Upload banyak file sekaligus untuk perbandingan multi-sesi</div>
+  </div>
+
+  <div class="panel-grid">
+    <!-- KIRI: Sesi Aktif -->
+    <div class="card">
+      <div class="card-header">
+        <div class="badge b0">Sesi 1</div>
+        <div class="card-label">Sesi Aktif</div>
+      </div>
+      <div id="s1Info" class="s1-placeholder">
+        <span class="spin" style="font-size:18px">⟳</span>
+        <span>Memuat data...</span>
+      </div>
+    </div>
+
+    <!-- KANAN: Upload multi file -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-label">Sesi Pembanding</div>
+        <span id="countBadge" class="badge b0">0 file</span>
+      </div>
+
+      <div class="upload-zone" id="uploadZone"
+        onclick="document.getElementById('fileInput').click()"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="handleDrop(event)">
+        <div class="upload-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div style="font-size:12px;font-weight:500">Pilih atau drop banyak file</div>
+        <div style="font-size:10.5px;color:var(--text3)">Bisa upload beberapa .txt/.csv sekaligus</div>
+        <input type="file" id="fileInput" accept=".txt,.csv" multiple style="display:none" onchange="handleFileSelect(event)">
+      </div>
+
+      <div class="sess-list" id="sessList">
+        <div class="sess-empty" id="sessEmpty">Belum ada file diupload</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button class="btn btn-primary" id="compareBtn" onclick="runComparison()" disabled>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+      Jalankan Perbandingan
+    </button>
+    <button class="btn btn-secondary" onclick="clearAll()">Hapus Semua File</button>
+    <button class="btn btn-secondary" onclick="location.href='dashboard.html'">Kembali</button>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results" style="display:none">
+    <div class="result-section">
+      <div class="sect-title">Perbandingan KPI</div>
+      <div class="tbl-wrap"><table class="cmp-table"><thead id="kpiHead"></thead><tbody id="kpiBody"></tbody></table></div>
+    </div>
+    <div class="result-section">
+      <div class="sect-title">Distribusi Sinyal RSRP</div>
+      <div class="tbl-wrap"><table class="cmp-table"><thead id="distHead"></thead><tbody id="distBody"></tbody></table></div>
+    </div>
+    <div class="result-section">
+      <div class="sect-title">Serving Cell Distribution (Top 10)</div>
+      <div class="tbl-wrap" id="cellWrap"></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/parser.js"></script>
+<script>
+// ─── STATE ───
+var S1 = null;           // current session data
+var EXTRAS = [];         // [{name, data}]
+var COLORS = ['#06b6d4','#22c55e','#f97316','#a855f7','#eab308','#ec4899','#14b8a6','#fb923c'];
+
+// ─── THEME ───
+var THEMES = ['dark','light','system'];
+var TICONS = [
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>'
+];
+var tIdx = 0;
+function initTheme(){var s=sessionStorage.getItem('cakra_theme')||'system';tIdx=THEMES.indexOf(s);if(tIdx<0)tIdx=0;applyTheme()}
+function cycleTheme(){tIdx=(tIdx+1)%THEMES.length;sessionStorage.setItem('cakra_theme',THEMES[tIdx]);applyTheme()}
+function applyTheme(){var t=THEMES[tIdx];if(t==='system')t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);var b=document.getElementById('themeBtn');if(b)b.innerHTML=TICONS[tIdx]}
+
+// ─── METRICS ───
+function getMetrics(data){
+  var rsrps=data.map(function(d){return d.rsrp}).filter(function(v){return v!=null&&!isNaN(v)});
+  var rsrqs=data.map(function(d){return d.rsrq}).filter(function(v){return v!=null&&!isNaN(v)});
+  var snrs=data.map(function(d){return d.snr}).filter(function(v){return v!=null&&!isNaN(v)});
+  var speeds=data.map(function(d){return d.speed}).filter(function(v){return v!=null&&!isNaN(v)});
+  var dls=data.map(function(d){return d.dl}).filter(function(v){return v!=null&&!isNaN(v)});
+  var uls=data.map(function(d){return d.ul}).filter(function(v){return v!=null&&!isNaN(v)});
+  function avg(a){return a.length?a.reduce(function(x,y){return x+y},0)/a.length:null}
+  function fmt(v,u){return v!=null?v.toFixed(1)+(u||''):'N/A'}
+  return [
+    {key:'Data Points',   raw:data.length,            disp:data.length.toLocaleString(), hib:null},
+    {key:'Avg RSRP',      raw:avg(rsrps),              disp:fmt(avg(rsrps),' dBm'),       hib:true},
+    {key:'Min RSRP',      raw:rsrps.length?Math.min.apply(null,rsrps):null, disp:fmt(rsrps.length?Math.min.apply(null,rsrps):null,' dBm'), hib:true},
+    {key:'Max RSRP',      raw:rsrps.length?Math.max.apply(null,rsrps):null, disp:fmt(rsrps.length?Math.max.apply(null,rsrps):null,' dBm'), hib:true},
+    {key:'Avg RSRQ',      raw:avg(rsrqs),              disp:fmt(avg(rsrqs),' dB'),        hib:true},
+    {key:'Avg SINR',      raw:avg(snrs),               disp:fmt(avg(snrs),' dB'),         hib:true},
+    {key:'Avg Speed',     raw:avg(speeds)!=null?avg(speeds)*3.6:null, disp:fmt(avg(speeds)!=null?avg(speeds)*3.6:null,' km/h'), hib:null},
+    {key:'Avg DL',        raw:avg(dls),                disp:fmt(avg(dls),' Mbps'),        hib:true},
+    {key:'Avg UL',        raw:avg(uls),                disp:fmt(avg(uls),' Mbps'),        hib:true},
+  ];
+}
+
+function getDist(data){
+  var rsrps=data.map(function(d){return d.rsrp}).filter(function(v){return v!=null&&!isNaN(v)});
+  var ranges={'> -75 dBm':0,'-75 to -85':0,'-85 to -95':0,'-95 to -105':0,'-105 to -115':0,'< -115 dBm':0};
+  rsrps.forEach(function(r){
+    if(r>-75)ranges['> -75 dBm']++;
+    else if(r>=-85)ranges['-75 to -85']++;
+    else if(r>=-95)ranges['-85 to -95']++;
+    else if(r>=-105)ranges['-95 to -105']++;
+    else if(r>=-115)ranges['-105 to -115']++;
+    else ranges['< -115 dBm']++;
+  });
+  return{ranges:ranges,total:rsrps.length};
+}
+
+// ─── SESSION 1 ───
+function loadS1(){
+  try{
+    var raw=sessionStorage.getItem('cakra_data');
+    if(!raw){setS1Err('Tidak ada sesi aktif');return}
+    S1=JSON.parse(raw);
+    if(!S1||!S1.length){setS1Err('Data kosong');return}
+    renderS1(sessionStorage.getItem('cakra_filename')||'Sesi Aktif');
+  }catch(e){setS1Err('Error loading session')}
+}
+function setS1Err(msg){document.getElementById('s1Info').innerHTML='<span style="color:var(--red);font-size:12px">'+msg+'</span>'}
+function renderS1(fname){
+  var m=getMetrics(S1);
+  var short=fname.length>38?fname.slice(0,36)+'…':fname;
+  var h='<div class="file-row"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span title="'+fname+'">'+short+'</span></div>';
+  var preview=['Data Points','Avg RSRP','Min RSRP','Max RSRP','Avg Speed'];
+  preview.forEach(function(k){
+    var item=m.find(function(x){return x.key===k});
+    if(item)h+='<div class="stat-row"><span class="stat-label">'+k+'</span><span class="stat-value">'+item.disp+'</span></div>';
+  });
+  document.getElementById('s1Info').innerHTML=h;
+}
+
+// ─── FILE UPLOAD ───
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag-over');
+  if(e.dataTransfer.files.length)processFiles(e.dataTransfer.files);
+}
+function handleFileSelect(e){
+  if(e.target.files.length)processFiles(e.target.files);
+  e.target.value='';
+}
+// ─── SESSION GROUPING HELPERS ───
+// G-Net produces 4 files per session with suffixes: _events, _datatest, _cellinfo
+// Files sharing the same base timestamp prefix = one session
+// Priority for main data: plain .txt (no suffix) > _datatest > _cellinfo (ignore _events)
+var SUFFIXES = ['_events', '_datatest', '_cellinfo'];
+var MAIN_SUFFIX_PRIORITY = ['_datatest', '_cellinfo']; // fallback if no plain .txt
+
+function getSessionKey(filename) {
+  // Strip .txt extension
+  var base = filename.replace(/\.txt$/i, '');
+  // Remove known suffixes to get the session key (timestamp prefix)
+  for (var i = 0; i < SUFFIXES.length; i++) {
+    if (base.endsWith(SUFFIXES[i])) {
+      return base.slice(0, base.length - SUFFIXES[i].length);
+    }
+  }
+  return base; // plain file, key = itself
+}
+
+function getFileSuffix(filename) {
+  var base = filename.replace(/\.txt$/i, '');
+  for (var i = 0; i < SUFFIXES.length; i++) {
+    if (base.endsWith(SUFFIXES[i])) return SUFFIXES[i];
+  }
+  return '_main'; // plain file
+}
+
+function processFiles(list) {
+  // Step 1: read all files first, then group by session key
+  var pending = Array.from(list);
+  var fileResults = {}; // key: filename → {sessionKey, suffix, content}
+  var readCount = 0;
+
+  pending.forEach(function(file) {
+    var r = new FileReader();
+    r.onload = function(ev) {
+      var sessionKey = getSessionKey(file.name);
+      var suffix = getFileSuffix(file.name);
+      if (!fileResults[sessionKey]) fileResults[sessionKey] = {};
+      fileResults[sessionKey][suffix] = { name: file.name, content: ev.target.result };
+      readCount++;
+      if (readCount === pending.length) {
+        // All files read — now group into sessions
+        groupAndAddSessions(fileResults);
+      }
+    };
+    r.readAsText(file);
+  });
+}
+
+function groupAndAddSessions(fileResults) {
+  var added = 0, skipped = 0, errors = [];
+
+  Object.keys(fileResults).forEach(function(sessionKey) {
+    var group = fileResults[sessionKey];
+
+    // Skip if this session key already loaded
+    if (EXTRAS.find(function(s) { return s.sessionKey === sessionKey; })) {
+      skipped++;
+      return;
+    }
+
+    // Pick the main data file: plain > _datatest > _cellinfo; skip _events entirely
+    var mainFile = group['_main'] || group['_datatest'] || group['_cellinfo'] || null;
+    if (!mainFile) { skipped++; return; } // only had _events
+
+    try {
+      var rows = CakraParser.parseTxt(mainFile.content);
+      if (!rows.length) {
+        errors.push(mainFile.name + ' (tidak ada data valid)');
+        return;
+      }
+      // Use the plain filename (or the main file used) as display name
+      var displayName = group['_main'] ? group['_main'].name : mainFile.name;
+      EXTRAS.push({ name: displayName, sessionKey: sessionKey, data: rows });
+      added++;
+    } catch(err) {
+      errors.push(mainFile.name + ': ' + err.message);
+    }
+  });
+
+  renderList();
+  updateUI();
+
+  if (errors.length) {
+    alert('Gagal baca ' + errors.length + ' file:\n' + errors.join('\n'));
+  }
+}
+function removeSession(i){
+  EXTRAS.splice(i,1);
+  renderList();
+  updateUI();
+  if(!EXTRAS.length)document.getElementById('results').style.display='none';
+}
+function clearAll(){
+  EXTRAS=[];
+  renderList();
+  updateUI();
+  document.getElementById('results').style.display='none';
+}
+
+function renderList(){
+  var list=document.getElementById('sessList');
+  var empty=document.getElementById('sessEmpty');
+  document.getElementById('countBadge').textContent=EXTRAS.length+' sesi';
+  list.querySelectorAll('.sess-item').forEach(function(el){el.remove()});
+  if(!EXTRAS.length){empty.style.display='block';return}
+  empty.style.display='none';
+  EXTRAS.forEach(function(sess,i){
+    var ci=(i+1)%COLORS.length;
+    var m=getMetrics(sess.data);
+    var avgRsrp=m.find(function(x){return x.key==='Avg RSRP'});
+    var pts=m.find(function(x){return x.key==='Data Points'});
+    var dl=m.find(function(x){return x.key==='Avg DL'});
+    var item=document.createElement('div');
+    item.className='sess-item';
+    item.innerHTML='<span class="badge b'+ci+'">Sesi '+(i+2)+'</span>'
+      +'<div class="sess-item-info"><div class="sess-item-name" title="'+sess.name+'">'+sess.name+'</div>'
+      +'<div class="sess-item-meta">'+(pts?pts.disp:'?')+' pts · RSRP '+(avgRsrp?avgRsrp.disp:'N/A')+' · DL '+(dl?dl.disp:'N/A')+'</div></div>'
+      +'<button class="sess-remove" onclick="removeSession('+i+')" title="Hapus">'
+      +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+      +'</button>';
+    list.appendChild(item);
+  });
+}
+
+function updateUI(){
+  document.getElementById('compareBtn').disabled=!(S1&&EXTRAS.length>0);
+}
+
+// ─── COMPARISON ───
+function allSessions(){
+  return [{name:sessionStorage.getItem('cakra_filename')||'Sesi Aktif',data:S1}].concat(EXTRAS);
+}
+
+function makeHead(sessions){
+  return sessions.map(function(s,i){
+    var short=s.name.length>20?s.name.slice(0,18)+'…':s.name;
+    return '<th class="th'+i+'" title="'+s.name+'">Sesi '+(i+1)+'<br><span style="font-size:9px;font-weight:400;opacity:0.65">'+short+'</span></th>';
+  }).join('');
+}
+
+function runComparison(){
+  if(!S1||!EXTRAS.length)return;
+  var sessions=allSessions();
+
+  // KPI
+  var allM=sessions.map(function(s){return getMetrics(s.data)});
+  var ref=allM[0];
+  document.getElementById('kpiHead').innerHTML='<tr><th style="min-width:110px">Metrik</th>'+makeHead(sessions)+'<th>Δ vs Sesi 1</th></tr>';
+  var kbody='';
+  ref.forEach(function(refItem){
+    var k=refItem.key;
+    var row='<td class="col-metric">'+k+'</td>';
+    allM.forEach(function(m,i){
+      var item=m.find(function(x){return x.key===k});
+      row+='<td class="td'+i+'">'+(item?item.disp:'N/A')+'</td>';
+    });
+    // delta cells
+    var deltas=allM.slice(1).map(function(m,i){
+      var item=m.find(function(x){return x.key===k});
+      if(!item||item.raw==null||refItem.raw==null)return'<span style="color:var(--text3)">—</span>';
+      var d=item.raw-refItem.raw;
+      var sign=d>=0?'+':'';
+      var cls=refItem.hib===true?(d>=0?'val-better':'val-worse'):refItem.hib===false?(d<=0?'val-better':'val-worse'):'';
+      return'<span class="'+cls+'" style="color:'+COLORS[(i+1)%COLORS.length]+'">'+sign+d.toFixed(1)+'</span>';
+    }).join('<span style="color:var(--text3)"> / </span>');
+    row+='<td style="font-family:var(--mono);font-size:11px;font-weight:700">'+deltas+'</td>';
+    kbody+='<tr>'+row+'</tr>';
+  });
+  document.getElementById('kpiBody').innerHTML=kbody;
+
+  // DIST
+  var allD=sessions.map(function(s){return getDist(s.data)});
+  document.getElementById('distHead').innerHTML='<tr><th style="min-width:130px">Range</th>'+makeHead(sessions)+'</tr>';
+  var dbody='';
+  Object.keys(allD[0].ranges).forEach(function(range){
+    var row='<td class="col-metric">'+range+'</td>';
+    allD.forEach(function(d,i){
+      var cnt=d.ranges[range];
+      var pct=d.total?(cnt/d.total*100).toFixed(1):'0.0';
+      row+='<td class="td'+i+'">'+cnt.toLocaleString()+' <span style="color:var(--text3);font-size:10px">('+pct+'%)</span></td>';
+    });
+    dbody+='<tr>'+row+'</tr>';
+  });
+  document.getElementById('distBody').innerHTML=dbody;
+
+  // CELL
+  var allCM=sessions.map(function(s){
+    var cells={};
+    s.data.forEach(function(d){if(d.cellname)cells[d.cellname]=(cells[d.cellname]||0)+1});
+    return cells;
+  });
+  var allCells={};
+  allCM.forEach(function(m){Object.keys(m).forEach(function(c){allCells[c]=(allCells[c]||0)+m[c]})});
+  var top=Object.keys(allCells).sort(function(a,b){return allCells[b]-allCells[a]}).slice(0,10);
+  if(!top.length){document.getElementById('cellWrap').innerHTML='<p style="color:var(--text3);font-size:12px;padding:8px">Tidak ada data cell.</p>';}
+  else{
+    var ch='<table class="cmp-table"><thead><tr><th style="min-width:140px">Cell Name</th>'+makeHead(sessions)+'</tr></thead><tbody>';
+    top.forEach(function(cell){
+      var row='<td class="col-metric">'+cell+'</td>';
+      allCM.forEach(function(m,i){row+='<td class="td'+i+'">'+(m[cell]||0).toLocaleString()+'</td>'});
+      ch+='<tr>'+row+'</tr>';
+    });
+    document.getElementById('cellWrap').innerHTML=ch+'</tbody></table>';
+  }
+
+  document.getElementById('results').style.display='block';
+  document.getElementById('results').scrollIntoView({behavior:'smooth'});
+}
+
+// ─── INIT ───
+document.addEventListener('DOMContentLoaded',function(){
+  initTheme();
+  loadS1();
+  updateUI();
+});
+</script>
+<footer style="text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10px;color:var(--text3);border-top:1px solid var(--border);margin-top:40px;letter-spacing:0.06em">CAKRA v2.0.1 — Drive Test Intelligence &nbsp;·&nbsp; © 2026 · Hak Cipta Dilindungi</footer>
+</body>
+</html>
