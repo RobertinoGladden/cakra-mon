@@ -40,6 +40,21 @@ Data drive test diproses **100% di browser** dan tidak pernah dikirim ke server 
 
 ---
 
+## Virtual Drive Test — Mobility Engine & Peta 3D (v2.2)
+
+Modul `predict.html` (Virtual Drive Test) kini memakai engine handover berbasis standar, bukan lagi "site RSRP tertinggi langsung menang":
+
+- **L3 quality filtering** (3GPP TS 36.331 §5.5.3.2): `F_n = (1-a)·F_{n-1} + a·M_n`, `a = 1/2^(k/4)` — meredam fast-fading sebelum dipakai untuk keputusan mobility.
+- **Event A3** (§5.5.4.4): `Mn − Hysteresis > Mp + A3-Offset` — neighbour harus lebih baik dari serving cell sebesar margin tertentu.
+- **Time-to-Trigger**: kondisi A3 harus bertahan terus-menerus selama TTT (0–5120 ms, nilai standar 3GPP) sebelum handover benar-benar dieksekusi.
+- **Ping-pong**: HO balik ke sel asal dalam jendela waktu pendek pasca-HO sebelumnya ditandai sbg indikator tuning kurang tepat.
+
+Parameter ini (`Hysteresis`, `A3-Offset`, `TimeToTrigger`, `FilterCoefficient`) sama persis dengan yang di-tuning RF engineer di OSS Huawei/Ericsson/Nokia, bisa diatur langsung di Step 4. Implementasi ada di `js/handover.js`, dipakai oleh `js/predict.js`.
+
+Peta 3D (tombol "🧊 Peta 3D" di halaman Virtual Drive Test) memakai **MapLibre GL JS + OpenFreeMap** (`js/map3d.js`) — gratis, tanpa API key, dengan 3D building extrusion native dari data OSM asli. Ini murni untuk visualisasi konteks lapangan (skyline, ketinggian bangunan vs antena); perhitungan obstruksi LOS/NLOS tetap memakai data Overpass API (`js/buildings.js`, juga OSM, juga tanpa API key — kadang kena rate-limit, bukan butuh key).
+
+---
+
 ## Struktur File
 
 ```

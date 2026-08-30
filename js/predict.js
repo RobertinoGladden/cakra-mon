@@ -1,26 +1,33 @@
-// predict.js — Virtual Drive Test controller (multi-step wizard) — Cakra v2.1
+// predict.js — Virtual Drive Test controller (multi-step wizard, multi-site) — Cakra v2.2
 // Menghubungkan propagation.js (model RF) + buildings.js (data OSM) ke peta Leaflet,
-// lalu menyimulasikan "virtual drive" sepanjang rute dan memvalidasi vs data nyata.
+// mendukung banyak site sekaligus (best-server / handover), lalu menyimulasikan
+// "virtual drive" sepanjang rute dan memvalidasi vs data nyata.
 // © 2026 — dikembangkan sebagai ekstensi Cakra Drive Test Intelligence.
 
 'use strict';
 
 window.CakraVDT = (() => {
   let map = null;
-  let siteMarker = null;
-  let sectorLayer = null;
-  let heatOverlay = null;
   let buildingsLayer = null;
   let realDataLayer = null;
-  let buildingsCache = null;
-  let lastResult = null;          // hasil prediksi grid
+  let buildingsCache = null;      // { key, radius, list }
+  let lastResult = null;          // hasil prediksi grid (multi-site, best-server)
   let lastRoute = null;           // hasil simulasi rute
   let routeLayer = null;          // polyline rute
   let routeSampleLayer = null;    // marker hasil simulasi
+  let handoverLayer = null;       // marker titik handover
   let drawMode = false;
   let routePts = [];
   let routeChartObj = null;
   let currentStep = 1;
+
+  // ── MULTI-SITE STATE ──
+  let sites = [];                 // [{id,name,lat,lon,hb,azimuth,mechTilt,elecTilt,...,marker,sectorLayer}]
+  let activeSiteId = null;
+  let siteCounter = 0;
+  const SITE_COLORS = ['#38bdf8', '#a78bfa', '#fb923c', '#4ade80', '#f472b6', '#facc15'];
+  const MAX_SITES = 6;
+  const RX_HEIGHT = 1.5;
 
   const BAND_PRESETS = {
     900:  { label: '900 MHz (GSM/LTE)',      freqMHz: 900 },
@@ -36,29 +43,17 @@ window.CakraVDT = (() => {
     v > -100 ? [250, 204, 21] : v > -110 ? [251, 146, 60] : [248, 113, 113];
 
   function rgb(a){ return `rgb(${a[0]},${a[1]},${a[2]})`; }
-
   function $(id){ return document.getElementById(id); }
+  function siteColor(site){ const i = sites.findIndex(s => s.id === site.id); return SITE_COLORS[i % SITE_COLORS.length]; }
+  function siteById(id){ return sites.find(s => s.id === id) || null; }
 
-  function readForm() {
+  // ─────────────────────────────────────────────
+  // FORM ↔ ACTIVE SITE
+  // ─────────────────────────────────────────────
+  function readSharedForm() {
     return {
       name: ($('scenarioName').value || '').trim(),
       op: ($('scenarioOp').value || '').trim(),
-      lat: parseFloat($('siteLat').value),
-      lon: parseFloat($('siteLon').value),
-      hb: parseFloat($('siteHeight').value),
-      hm: 1.5,
-      azimuth: parseFloat($('siteAzimuth').value),
-      mechTilt: parseFloat($('mechTilt').value),
-      elecTilt: parseFloat($('elecTilt').value),
-      txPowerDbm: parseFloat($('txPower').value),
-      feederLossDb: parseFloat($('feederLoss').value),
-      gainMaxDbi: parseFloat($('antGain').value),
-      beamwidthH: parseFloat($('beamwidthH').value),
-      beamwidthV: parseFloat($('beamwidthV').value),
-      frontToBack: parseFloat($('frontToBack').value),
-      slaV: parseFloat($('slaV').value),
-      freqMHz: parseFloat($('band').value),
-      env: $('env').value,
       radiusM: parseFloat($('radius').value),
       cellSizeM: parseFloat($('resolution').value),
       thresholdDbm: parseFloat($('threshold').value),
@@ -68,116 +63,314 @@ window.CakraVDT = (() => {
     };
   }
 
-  // ─────────────────────────────────────────────
-  // STEPPER
-  // ─────────────────────────────────────────────
-  function goto(step) {
-    currentStep = step;
-    for (let i = 1; i <= 5; i++) {
-      const sec = $('step' + i);
-      if (sec) sec.classList.toggle('active', i === step);
-      const btn = document.querySelector('.step-btn[data-step="' + i + '"]');
-      if (btn) {
-        btn.classList.toggle('active', i === step);
-        btn.classList.toggle('done', i < step);
-      }
-    }
-    if (step === 5) buildReport();
-    if (step === 4 && !drawMode) $('mapHint').classList.remove('show');
+  // Baca field form (Step 1 lokasi + Step 2 antenna/radio) ke object site aktif
+  function syncFormToActiveSite() {
+    const site = siteById(activeSiteId);
+    if (!site) return;
+    const lat = parseFloat($('siteLat').value), lon = parseFloat($('siteLon').value);
+    if (!isNaN(lat)) site.lat = lat;
+    if (!isNaN(lon)) site.lon = lon;
+    site.name = ($('siteName').value || site.name || 'Site').trim();
+    site.hb = parseFloat($('siteHeight').value);
+    site.azimuth = parseFloat($('siteAzimuth').value);
+    site.mechTilt = parseFloat($('mechTilt').value);
+    site.elecTilt = parseFloat($('elecTilt').value);
+    site.txPowerDbm = parseFloat($('txPower').value);
+    site.feederLossDb = parseFloat($('feederLoss').value);
+    site.gainMaxDbi = parseFloat($('antGain').value);
+    site.beamwidthH = parseFloat($('beamwidthH').value);
+    site.beamwidthV = parseFloat($('beamwidthV').value);
+    site.frontToBack = parseFloat($('frontToBack').value);
+    site.slaV = parseFloat($('slaV').value);
+    site.freqMHz = parseFloat($('band').value);
+    site.env = $('env').value;
+    redrawSiteMapObjects(site);
   }
+
+  function loadSiteToForm(site) {
+    $('siteName').value = site.name;
+    $('siteLat').value = site.lat.toFixed(6);
+    $('siteLon').value = site.lon.toFixed(6);
+    $('siteHeight').value = site.hb;
+    $('siteAzimuth').value = site.azimuth;
+    $('mechTilt').value = site.mechTilt;
+    $('elecTilt').value = site.elecTilt;
+    $('txPower').value = site.txPowerDbm;
+    $('feederLoss').value = site.feederLossDb;
+    $('antGain').value = site.gainMaxDbi;
+    $('beamwidthH').value = site.beamwidthH;
+    $('beamwidthV').value = site.beamwidthV;
+    $('frontToBack').value = site.frontToBack;
+    $('slaV').value = site.slaV;
+    $('band').value = site.freqMHz;
+    $('env').value = site.env;
+  }
+
+  function makeDefaultSite(lat, lon) {
+    siteCounter++;
+    const idx = sites.length;
+    return {
+      id: 'site_' + siteCounter,
+      name: 'Site ' + siteCounter,
+      lat, lon, hb: 30,
+      azimuth: (idx * 120) % 360, mechTilt: 2, elecTilt: 4,
+      txPowerDbm: 43, feederLossDb: 2, gainMaxDbi: 17,
+      beamwidthH: 65, beamwidthV: 8, frontToBack: 25, slaV: 20,
+      freqMHz: 1800, env: 'urban',
+      marker: null, sectorLayer: null,
+    };
+  }
+
+  // ─────────────────────────────────────────────
+  // SITE MANAGEMENT (Step 1)
+  // ─────────────────────────────────────────────
+  function addSite(lat, lon) {
+    if (sites.length >= MAX_SITES) { alert('Maksimum ' + MAX_SITES + ' site untuk simulasi multi-site/handover.'); return; }
+    if (activeSiteId) syncFormToActiveSite();
+    let baseLat = lat, baseLon = lon;
+    if (baseLat === undefined) {
+      const ref = siteById(activeSiteId) || sites[0];
+      if (ref) { baseLat = ref.lat + 0.004; baseLon = ref.lon + 0.004; }
+      else { baseLat = -6.2088; baseLon = 106.8456; }
+    }
+    const site = makeDefaultSite(baseLat, baseLon);
+    sites.push(site);
+    createSiteMapObjects(site);
+    buildingsCache = null;
+    selectSite(site.id);
+    renderSiteList();
+  }
+
+  function removeSite(id) {
+    if (sites.length <= 1) { alert('Minimal harus ada 1 site.'); return; }
+    const site = siteById(id);
+    if (!site) return;
+    if (site.marker) map.removeLayer(site.marker);
+    if (site.sectorLayer) map.removeLayer(site.sectorLayer);
+    sites = sites.filter(s => s.id !== id);
+    if (activeSiteId === id) selectSite(sites[0].id); else renderSiteList();
+    buildingsCache = null;
+  }
+
+  function selectSite(id) {
+    if (activeSiteId && activeSiteId !== id) syncFormToActiveSite();
+    activeSiteId = id;
+    const site = siteById(id);
+    if (!site) return;
+    loadSiteToForm(site);
+    renderSiteList();
+    highlightActiveMarker();
+    if (map) map.panTo([site.lat, site.lon]);
+    updateSectorPreview();
+  }
+
+  function renderSiteList() {
+    const el = $('siteList');
+    if (!el) return;
+    el.innerHTML = sites.map(s => `
+      <div class="site-chip ${s.id === activeSiteId ? 'active' : ''}" onclick="CakraVDT.selectSite('${s.id}')">
+        <span class="site-dot" style="background:${siteColor(s)}"></span>
+        <span class="site-chip-meta">
+          <span class="site-chip-name">${escapeHtml(s.name)}</span>
+          <span class="site-chip-sub">${s.lat.toFixed(4)}, ${s.lon.toFixed(4)} · ${BAND_PRESETS[s.freqMHz] ? BAND_PRESETS[s.freqMHz].label : s.freqMHz + ' MHz'}</span>
+        </span>
+        <button class="site-chip-del" title="Hapus site" onclick="event.stopPropagation();CakraVDT.removeSite('${s.id}')">✕</button>
+      </div>`).join('');
+    const countEl = $('siteCount'); if (countEl) countEl.textContent = sites.length + ' / ' + MAX_SITES + ' site';
+  }
+
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   // ─────────────────────────────────────────────
   // MAP
   // ─────────────────────────────────────────────
   function initMap(defaultLat, defaultLon) {
     if (map) return;
-    map = L.map('predictMap', { zoomControl: true, attributionControl: true }).setView([defaultLat, defaultLon], 16);
+    map = L.map('predictMap', { zoomControl: true, attributionControl: true }).setView([defaultLat, defaultLon], 15);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       maxZoom: 20, subdomains: 'abcd',
       attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
     }).addTo(map);
 
-    if (!map.getPane('predictPane')) {
-      map.createPane('predictPane');
-      map.getPane('predictPane').style.zIndex = 350;
-    }
-    if (!map.getPane('buildingPane')) {
-      map.createPane('buildingPane');
-      map.getPane('buildingPane').style.zIndex = 420;
-    }
-    if (!map.getPane('routePane')) {
-      map.createPane('routePane');
-      map.getPane('routePane').style.zIndex = 430;
-    }
-
-    siteMarker = L.marker([defaultLat, defaultLon], { draggable: true }).addTo(map);
-    siteMarker.on('dragend', () => {
-      const p = siteMarker.getLatLng();
-      $('siteLat').value = p.lat.toFixed(6);
-      $('siteLon').value = p.lng.toFixed(6);
-      buildingsCache = null;
+    ['predictPane', 'buildingPane', 'routePane', 'sitePane'].forEach((pane, i) => {
+      if (!map.getPane(pane)) { map.createPane(pane); map.getPane(pane).style.zIndex = 350 + i * 30; }
     });
 
     map.on('click', (e) => {
       if (drawMode) { addRoutePoint(e.latlng); return; }
+      if ($('addSiteMode') && $('addSiteMode').checked) {
+        addSite(e.latlng.lat, e.latlng.lng);
+        return;
+      }
       if (!$('clickToPlace').checked) return;
-      siteMarker.setLatLng(e.latlng);
-      $('siteLat').value = e.latlng.lat.toFixed(6);
-      $('siteLon').value = e.latlng.lng.toFixed(6);
+      const site = siteById(activeSiteId);
+      if (!site) return;
+      site.lat = e.latlng.lat; site.lon = e.latlng.lng;
+      $('siteLat').value = site.lat.toFixed(6);
+      $('siteLon').value = site.lon.toFixed(6);
+      redrawSiteMapObjects(site);
       buildingsCache = null;
       updateSectorPreview();
     });
-
-    updateSectorPreview();
   }
 
-  function updateSectorPreview() {
-    if (!map) return;
-    const f = readForm();
-    if (sectorLayer) map.removeLayer(sectorLayer);
-    const pos = siteMarker.getLatLng();
-    const R = Math.min(f.radiusM, 1500) * 0.55;
-    const half = f.beamwidthH / 2;
-    const steps = 24;
-    const pts = [[pos.lat, pos.lng]];
+  function createSiteMapObjects(site) {
+    const color = siteColor(site);
+    const icon = L.divIcon({
+      className: 'site-marker-icon', html: `<div class="site-marker-dot" style="background:${color}"></div>`,
+      iconSize: [16, 16], iconAnchor: [8, 8],
+    });
+    site.marker = L.marker([site.lat, site.lon], { draggable: true, icon, pane: 'sitePane' }).addTo(map);
+    site.marker.bindTooltip(site.name, { permanent: false, direction: 'top' });
+    site.marker.on('dragend', () => {
+      const p = site.marker.getLatLng();
+      site.lat = p.lat; site.lon = p.lng;
+      if (site.id === activeSiteId) { $('siteLat').value = site.lat.toFixed(6); $('siteLon').value = site.lon.toFixed(6); }
+      buildingsCache = null;
+      redrawSiteMapObjects(site);
+      renderSiteList();
+    });
+    site.marker.on('click', () => selectSite(site.id));
+    redrawSiteMapObjects(site);
+  }
+
+  function redrawSiteMapObjects(site) {
+    if (!map || !site.marker) return;
+    site.marker.setLatLng([site.lat, site.lon]);
+    site.marker.setTooltipContent(site.name);
+    if (site.sectorLayer) map.removeLayer(site.sectorLayer);
+    const color = siteColor(site);
+    const R = Math.min(parseFloat($('radius') ? $('radius').value : 500) || 500, 1500) * 0.55;
+    const half = site.beamwidthH / 2, steps = 24;
+    const proj = CakraPropagation.makeLocalProjection(site.lat, site.lon);
+    const pts = [[site.lat, site.lon]];
     for (let i = 0; i <= steps; i++) {
-      const az = f.azimuth - half + (2 * half) * (i / steps);
+      const az = site.azimuth - half + (2 * half) * (i / steps);
       const rad = CakraPropagation.toRad(az);
-      const dx = Math.sin(rad) * R, dy = Math.cos(rad) * R;
-      const proj = CakraPropagation.makeLocalProjection(pos.lat, pos.lng);
-      pts.push(proj.toLatLon(dx, dy));
+      pts.push(proj.toLatLon(Math.sin(rad) * R, Math.cos(rad) * R));
     }
-    sectorLayer = L.polygon(pts, {
-      pane: 'predictPane', color: '#38bdf8', weight: 1.5,
-      fillColor: '#38bdf8', fillOpacity: 0.08, dashArray: '4 3',
+    site.sectorLayer = L.polygon(pts, {
+      pane: 'predictPane', color, weight: site.id === activeSiteId ? 2 : 1,
+      fillColor: color, fillOpacity: site.id === activeSiteId ? 0.12 : 0.05, dashArray: '4 3',
     }).addTo(map);
   }
 
+  function highlightActiveMarker() {
+    sites.forEach(s => {
+      if (!s.marker) return;
+      const el = s.marker.getElement();
+      if (el) el.style.outline = s.id === activeSiteId ? '2px solid #fff' : 'none';
+      redrawSiteMapObjects(s);
+    });
+  }
+
+  function updateSectorPreview() {
+    const site = siteById(activeSiteId);
+    if (site) redrawSiteMapObjects(site);
+  }
+
   // ─────────────────────────────────────────────
-  // PREDIKSI GRID (Step 3)
+  // PROPAGASI PER-SITE (dipakai grid & rute)
   // ─────────────────────────────────────────────
-  function buildGrid(siteLat, siteLon, radiusM, cellSizeM) {
-    const MAX_CELLS_PER_AXIS = 90;
+  function siteRelativeGeom(site, lat, lon, proj) {
+    const [sx, sy] = proj.toXY(site.lat, site.lon);
+    const [px, py] = proj.toXY(lat, lon);
+    const dx = px - sx, dy = py - sy;
+    const distM = Math.hypot(dx, dy);
+    const azimuthTo = (CakraPropagation.toDeg(Math.atan2(dx, dy)) + 360) % 360;
+    const azOffset = CakraPropagation.angleDiff(azimuthTo, site.azimuth);
+    const elevOffset = CakraPropagation.toDeg(Math.atan2(site.hb - RX_HEIGHT, Math.max(distM, 1)));
+    return { distM, azOffset, elevOffset, sx, sy, px, py };
+  }
+
+  function predictSiteAt(site, lat, lon, proj, buildingsXY) {
+    const g = siteRelativeGeom(site, lat, lon, proj);
+    if (g.distM < 5) {
+      return { rsrp: site.txPowerDbm - site.feederLossDb + site.gainMaxDbi, los: true, siteId: site.id, distM: g.distM, buildingId: null };
+    }
+    let obstruction = null;
+    if (buildingsXY.length) obstruction = CakraBuildings.findDominantObstruction([g.sx, g.sy], [g.px, g.py], site.hb, RX_HEIGHT, buildingsXY);
+    const r = CakraPropagation.predictAtPoint({
+      distM: g.distM, azOffsetDeg: g.azOffset, elevOffsetDeg: g.elevOffset,
+      freqMHz: site.freqMHz, hb: site.hb, hm: RX_HEIGHT, env: site.env, los: true,
+      txPowerDbm: site.txPowerDbm, feederLossDb: site.feederLossDb, gainMaxDbi: site.gainMaxDbi,
+      mechTiltDeg: site.mechTilt, elecTiltDeg: site.elecTilt,
+      beamwidthH: site.beamwidthH, beamwidthV: site.beamwidthV,
+      frontToBack: site.frontToBack, slaV: site.slaV,
+      obstruction,
+    });
+    r.siteId = site.id;
+    r.distM = g.distM;
+    r.buildingId = obstruction ? obstruction.buildingId : null;
+    return r;
+  }
+
+  function evaluateAllSites(lat, lon, proj, buildingsXY) {
+    return sites.map(s => predictSiteAt(s, lat, lon, proj, buildingsXY));
+  }
+
+  function bestOf(results) {
+    return results.reduce((best, r) => (!best || r.rsrp > best.rsrp) ? r : best, null);
+  }
+
+  // ─────────────────────────────────────────────
+  // BANGUNAN (fetch sekali untuk union area semua site)
+  // ─────────────────────────────────────────────
+  function sitesKey(radiusM) {
+    return sites.map(s => s.lat.toFixed(4) + ',' + s.lon.toFixed(4)).join('|') + '@' + radiusM;
+  }
+
+  async function ensureBuildings(radiusM) {
+    const key = sitesKey(radiusM);
+    if (buildingsCache && buildingsCache.key === key) return buildingsCache.list;
+    const centLat = sites.reduce((a, s) => a + s.lat, 0) / sites.length;
+    const centLon = sites.reduce((a, s) => a + s.lon, 0) / sites.length;
+    let maxSpread = 0;
+    sites.forEach(s => { maxSpread = Math.max(maxSpread, CakraPropagation.haversineDist(centLat, centLon, s.lat, s.lon)); });
+    const fetchRadius = maxSpread + radiusM + 100;
+    const list = await CakraBuildings.fetchBuildings(centLat, centLon, fetchRadius);
+    buildingsCache = { key, radius: radiusM, list };
+    return list;
+  }
+
+  // ─────────────────────────────────────────────
+  // GRID PREDIKSI MULTI-SITE (Step 3) — best-server coverage
+  // ─────────────────────────────────────────────
+  function buildUnionGrid(radiusM, cellSizeM) {
+    const centLat = sites.reduce((a, s) => a + s.lat, 0) / sites.length;
+    const centLon = sites.reduce((a, s) => a + s.lon, 0) / sites.length;
+    const proj = CakraPropagation.makeLocalProjection(centLat, centLon);
+    const siteXY = sites.map(s => ({ site: s, xy: proj.toXY(s.lat, s.lon) }));
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    siteXY.forEach(({ xy }) => {
+      minX = Math.min(minX, xy[0] - radiusM); maxX = Math.max(maxX, xy[0] + radiusM);
+      minY = Math.min(minY, xy[1] - radiusM); maxY = Math.max(maxY, xy[1] + radiusM);
+    });
+
+    const MAX_CELLS_PER_AXIS = 110;
     let cell = cellSizeM;
-    const wanted = Math.ceil((2 * radiusM) / cell);
-    if (wanted > MAX_CELLS_PER_AXIS) cell = (2 * radiusM) / MAX_CELLS_PER_AXIS;
-    const n = Math.ceil((2 * radiusM) / cell);
-    const proj = CakraPropagation.makeLocalProjection(siteLat, siteLon);
+    const wantedX = Math.ceil((maxX - minX) / cell), wantedY = Math.ceil((maxY - minY) / cell);
+    const wanted = Math.max(wantedX, wantedY);
+    if (wanted > MAX_CELLS_PER_AXIS) cell = Math.max(maxX - minX, maxY - minY) / MAX_CELLS_PER_AXIS;
+
+    const nx = Math.ceil((maxX - minX) / cell), ny = Math.ceil((maxY - minY) / cell);
     const points = [];
-    for (let j = 0; j < n; j++) {
-      const y = -radiusM + (j + 0.5) * cell;
-      for (let i = 0; i < n; i++) {
-        const x = -radiusM + (i + 0.5) * cell;
-        if (Math.hypot(x, y) > radiusM) { points.push(null); continue; }
-        points.push({ x, y, i, j });
+    for (let j = 0; j < ny; j++) {
+      const y = minY + (j + 0.5) * cell;
+      for (let i = 0; i < nx; i++) {
+        const x = minX + (i + 0.5) * cell;
+        const within = siteXY.some(({ xy }) => Math.hypot(x - xy[0], y - xy[1]) <= radiusM);
+        points.push(within ? { x, y } : null);
       }
     }
-    return { points, n, cell, proj };
+    return { points, nx, ny, cell, proj, minX, minY };
   }
 
   async function runPrediction() {
-    const f = readForm();
-    if (isNaN(f.lat) || isNaN(f.lon)) { showStatus('Koordinat site tidak valid', true); return; }
+    const f = readSharedForm();
+    if (activeSiteId) syncFormToActiveSite();
+    if (!sites.length) { showStatus('Tambahkan minimal 1 site terlebih dulu.', true); return; }
 
     setRunning(true);
     showStatus('Menyiapkan grid prediksi…');
@@ -186,25 +379,18 @@ window.CakraVDT = (() => {
       let buildings = [];
       if (f.useBuildings) {
         showStatus('Mengambil data bangunan dari OpenStreetMap…');
-        try {
-          if (buildingsCache && buildingsCache.lat === f.lat && buildingsCache.lon === f.lon &&
-              buildingsCache.radius >= f.radiusM) {
-            buildings = buildingsCache.list;
-          } else {
-            buildings = await CakraBuildings.fetchBuildings(f.lat, f.lon, f.radiusM + 100);
-            buildingsCache = { lat: f.lat, lon: f.lon, radius: f.radiusM + 100, list: buildings };
-          }
-        } catch (e) {
+        try { buildings = await ensureBuildings(f.radiusM); }
+        catch (e) {
           console.warn('Overpass gagal, lanjut tanpa data bangunan:', e);
           showStatus('Gagal ambil data bangunan (offline/timeout) — prediksi lanjut tanpa obstruksi', true);
-          await sleep(1200);
+          await sleep(1000);
         }
       }
 
-      showStatus(`Menghitung prediksi (${buildings.length} bangunan dimuat)…`);
+      showStatus(`Menghitung prediksi ${sites.length} site (${buildings.length} bangunan)…`);
       await sleep(10);
 
-      const { points, n, cell, proj } = buildGrid(f.lat, f.lon, f.radiusM, f.cellSizeM);
+      const { points, nx, ny, cell, proj, minX, minY } = buildUnionGrid(f.radiusM, f.cellSizeM);
       const buildingsXY = buildings.map(b => {
         const xy = b.footprint.map(([blat, blon]) => proj.toXY(blat, blon));
         return { id: b.id, heightM: b.heightM, xy, bb: CakraBuildings.bbox(xy) };
@@ -212,38 +398,25 @@ window.CakraVDT = (() => {
 
       const results = new Array(points.length).fill(null);
       let sumRsrp = 0, countLos = 0, countValid = 0, countAbove = 0;
+      const bySite = {}; sites.forEach(s => bySite[s.id] = 0);
 
       for (let idx = 0; idx < points.length; idx++) {
         const p = points[idx];
         if (!p) continue;
-        const distM = Math.hypot(p.x, p.y);
-        if (distM < 5) { results[idx] = { rsrp: f.txPowerDbm - f.feederLossDb + f.gainMaxDbi, los: true }; continue; }
-        const azimuthTo = (CakraPropagation.toDeg(Math.atan2(p.x, p.y)) + 360) % 360;
-        const azOffset = CakraPropagation.angleDiff(azimuthTo, f.azimuth);
-        const elevOffset = CakraPropagation.toDeg(Math.atan2(f.hb - f.hm, distM));
-        let obstruction = null;
-        if (buildingsXY.length) obstruction = CakraBuildings.findDominantObstruction([0, 0], [p.x, p.y], f.hb, f.hm, buildingsXY);
-        const r = CakraPropagation.predictAtPoint({
-          distM, azOffsetDeg: azOffset, elevOffsetDeg: elevOffset,
-          freqMHz: f.freqMHz, hb: f.hb, hm: f.hm, env: f.env, los: true,
-          txPowerDbm: f.txPowerDbm, feederLossDb: f.feederLossDb, gainMaxDbi: f.gainMaxDbi,
-          mechTiltDeg: f.mechTilt, elecTiltDeg: f.elecTilt,
-          beamwidthH: f.beamwidthH, beamwidthV: f.beamwidthV,
-          frontToBack: f.frontToBack, slaV: f.slaV,
-          obstruction,
-        });
-        r.buildingId = obstruction ? obstruction.buildingId : null;
-        results[idx] = r;
-        sumRsrp += r.rsrp; countValid++;
-        if (r.los) countLos++;
-        if (r.rsrp >= f.thresholdDbm) countAbove++;
+        const [lat, lon] = proj.toLatLon(p.x, p.y);
+        const all = evaluateAllSites(lat, lon, proj, buildingsXY);
+        const best = bestOf(all);
+        results[idx] = best;
+        sumRsrp += best.rsrp; countValid++;
+        if (best.los) countLos++;
+        if (best.rsrp >= f.thresholdDbm) countAbove++;
+        if (bySite[best.siteId] !== undefined) bySite[best.siteId]++;
         if (idx % 400 === 0) await sleep(0);
       }
 
-      lastResult = { points, n, cell, proj, results, form: f, buildings, buildingsXY };
+      lastResult = { points, nx, ny, cell, proj, minX, minY, results, form: f, buildings, buildingsXY };
       renderHeatmap(lastResult);
       renderBuildings(buildingsXY, lastResult);
-      updateSectorPreview();
 
       const stats = {
         avgRsrp: countValid ? (sumRsrp / countValid) : NaN,
@@ -253,11 +426,12 @@ window.CakraVDT = (() => {
         gridPoints: countValid,
       };
       renderStats(stats);
+      renderSiteShare(bySite, countValid);
 
       const toStep4 = $('toStep4');
       if (toStep4) toStep4.disabled = false;
 
-      showStatus(`Selesai — ${countValid} titik dihitung, ${buildings.length} bangunan${f.useBuildings ? '' : ' (dimatikan)'}`);
+      showStatus(`Selesai — ${countValid} titik, ${sites.length} site, ${buildings.length} bangunan${f.useBuildings ? '' : ' (dimatikan)'}`);
     } catch (err) {
       console.error(err);
       showStatus('Gagal menjalankan prediksi: ' + err.message, true);
@@ -273,18 +447,19 @@ window.CakraVDT = (() => {
     el.textContent = msg; el.style.color = isWarn ? 'var(--amber,#fbbf24)' : 'var(--text2,#94aabf)';
   }
 
+  let heatOverlayRef = null;
   function renderHeatmap(res) {
-    const { n, cell, proj, results, form } = res;
-    if (heatOverlay) { map.removeLayer(heatOverlay); heatOverlay = null; }
+    const { nx, ny, cell, proj, minX, minY, results } = res;
+    if (heatOverlayRef) { map.removeLayer(heatOverlayRef); heatOverlayRef = null; }
     const canvas = document.createElement('canvas');
-    canvas.width = n; canvas.height = n;
+    canvas.width = nx; canvas.height = ny;
     const ctx = canvas.getContext('2d');
-    const img = ctx.createImageData(n, n);
-    for (let j = 0; j < n; j++) {
-      for (let i = 0; i < n; i++) {
-        const idx = j * n + i;
+    const img = ctx.createImageData(nx, ny);
+    for (let j = 0; j < ny; j++) {
+      for (let i = 0; i < nx; i++) {
+        const idx = j * nx + i;
         const r = results[idx];
-        const px = (((n - 1 - j) * n) + i) * 4;
+        const px = (((ny - 1 - j) * nx) + i) * 4;
         if (!r) { img.data[px + 3] = 0; continue; }
         const [cr, cg, cb] = RSRP_COLOR(r.rsrp);
         img.data[px] = cr; img.data[px + 1] = cg; img.data[px + 2] = cb;
@@ -292,10 +467,9 @@ window.CakraVDT = (() => {
       }
     }
     ctx.putImageData(img, 0, 0);
-    const half = (n * cell) / 2;
-    const sw = proj.toLatLon(-half, -half);
-    const ne = proj.toLatLon(half, half);
-    heatOverlay = L.imageOverlay(canvas.toDataURL(), [[sw[0], sw[1]], [ne[0], ne[1]]], {
+    const sw = proj.toLatLon(minX, minY);
+    const ne = proj.toLatLon(minX + nx * cell, minY + ny * cell);
+    heatOverlayRef = L.imageOverlay(canvas.toDataURL(), [[sw[0], sw[1]], [ne[0], ne[1]]], {
       opacity: 1, interactive: false, pane: 'predictPane',
     }).addTo(map);
   }
@@ -325,12 +499,27 @@ window.CakraVDT = (() => {
     const el = $('predictStatsPanel'); if (!el) return;
     el.style.display = 'grid';
     el.innerHTML = `
-      ${statCard('Avg RSRP Prediksi', isNaN(s.avgRsrp) ? '—' : s.avgRsrp.toFixed(1) + ' dBm', s.avgRsrp >= -90 ? 'good' : (s.avgRsrp >= -100 ? 'warn' : 'bad'))}
+      ${statCard('Avg RSRP Terbaik', isNaN(s.avgRsrp) ? '—' : s.avgRsrp.toFixed(1) + ' dBm', s.avgRsrp >= -90 ? 'good' : (s.avgRsrp >= -100 ? 'warn' : 'bad'))}
       ${statCard('Coverage (≥ threshold)', s.coveragePct.toFixed(1) + '%', s.coveragePct >= 90 ? 'good' : (s.coveragePct >= 70 ? 'warn' : 'bad'))}
       ${statCard('% Titik LOS', s.losPct.toFixed(1) + '%')}
       ${statCard('Bangunan', s.buildingCount.toLocaleString())}
       ${statCard('Titik Grid', s.gridPoints.toLocaleString())}
     `;
+  }
+
+  function renderSiteShare(bySite, total) {
+    const el = $('siteSharePanel'); if (!el) return;
+    if (sites.length < 2 || !total) { el.style.display = 'none'; return; }
+    el.style.display = 'flex';
+    el.innerHTML = sites.map(s => {
+      const pct = total ? (bySite[s.id] / total * 100) : 0;
+      return `<div class="share-row">
+        <span class="site-dot" style="background:${siteColor(s)}"></span>
+        <span class="share-name">${escapeHtml(s.name)}</span>
+        <span class="share-bar-wrap"><span class="share-bar" style="width:${pct}%;background:${siteColor(s)}"></span></span>
+        <span class="share-pct">${pct.toFixed(0)}%</span>
+      </div>`;
+    }).join('');
   }
 
   // ─────────────────────────────────────────────
@@ -370,6 +559,7 @@ window.CakraVDT = (() => {
     routePts = [];
     if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
     if (routeSampleLayer) { map.removeLayer(routeSampleLayer); routeSampleLayer = null; }
+    if (handoverLayer) { map.removeLayer(handoverLayer); handoverLayer = null; }
     const sim = $('simRouteBtn'); if (sim) sim.disabled = true;
     const to5 = $('toStep5'); if (to5) to5.disabled = true;
     const wrap = $('routeStatsWrap'); if (wrap) wrap.style.display = 'none';
@@ -390,9 +580,7 @@ window.CakraVDT = (() => {
 
   function routeLengthM() {
     let L = 0;
-    for (let i = 1; i < routePts.length; i++) {
-      L += CakraPropagation.haversineDist(routePts[i-1][0], routePts[i-1][1], routePts[i][0], routePts[i][1]);
-    }
+    for (let i = 1; i < routePts.length; i++) L += CakraPropagation.haversineDist(routePts[i-1][0], routePts[i-1][1], routePts[i][0], routePts[i][1]);
     return L;
   }
 
@@ -403,45 +591,56 @@ window.CakraVDT = (() => {
     el.textContent = `Rute: ${routePts.length} titik · ${L.toFixed(0)} m` + (L > 1000 ? ` (${(L/1000).toFixed(2)} km)` : '');
   }
 
-  // ─────────────────────────────────────────────
-  // VIRTUAL DRIVE SIMULATION (Step 4)
-  // ─────────────────────────────────────────────
-  function sampleGrid(res, lat, lon) {
-    const proj = res.proj;
-    const half = (res.n * res.cell) / 2;
-    const [x, y] = proj.toXY(lat, lon);
-    if (Math.abs(x) > half || Math.abs(y) > half) return null;
-    let i = Math.floor((x + half) / res.cell);
-    let j = Math.floor((y + half) / res.cell);
-    i = Math.max(0, Math.min(res.n - 1, i));
-    j = Math.max(0, Math.min(res.n - 1, j));
-    return res.results[j * res.n + i] || null;
-  }
-
-  // Estimasi RSRQ & SINR dari RSRP + status LOS/obstruksi
-  function deriveRsrqSinr(rsrp, los, noiseFloorDb) {
-    let interf = noiseFloorDb;
-    if (!los) interf += 4; // NLOS: interferensi/noise lebih tinggi
-    const rssi = 10 * Math.log10(Math.pow(10, rsrp / 10) + Math.pow(10, interf / 10));
-    let rsrq = rsrp - rssi;
-    let sinr = rsrp - interf;
+  // Estimasi RSRQ & SINR nyata: interferensi = jumlah daya linear site lain + noise floor
+  function deriveRsrqSinr(servingRsrp, otherRsrpList, los, noiseFloorDb) {
+    let interfLinear = Math.pow(10, noiseFloorDb / 10);
+    otherRsrpList.forEach(r => { interfLinear += Math.pow(10, r / 10); });
+    if (!los) interfLinear *= 2.5; // NLOS: dispersi multipath menaikkan interferensi efektif
+    const interfDb = 10 * Math.log10(interfLinear);
+    const rssi = 10 * Math.log10(Math.pow(10, servingRsrp / 10) + interfLinear);
+    let rsrq = servingRsrp - rssi;
+    let sinr = servingRsrp - interfDb;
     rsrq = Math.max(-22, Math.min(-3, rsrq));
     sinr = Math.max(-20, Math.min(40, sinr));
     return { rsrq: +rsrq.toFixed(1), sinr: +sinr.toFixed(1) };
   }
 
+  // Baca parameter mobility/handover 3GPP dari form Step 4 (dgn fallback default
+  // yang lazim dipakai operator: Hys 2dB, A3-Offset 1dB, TTT 320ms, FilterK 4).
+  function readHandoverParams() {
+    const num = (id, def) => { const el = $(id); const v = el ? parseFloat(el.value) : NaN; return isNaN(v) ? def : v; };
+    return {
+      hysteresisDb: num('hoHysteresis', 2),
+      a3OffsetDb: num('hoA3Offset', 1),
+      filterK: num('hoFilterK', 4),
+      ttTms: num('hoTTT', 320),
+      pingPongWindowMs: num('hoPingPongWindow', 5000),
+    };
+  }
+
+  // ─────────────────────────────────────────────
+  // VIRTUAL DRIVE SIMULATION — multi-site best-server + handover (Step 4)
+  // ─────────────────────────────────────────────
   async function simulateRoute() {
     if (routePts.length < 2) { alert('Gambar rute dulu di peta.'); return; }
-    const f = readForm();
-    const simBtn = $('simRouteBtn'), simStatus = $('simStatus');
+    if (activeSiteId) syncFormToActiveSite();
+    if (!sites.length) { alert('Tambahkan minimal 1 site.'); return; }
+    const f = readSharedForm();
+    const simStatus = $('simStatus');
     if (simStatus) simStatus.textContent = 'Menyiapkan simulasi…';
 
-    // Pastikan grid prediksi tersedia
-    if (!lastResult || lastResult.form.lat !== f.lat || lastResult.form.lon !== f.lon ||
-        lastResult.form.radiusM !== f.radiusM || lastResult.form.cellSizeM !== f.cellSizeM ||
-        lastResult.form.freqMHz !== f.freqMHz || lastResult.form.env !== f.env) {
-      await runPrediction();
+    let buildings = [];
+    if (f.useBuildings) {
+      try { buildings = await ensureBuildings(f.radiusM); }
+      catch (e) { if (simStatus) simStatus.textContent = 'Gagal ambil data bangunan — lanjut tanpa obstruksi'; }
     }
+    const centLat = sites.reduce((a, s) => a + s.lat, 0) / sites.length;
+    const centLon = sites.reduce((a, s) => a + s.lon, 0) / sites.length;
+    const proj = CakraPropagation.makeLocalProjection(centLat, centLon);
+    const buildingsXY = buildings.map(b => {
+      const xy = b.footprint.map(([blat, blon]) => proj.toXY(blat, blon));
+      return { id: b.id, heightM: b.heightM, xy, bb: CakraBuildings.bbox(xy) };
+    });
 
     const stepM = parseFloat($('sampStep').value) || 10;
     const speedKmh = parseFloat($('vehSpeed').value) || 30;
@@ -449,39 +648,77 @@ window.CakraVDT = (() => {
     const totalL = routeLengthM();
     const durationS = totalL / speedMs;
 
-    const samples = []; // {dist, t, lat, lon, rsrp, rsrq, sinr, los}
+    // Kumpulkan dulu RSRP mentah SEMUA site per titik rute (belum menentukan
+    // serving cell) — keputusan serving/handover baru dibuat setelah ini oleh
+    // CakraHandover.simulateHandoverSequence (L3 filter + Event A3 + TTT),
+    // BUKAN dengan langsung mengambil RSRP tertinggi per-sampel.
+    const rawPts = []; // {dist,t,lat,lon,all:[{siteId,rsrp,los}]}
     let cum = 0;
     for (let s = 0; s < routePts.length - 1; s++) {
-      const [la1, lo1] = routePts[s];
-      const [la2, lo2] = routePts[s + 1];
+      const [la1, lo1] = routePts[s], [la2, lo2] = routePts[s + 1];
       const segLen = CakraPropagation.haversineDist(la1, lo1, la2, lo2);
       const nSeg = Math.max(1, Math.floor(segLen / stepM));
       for (let k = 0; k < nSeg; k++) {
         const tt = k / nSeg;
-        const lat = la1 + (la2 - la1) * tt;
-        const lon = lo1 + (lo2 - lo1) * tt;
-        const g = sampleGrid(lastResult, lat, lon);
-        if (!g) continue;
-        const { rsrq, sinr } = deriveRsrqSinr(g.rsrp, g.los, f.noiseFloorDb);
-        samples.push({ dist: cum + segLen * tt, t: (cum + segLen * tt) / speedMs, lat, lon, rsrp: g.rsrp, rsrq, sinr, los: g.los });
+        const lat = la1 + (la2 - la1) * tt, lon = lo1 + (lo2 - lo1) * tt;
+        const all = evaluateAllSites(lat, lon, proj, buildingsXY);
+        const dist = cum + segLen * tt;
+        rawPts.push({ dist, t: dist / speedMs, lat, lon, all });
       }
       cum += segLen;
     }
-    // titik akhir
     {
       const [la, lo] = routePts[routePts.length - 1];
-      const g = sampleGrid(lastResult, la, lo);
-      if (g) { const { rsrq, sinr } = deriveRsrqSinr(g.rsrp, g.los, f.noiseFloorDb); samples.push({ dist: totalL, t: durationS, lat: la, lon: lo, rsrp: g.rsrp, rsrq, sinr, los: g.los }); }
+      const all = evaluateAllSites(la, lo, proj, buildingsXY);
+      rawPts.push({ dist: totalL, t: durationS, lat: la, lon: lo, all });
     }
 
-    lastRoute = { samples, totalL, durationS, speedKmh, form: f, threshold: f.thresholdDbm };
+    // ── Engine mobility 3GPP: L3 filtering + Event A3 + Time-to-Trigger ──
+    const hoParams = readHandoverParams();
+    const sampleSites = rawPts.map(p => p.all.map(r => ({ siteId: r.siteId, rsrp: r.rsrp })));
+    const sampleTimesMs = rawPts.map(p => p.t * 1000);
+    const { servingPerSample, handovers: hoEvents } = CakraHandover.simulateHandoverSequence(
+      sampleSites, sampleTimesMs, hoParams
+    );
+
+    // Bentuk ulang `samples` memakai serving cell hasil keputusan handover (RSRP
+    // yang ditampilkan tetap RSRP instan/mentah site serving — sama seperti yang
+    // dilihat UE/drive test tool — filter L3 hanya dipakai internal utk keputusan HO).
+    const samples = rawPts.map((p, i) => {
+      const servingId = servingPerSample[i];
+      const servingResult = p.all.find(r => r.siteId === servingId) || bestOf(p.all);
+      const others = p.all.filter(r => r.siteId !== servingResult.siteId).map(r => r.rsrp);
+      const { rsrq, sinr } = deriveRsrqSinr(servingResult.rsrp, others, servingResult.los, f.noiseFloorDb);
+      return {
+        dist: p.dist, t: p.t, lat: p.lat, lon: p.lon,
+        rsrp: servingResult.rsrp, rsrq, sinr, los: servingResult.los, siteId: servingResult.siteId,
+      };
+    });
+
+    // Lengkapi event handover dgn posisi (lat/lon/dist) dari sampel terkait, dan
+    // nilai RSRP mentah (bukan filtered) di titik itu untuk ditampilkan di UI.
+    const handovers = hoEvents.map(ev => {
+      const p = rawPts[ev.idx];
+      const fromRaw = p.all.find(r => r.siteId === ev.fromId);
+      const toRaw = p.all.find(r => r.siteId === ev.toId);
+      return {
+        dist: p.dist, lat: p.lat, lon: p.lon,
+        fromId: ev.fromId, toId: ev.toId,
+        fromRsrp: fromRaw ? fromRaw.rsrp : ev.fromRsrpFiltered,
+        toRsrp: toRaw ? toRaw.rsrp : ev.toRsrpFiltered,
+        pingPong: ev.pingPong,
+      };
+    });
+
+    lastRoute = { samples, totalL, durationS, speedKmh, form: f, threshold: f.thresholdDbm, handovers, hoParams };
 
     renderRouteMarkers(samples);
+    renderHandoverMarkers(handovers);
     renderRouteChart(samples, f.thresholdDbm);
-    renderRouteStats(samples, totalL, durationS, f.thresholdDbm);
+    renderRouteStats(samples, totalL, durationS, f.thresholdDbm, handovers);
 
     const to5 = $('toStep5'); if (to5) to5.disabled = false;
-    if (simStatus) simStatus.textContent = `Selesai — ${samples.length} sampel · ${totalL.toFixed(0)} m · ${(durationS/60).toFixed(1)} menit`;
+    if (simStatus) simStatus.textContent = `Selesai — ${samples.length} sampel · ${totalL.toFixed(0)} m · ${(durationS/60).toFixed(1)} menit · ${handovers.length} handover`;
     const wrap = $('routeStatsWrap'); if (wrap) wrap.style.display = 'block';
     const cc = $('chartCard'); if (cc) cc.style.display = 'block';
   }
@@ -489,19 +726,39 @@ window.CakraVDT = (() => {
   function renderRouteMarkers(samples) {
     if (routeSampleLayer) map.removeLayer(routeSampleLayer);
     routeSampleLayer = L.layerGroup();
-    // hanya render subset agar tidak terlalu berat
     const stride = Math.max(1, Math.floor(samples.length / 250));
     samples.forEach((s, i) => {
       if (i % stride !== 0 && i !== samples.length - 1) return;
       const weak = s.rsrp < lastRoute.threshold;
+      const site = siteById(s.siteId);
+      const borderColor = site ? siteColor(site) : '#fff';
       L.circleMarker([s.lat, s.lon], {
-        pane: 'routePane', radius: weak ? 4 : 3, color: weak ? '#f87171' : '#fff',
-        weight: 1, fillColor: rgb(RSRP_COLOR(s.rsrp)), fillOpacity: 0.9,
-      }).bindTooltip(`${s.dist.toFixed(0)} m · RSRP ${s.rsrp.toFixed(1)} dBm`, { sticky: true }).addTo(routeSampleLayer);
+        pane: 'routePane', radius: weak ? 4 : 3, color: borderColor, weight: 2,
+        fillColor: rgb(RSRP_COLOR(s.rsrp)), fillOpacity: 0.95,
+      }).bindTooltip(`${s.dist.toFixed(0)} m · RSRP ${s.rsrp.toFixed(1)} dBm · ${site ? site.name : '?'}`, { sticky: true }).addTo(routeSampleLayer);
     });
     routeSampleLayer.addTo(map);
-    const all = routePts;
-    if (all.length) map.fitBounds(L.polyline(all).getBounds().pad(0.2));
+    if (routePts.length) map.fitBounds(L.polyline(routePts).getBounds().pad(0.2));
+  }
+
+  function renderHandoverMarkers(handovers) {
+    if (handoverLayer) map.removeLayer(handoverLayer);
+    handoverLayer = L.layerGroup();
+    handovers.forEach(h => {
+      const fromSite = siteById(h.fromId), toSite = siteById(h.toId);
+      L.marker([h.lat, h.lon], {
+        pane: 'routePane',
+        icon: L.divIcon({
+          className: 'ho-marker-icon',
+          html: `<div class="ho-marker ${h.pingPong ? 'pingpong' : ''}">⇄</div>`,
+          iconSize: [20, 20], iconAnchor: [10, 10],
+        }),
+      }).bindTooltip(
+        `Handover ${h.dist.toFixed(0)} m: ${fromSite ? fromSite.name : '?'} → ${toSite ? toSite.name : '?'}` + (h.pingPong ? ' ⚠ ping-pong' : ''),
+        { sticky: true }
+      ).addTo(handoverLayer);
+    });
+    handoverLayer.addTo(map);
   }
 
   function renderRouteChart(samples, threshold) {
@@ -538,45 +795,50 @@ window.CakraVDT = (() => {
     });
   }
 
-  function renderRouteStats(samples, totalL, durationS, threshold) {
+  function renderRouteStats(samples, totalL, durationS, threshold, handovers) {
     const el = $('routeStatsPanel'); if (!el) return;
     const valid = samples.length;
-    let sum = 0, above = 0, weakSegs = [], segStart = null, segMin = 999;
+    let sum = 0, weakSegs = [], segStart = null, segMin = 999;
     for (let i = 0; i < samples.length; i++) {
       const s = samples[i]; sum += s.rsrp;
       const weak = s.rsrp < threshold;
-      if (weak) {
-        if (segStart === null) { segStart = s.dist; segMin = s.rsrp; }
-        else segMin = Math.min(segMin, s.rsrp);
-      } else {
-        if (segStart !== null) { weakSegs.push({ start: segStart, end: samples[i-1].dist, min: segMin }); segStart = null; }
-      }
+      if (weak) { if (segStart === null) { segStart = s.dist; segMin = s.rsrp; } else segMin = Math.min(segMin, s.rsrp); }
+      else { if (segStart !== null) { weakSegs.push({ start: segStart, end: samples[i-1].dist, min: segMin }); segStart = null; } }
     }
     if (segStart !== null) weakSegs.push({ start: segStart, end: totalL, min: segMin });
     const avg = valid ? sum / valid : NaN;
     const cov = valid ? (samples.filter(s => s.rsrp >= threshold).length / valid * 100) : 0;
+    const pingPongCount = handovers.filter(h => h.pingPong).length;
     el.innerHTML = `
       ${statCard('Jarak Rute', totalL > 1000 ? (totalL/1000).toFixed(2)+' km' : totalL.toFixed(0)+' m')}
       ${statCard('Durasi', (durationS/60).toFixed(1)+' mnt')}
       ${statCard('Avg RSRP', isNaN(avg) ? '—' : avg.toFixed(1)+' dBm', avg >= -90 ? 'good' : (avg >= -100 ? 'warn' : 'bad'))}
       ${statCard('Coverage Rute', cov.toFixed(1)+'%', cov >= 90 ? 'good' : (cov >= 70 ? 'warn' : 'bad'))}
+      ${statCard('Handover', handovers.length.toString(), handovers.length ? 'warn' : 'good')}
+      ${statCard('Ping-pong', pingPongCount.toString(), pingPongCount ? 'bad' : 'good')}
       ${statCard('Titik Rawan', weakSegs.length.toString(), weakSegs.length ? 'bad' : 'good')}
       ${statCard('Sampel', valid.toLocaleString())}
     `;
-    // weak list
     const wl = $('routeWeakList');
     if (wl) {
-      if (!weakSegs.length) { wl.innerHTML = `<div style="font-size:11px;color:var(--text2)">Tidak ada titik rawan — rute seluruhnya di atas threshold.</div>`; }
-      else {
-        wl.innerHTML = weakSegs.map(w => {
-          const len = (w.end - w.start);
-          return `<div class="route-item">
-            <span class="badge" style="background:var(--red-dim);color:var(--red)">RAWAN</span>
-            <span class="rd">${w.start.toFixed(0)}–${w.end.toFixed(0)} m · ${len.toFixed(0)} m</span>
-            <span class="rv">min ${w.min.toFixed(0)} dBm</span>
-          </div>`;
-        }).join('');
-      }
+      const parts = [];
+      handovers.forEach(h => {
+        const fromSite = siteById(h.fromId), toSite = siteById(h.toId);
+        parts.push(`<div class="route-item">
+          <span class="badge" style="background:${h.pingPong ? 'var(--red-dim)' : 'var(--cyan-dim)'};color:${h.pingPong ? 'var(--red)' : 'var(--cyan)'}">${h.pingPong ? 'PING-PONG' : 'HANDOVER'}</span>
+          <span class="rd">${h.dist.toFixed(0)} m · ${fromSite ? fromSite.name : '?'} → ${toSite ? toSite.name : '?'}</span>
+          <span class="rv">${h.fromRsrp.toFixed(0)}→${h.toRsrp.toFixed(0)} dBm</span>
+        </div>`);
+      });
+      weakSegs.forEach(w => {
+        const len = (w.end - w.start);
+        parts.push(`<div class="route-item">
+          <span class="badge" style="background:var(--red-dim);color:var(--red)">RAWAN</span>
+          <span class="rd">${w.start.toFixed(0)}–${w.end.toFixed(0)} m · ${len.toFixed(0)} m</span>
+          <span class="rv">min ${w.min.toFixed(0)} dBm</span>
+        </div>`);
+      });
+      wl.innerHTML = parts.length ? parts.join('') : `<div style="font-size:11px;color:var(--text2)">Tidak ada titik rawan atau handover — rute seluruhnya stabil di satu site.</div>`;
     }
   }
 
@@ -606,14 +868,15 @@ window.CakraVDT = (() => {
     const avg = samples.reduce((a, s) => a + s.rsrp, 0) / samples.length;
     const cov = samples.filter(s => s.rsrp >= lastRoute.threshold).length / samples.length * 100;
     const avgSinr = samples.reduce((a, s) => a + s.sinr, 0) / samples.length;
-    const bandLabel = BAND_PRESETS[f.freqMHz] ? BAND_PRESETS[f.freqMHz].label : f.freqMHz + ' MHz';
+    const pingPongCount = lastRoute.handovers.filter(h => h.pingPong).length;
+    const siteLines = sites.map((s, i) =>
+      `  ${i+1}. ${s.name} — ${s.lat.toFixed(6)}, ${s.lon.toFixed(6)} — Az ${s.azimuth}° · ${s.gainMaxDbi}dBi · ${BAND_PRESETS[s.freqMHz] ? BAND_PRESETS[s.freqMHz].label : s.freqMHz+' MHz'}`
+    ).join('\n');
     wrap.innerHTML = `<div class="report-box">SKENARIO VIRTUAL DRIVE TEST
 Nama       : ${f.name || '(tanpa nama)'}
 Operator   : ${f.op || '-'}
-Site       : ${f.lat.toFixed(6)}, ${f.lon.toFixed(6)}
-Band       : ${bandLabel}
-Antena     : ${f.gainMaxDbi} dBi · Az ${f.azimuth}° · HB ${f.hb} m
-Lingkungan : ${f.env}
+Jumlah Site: ${sites.length}
+${siteLines}
 
 RUTE
 Jarak      : ${(lastRoute.totalL/1000).toFixed(2)} km
@@ -624,9 +887,15 @@ HASIL PREDIKSI
 Avg RSRP   : ${avg.toFixed(1)} dBm
 Avg SINR   : ${avgSinr.toFixed(1)} dB
 Coverage   : ${cov.toFixed(1)} % (≥ ${lastRoute.threshold} dBm)
-Titik rawan: ${samples.filter(s=>s.rsrp<lastRoute.threshold).length} sampel</div>`;
+Handover   : ${lastRoute.handovers.length} kali (${pingPongCount} ping-pong)
+Titik rawan: ${samples.filter(s=>s.rsrp<lastRoute.threshold).length} sampel
 
-    // Validasi vs data nyata
+PARAMETER MOBILITY (3GPP TS 36.331)
+Hysteresis      : ${lastRoute.hoParams.hysteresisDb} dB
+A3-Offset       : ${lastRoute.hoParams.a3OffsetDb} dB
+Time-to-Trigger : ${lastRoute.hoParams.ttTms} ms
+Filter Coeff. k : ${lastRoute.hoParams.filterK}</div>`;
+
     const real = getRealDataPoints();
     const vp = $('validationPanel');
     if (!real.length) {
@@ -636,7 +905,7 @@ Titik rawan: ${samples.filter(s=>s.rsrp<lastRoute.threshold).length} sampel</div
     }
     const errs = [];
     samples.forEach(s => {
-      let best = null, bestD = 30; // radius pencarian 30 m
+      let best = null, bestD = 30;
       for (const d of real) {
         const dd = CakraPropagation.haversineDist(s.lat, s.lon, d.lat, d.lon);
         if (dd < bestD) { bestD = dd; best = d; }
@@ -645,7 +914,7 @@ Titik rawan: ${samples.filter(s=>s.rsrp<lastRoute.threshold).length} sampel</div
     });
     if (!errs.length) {
       vp.className = 'info-note';
-      vp.innerHTML = `Tidak ada titik data asli dalam ${lastRoute.totalL.toFixed(0)} m rute ini. Coba gambar rute yang menimpa area drive test asli.`;
+      vp.innerHTML = `Tidak ada titik data asli dalam radius pencarian sepanjang rute ini. Coba gambar rute yang menimpa area drive test asli.`;
       return;
     }
     const mae = errs.reduce((a, b) => a + Math.abs(b), 0) / errs.length;
@@ -669,10 +938,12 @@ Titik rawan: ${samples.filter(s=>s.rsrp<lastRoute.threshold).length} sampel</div
   function exportCSV() {
     if (!lastRoute) { alert('Jalankan simulasi rute dulu.'); return; }
     const f = lastRoute.form;
-    const rows = [['idx','distance_m','time_s','lat','lon','rsrp_dbm','rsrq_db','sinr_db','speed_kmh','status']];
+    const rows = [['idx','distance_m','time_s','lat','lon','rsrp_dbm','rsrq_db','sinr_db','speed_kmh','serving_site','status']];
     lastRoute.samples.forEach((s, i) => {
+      const site = siteById(s.siteId);
       rows.push([i, s.dist.toFixed(1), s.t.toFixed(1), s.lat.toFixed(6), s.lon.toFixed(6),
-        s.rsrp.toFixed(1), s.rsrq, s.sinr, lastRoute.speedKmh, s.rsrp < lastRoute.threshold ? 'BELOW_THRESHOLD' : 'OK']);
+        s.rsrp.toFixed(1), s.rsrq, s.sinr, lastRoute.speedKmh, site ? site.name : s.siteId,
+        s.rsrp < lastRoute.threshold ? 'BELOW_THRESHOLD' : 'OK']);
     });
     const csv = rows.map(r => r.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -695,19 +966,21 @@ Titik rawan: ${samples.filter(s=>s.rsrp<lastRoute.threshold).length} sampel</div
   function openInDashboard() {
     if (!lastRoute) { alert('Jalankan simulasi rute dulu.'); return; }
     const f = lastRoute.form;
-    const tech = f.freqMHz >= 2300 ? 'NR' : 'LTE';
-    const bandStr = f.freqMHz + ' MHz';
-    const rows = lastRoute.samples.map((s, i) => ({
-      _tool: 'VIRTUAL', _virtual: true, _sessionTech: tech,
-      ts: 'VDT_' + String(i).padStart(5, '0'), tsDisp: '', timePart: '',
-      lat: s.lat, lon: s.lon,
-      rsrp: s.rsrp, rsrq: s.rsrq, snr: s.sinr,
-      speed: lastRoute.speedKmh, operator: f.op || '', cellname: f.name || 'Virtual Site',
-      cgi: '', node: '', cellid: '', lac: '', tech, arfcn: '', pci: null,
-      dl: 0, ul: 0, band: bandStr, bw: '', device: 'Cakra VDT', state: '', cqi: '', ping_avg: null,
-      nr_rsrp: null, nr_rsrq: null, nr_sinr: null, nr_rssi: null, nr_band: null, nr_arfcn: null,
-      nr_pci: null, nr_dl: null, nr_ul: null, _hasNrCols: false,
-    }));
+    const rows = lastRoute.samples.map((s, i) => {
+      const site = siteById(s.siteId);
+      const tech = site && site.freqMHz >= 2300 ? 'NR' : 'LTE';
+      return {
+        _tool: 'VIRTUAL', _virtual: true, _sessionTech: tech,
+        ts: 'VDT_' + String(i).padStart(5, '0'), tsDisp: '', timePart: '',
+        lat: s.lat, lon: s.lon,
+        rsrp: s.rsrp, rsrq: s.rsrq, snr: s.sinr,
+        speed: lastRoute.speedKmh, operator: f.op || '', cellname: site ? site.name : ('Virtual Site'),
+        cgi: '', node: '', cellid: '', lac: '', tech, arfcn: '', pci: null,
+        dl: 0, ul: 0, band: site ? site.freqMHz + ' MHz' : '', bw: '', device: 'Cakra VDT', state: '', cqi: '', ping_avg: null,
+        nr_rsrp: null, nr_rsrq: null, nr_sinr: null, nr_rssi: null, nr_band: null, nr_arfcn: null,
+        nr_pci: null, nr_dl: null, nr_ul: null, _hasNrCols: false,
+      };
+    });
     try {
       sessionStorage.setItem('cakra_data', JSON.stringify(rows));
       sessionStorage.setItem('cakra_filename', (f.name || 'virtual_drive').replace(/\s+/g, '_'));
@@ -728,11 +1001,30 @@ Titik rawan: ${samples.filter(s=>s.rsrp<lastRoute.threshold).length} sampel</div
     if (!real.length) return;
     const lat = real.reduce((s, d) => s + d.lat, 0) / real.length;
     const lon = real.reduce((s, d) => s + d.lon, 0) / real.length;
+    const site = siteById(activeSiteId);
+    if (!site) return;
+    site.lat = lat; site.lon = lon;
     $('siteLat').value = lat.toFixed(6);
     $('siteLon').value = lon.toFixed(6);
-    if (siteMarker) { siteMarker.setLatLng([lat, lon]); map.panTo([lat, lon]); }
+    map.panTo([lat, lon]);
+    redrawSiteMapObjects(site);
     buildingsCache = null;
-    updateSectorPreview();
+  }
+
+  // ─────────────────────────────────────────────
+  // STEPPER
+  // ─────────────────────────────────────────────
+  function goto(step) {
+    if (currentStep === 1 || currentStep === 2) syncFormToActiveSite();
+    currentStep = step;
+    for (let i = 1; i <= 5; i++) {
+      const sec = $('step' + i);
+      if (sec) sec.classList.toggle('active', i === step);
+      const btn = document.querySelector('.step-btn[data-step="' + i + '"]');
+      if (btn) { btn.classList.toggle('active', i === step); btn.classList.toggle('done', i < step); }
+    }
+    if (step === 5) buildReport();
+    if (step === 4 && !drawMode) $('mapHint').classList.remove('show');
   }
 
   // ─────────────────────────────────────────────
@@ -748,29 +1040,41 @@ Titik rawan: ${samples.filter(s=>s.rsrp<lastRoute.threshold).length} sampel</div
       const cb = $('useCentroidBtn'); if (cb) cb.style.display = 'block';
     }
 
-    $('siteLat').value = defLat.toFixed(6);
-    $('siteLon').value = defLon.toFixed(6);
+    initMap(defLat, defLon);
 
-    // preset datalist
+    const site = makeDefaultSite(defLat, defLon);
+    sites.push(site);
+    createSiteMapObjects(site);
+    activeSiteId = site.id;
+    loadSiteToForm(site);
+    renderSiteList();
+
     const pc = $('presetCity');
     if (pc) pc.addEventListener('change', () => {
       const m = pc.value.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
-      if (m) { $('siteLat').value = m[1]; $('siteLon').value = m[2]; if (siteMarker) { siteMarker.setLatLng([+m[1], +m[2]]); map.panTo([+m[1], +m[2]]); } buildingsCache = null; updateSectorPreview(); }
+      if (m) {
+        const s = siteById(activeSiteId);
+        if (s) { s.lat = +m[1]; s.lon = +m[2]; $('siteLat').value = m[1]; $('siteLon').value = m[2]; map.panTo([+m[1], +m[2]]); redrawSiteMapObjects(s); buildingsCache = null; }
+      }
     });
 
-    initMap(defLat, defLon);
-
-    ['siteAzimuth', 'mechTilt', 'elecTilt', 'beamwidthH', 'radius'].forEach(id => {
-      const el = $(id); if (el) el.addEventListener('input', updateSectorPreview);
+    ['siteAzimuth', 'mechTilt', 'elecTilt', 'beamwidthH'].forEach(id => {
+      const el = $(id); if (el) el.addEventListener('input', () => { syncFormToActiveSite(); });
     });
+    $('radius') && $('radius').addEventListener('input', updateSectorPreview);
+    $('siteName') && $('siteName').addEventListener('change', () => { syncFormToActiveSite(); renderSiteList(); });
     $('siteLat') && $('siteLat').addEventListener('change', () => {
-      siteMarker.setLatLng([parseFloat($('siteLat').value), parseFloat($('siteLon').value)]);
-      map.panTo(siteMarker.getLatLng()); buildingsCache = null; updateSectorPreview();
+      const s = siteById(activeSiteId); if (!s) return;
+      s.lat = parseFloat($('siteLat').value); s.lon = parseFloat($('siteLon').value);
+      map.panTo([s.lat, s.lon]); redrawSiteMapObjects(s); buildingsCache = null;
     });
     $('siteLon') && $('siteLon').addEventListener('change', () => {
-      siteMarker.setLatLng([parseFloat($('siteLat').value), parseFloat($('siteLon').value)]);
-      map.panTo(siteMarker.getLatLng()); buildingsCache = null; updateSectorPreview();
+      const s = siteById(activeSiteId); if (!s) return;
+      s.lat = parseFloat($('siteLat').value); s.lon = parseFloat($('siteLon').value);
+      map.panTo([s.lat, s.lon]); redrawSiteMapObjects(s); buildingsCache = null;
     });
+
+    $('runPredictBtn') && $('runPredictBtn').addEventListener('click', runPrediction);
 
     goto(1);
   }
@@ -779,7 +1083,18 @@ Titik rawan: ${samples.filter(s=>s.rsrp<lastRoute.threshold).length} sampel</div
     return `<div class="stat-card"><div class="stat-label">${label}</div><div class="stat-value ${cls || ''}">${value}</div></div>`;
   }
 
-  return { init, goto, useRealCentroid, runPrediction, toggleDraw, finishDraw, clearRoute, simulateRoute, exportCSV, exportPNG, openInDashboard };
+  // Data mentah utk modul visualisasi 3D (map3d.js) — dipanggil saat tombol
+  // "Peta 3D" ditekan. Dikirim sebagai referensi objek (bukan clone/JSON),
+  // termasuk `proj` (fungsi toLatLon) dari lastResult supaya grid meter→lat/lon
+  // tidak perlu dihitung ulang.
+  function getSceneData() {
+    return { sites, lastResult, lastRoute, routePts: routePts.slice() };
+  }
+
+  return {
+    init, goto, useRealCentroid, runPrediction, toggleDraw, finishDraw, clearRoute, simulateRoute,
+    exportCSV, exportPNG, openInDashboard, addSite, removeSite, selectSite, getSceneData,
+  };
 })();
 
 document.addEventListener('DOMContentLoaded', () => {

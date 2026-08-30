@@ -132,7 +132,7 @@ window.CakraMap = (() => {
       const layerKey = isHO ? 'handover' : 'reselect';
       const color    = isHO ? (isNr ? '#22c55e' : '#facc15') : (isNr ? '#a78bfa' : '#c084fc');
       const icon     = L.divIcon({
-        html: `<div style="width:24px;height:24px;border-radius:50%;background:${color};border:2.5px solid #fff;box-shadow:0 0 12px ${color}cc;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#000">${isHO ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.67"/></svg>'}</div>`,
+        html: `<div style="width:24px;height:24px;border-radius:0;background:${color};border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#000">${isHO ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.67"/></svg>'}</div>`,
         className: '', iconSize: [24,24], iconAnchor: [12,12]
       });
 
@@ -197,7 +197,7 @@ window.CakraMap = (() => {
 
     L.marker(e.latlng, {
       icon: L.divIcon({
-        html: `<div style="width:20px;height:20px;background:#06b6d4;border-radius:50%;border:2px solid #22d3ee;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600">◈</div>`,
+        html: `<div style="width:20px;height:20px;background:#06b6d4;border-radius:0;border:2px solid #22d3ee;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600">◈</div>`,
         className: '', iconSize: [20,20], iconAnchor: [10,20]
       })
     }).bindPopup(`
@@ -207,7 +207,7 @@ window.CakraMap = (() => {
         <div style="color:var(--popup-label,#50505a);font-size:10px;margin-top:6px">
           Lat: ${e.latlng.lat.toFixed(6)}<br>
           Lon: ${e.latlng.lng.toFixed(6)}<br>
-          <button onclick="CakraMap.deleteAnnotation(this)" style="margin-top:6px;padding:4px 8px;background:var(--red-dim);color:#f87171;border:none;border-radius:3px;cursor:pointer;font-family:var(--mono);font-size:9px">Hapus</button>
+          <button onclick="CakraMap.deleteAnnotation(this)" style="margin-top:6px;padding:4px 8px;background:var(--red-dim);color:#f87171;border:none;border-radius:0;cursor:pointer;font-family:var(--mono);font-size:9px">Hapus</button>
         </div>
       </div>`, { maxWidth: 200 }).addTo(annotationLayer);
 
@@ -233,7 +233,7 @@ window.CakraMap = (() => {
       JSON.parse(data).forEach(ann => {
         L.marker([ann.lat, ann.lng], {
           icon: L.divIcon({
-            html: `<div style="width:20px;height:20px;background:#06b6d4;border-radius:50%;border:2px solid #22d3ee;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600">◈</div>`,
+            html: `<div style="width:20px;height:20px;background:#06b6d4;border-radius:0;border:2px solid #22d3ee;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600">◈</div>`,
             className: '', iconSize: [20,20], iconAnchor: [10,20]
           })
         }).bindPopup(ann.note, { maxWidth: 200 }).addTo(annotationLayer);
@@ -488,7 +488,7 @@ window.CakraMap = (() => {
       statsEl.style.background = 'rgba(248,113,113,0.12)';
       statsEl.style.color = '#f87171';
       statsEl.style.border = '1px solid rgba(248,113,113,0.25)';
-      statsEl.style.borderRadius = '4px';
+      statsEl.style.borderRadius = '0';
     }
     return layers.coverageGap;
   }

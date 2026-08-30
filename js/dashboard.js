@@ -200,7 +200,7 @@ function cards(items) {
       <div class="ic-label">${it.label}</div>
       <div class="ic-value${it.mono?' mono':''}">
         ${it.value}
-        ${it.nr ? '<span style="font-size:8px;background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);border-radius:3px;padding:1px 4px;margin-left:4px;vertical-align:middle">NR</span>' : ''}
+        ${it.nr ? '<span style="font-size:8px;background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);border-radius:0;padding:1px 4px;margin-left:4px;vertical-align:middle">NR</span>' : ''}
       </div>
       ${it.sub ? `<div class="ic-sub">${it.sub}</div>` : ''}
     </div>`).join('');
@@ -302,7 +302,7 @@ function buildEvents() {
     const tagHOIcon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>';
     const tagRSIcon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.67"/></svg>';
     const tagLabel = isHOcat ? tagHOIcon + ' HO' : tagRSIcon + ' RS';
-    const nrBadge  = ev.isNr ? '<span style="font-size:8px;background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.25);border-radius:3px;padding:1px 3px;margin-left:3px">NR</span>' : '';
+    const nrBadge  = ev.isNr ? '<span style="font-size:8px;background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.25);border-radius:0;padding:1px 3px;margin-left:3px">NR</span>' : '';
     return `<tr>
       <td style="color:var(--text3);font-size:9px">${startIndex + i + 1}</td>
       <td><span class="${tagClass}">${tagLabel}</span>${nrBadge}</td>
@@ -779,7 +779,7 @@ function buildCoverageGapPanel() {
         <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z\"/><line x1=\"12\" y1=\"9\" x2=\"12\" y2=\"13\"/><line x1=\"12\" y1=\"17\" x2=\"12.01\" y2=\"17\"/></svg> Coverage Gap — ${segments.length} segmen (RSRP ≤ ${threshold} dBm)</span>
         <div style="display:flex;align-items:center;gap:8px">
           <label style="font-size:10px;color:var(--text3)">Threshold</label>
-          <select id="gapThresholdSel" onchange="updateGapThreshold()" style="background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:10px;border-radius:4px;padding:2px 6px;font-family:var(--mono)">
+          <select id="gapThresholdSel" onchange="updateGapThreshold()" style="background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:10px;border-radius:0;padding:2px 6px;font-family:var(--mono)">
             <option value="-90">−90 dBm</option>
             <option value="-95">−95 dBm</option>
             <option value="-100" selected>−100 dBm</option>

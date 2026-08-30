@@ -25,8 +25,8 @@ window.CakraExport = (() => {
       const pct = ((it.count / total) * 100).toFixed(1);
       return `<tr>
         <td>${it.label}</td>
-        <td><div style="background:#e5e7eb;border-radius:3px;height:8px;width:100%;overflow:hidden">
-          <div style="width:${pct}%;height:100%;background:${it.color};border-radius:3px"></div></div></td>
+        <td><div style="background:#e5e7eb;border-radius:0;height:8px;width:100%;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:${it.color};border-radius:0"></div></div></td>
         <td style="text-align:right;font-weight:600">${pct}%</td>
         <td style="text-align:right;color:#6b7280">${it.count.toLocaleString()}</td>
       </tr>`;
@@ -125,7 +125,7 @@ window.CakraExport = (() => {
 
   /* INFO GRID */
   .info-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .info-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 12px; }
+  .info-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius:0; padding: 10px 12px; }
   .info-label { font-size: 8.5px; color: #9ca3af; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 3px; }
   .info-value { font-family: monospace; font-size: 13px; font-weight: 700; color: #1f2937; }
   .info-sub { font-size: 9px; color: #9ca3af; margin-top: 2px; }
@@ -138,7 +138,7 @@ window.CakraExport = (() => {
   .mono { font-family: monospace; }
 
   /* BADGE */
-  .badge { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 8.5px; font-weight: 700; letter-spacing: 0.06em; }
+  .badge { display: inline-block; padding: 2px 7px; border-radius:0; font-size: 8.5px; font-weight: 700; letter-spacing: 0.06em; }
   .badge-good { background: #dcfce7; color: #166534; }
   .badge-warn { background: #fef9c3; color: #854d0e; }
   .badge-bad  { background: #fee2e2; color: #991b1b; }
@@ -159,18 +159,18 @@ window.CakraExport = (() => {
   .rawan-table tr:nth-child(even) td { background: #fafafa; }
 
   /* SUMMARY BOX */
-  .summary-box { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 14px 16px; }
+  .summary-box { background: #f0f9ff; border: 1px solid #bae6fd; border-radius:0; padding: 14px 16px; }
   .summary-box p { font-size: 10.5px; color: #0c4a6e; line-height: 1.7; margin-bottom: 6px; }
   .summary-box p:last-child { margin-bottom: 0; }
 
   /* EVENTS */
-  .event-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 8px; font-weight: 700; }
+  .event-tag { display: inline-block; padding: 1px 6px; border-radius:0; font-size: 8px; font-weight: 700; }
   .tag-ho { background: #fef9c3; color: #854d0e; }
   .tag-rs { background: #f3e8ff; color: #6b21a8; }
   .tag-nr { background: #dcfce7; color: #166534; }
 
   /* PRINT BTN */
-  .print-btn { position: fixed; top: 16px; right: 16px; padding: 10px 20px; background: #0891b2; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: monospace; letter-spacing: 0.06em; box-shadow: 0 4px 12px rgba(8,145,178,0.3); z-index: 999; }
+  .print-btn { position: fixed; top: 16px; right: 16px; padding: 10px 20px; background: #0891b2; color: white; border: 1px solid #0891b2; border-radius:0; font-size: 12px; font-weight: 600; cursor: pointer; font-family: monospace; letter-spacing: 0.06em; z-index: 999; }
   .print-btn:hover { background: #0e7490; }
 
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }

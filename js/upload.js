@@ -129,7 +129,7 @@ function startAnalysis() {
 
   const btn = document.getElementById('analyzeBtn');
   if (btn) {
-    btn.innerHTML = `<span class="analyze-btn-text"><div style="width:18px;height:18px;border:2px solid rgba(56,189,248,0.3);border-top-color:var(--cyan);border-radius:50%;animation:spin 0.7s linear infinite"></div> Memproses...</span>`;
+    btn.innerHTML = `<span class="analyze-btn-text"><div style="width:18px;height:18px;border:2px solid rgba(56,189,248,0.3);border-top-color:var(--cyan);border-radius:0;animation:spin 0.7s linear infinite"></div> Memproses...</span>`;
     btn.disabled = true;
   }
 

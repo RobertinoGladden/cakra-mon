@@ -25,9 +25,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .nav-logo-icon{color:var(--cyan);font-size:18px}
 .nav-logo-text{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:0.08em}
 .nav-right{display:flex;align-items:center;gap:10px}
-.nav-back{font-family:var(--mono);font-size:11px;color:var(--text2);text-decoration:none;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);transition:0.15s}
+.nav-back{font-family:var(--mono);font-size:11px;color:var(--text2);text-decoration:none;padding:6px 10px;border-radius:0;border:1px solid var(--border2);transition:0.1s}
 .nav-back:hover{color:var(--text);border-color:var(--cyan)}
-.theme-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;cursor:pointer;color:var(--text2);transition:0.15s}
+.theme-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--border2);border-radius:0;cursor:pointer;color:var(--text2);transition:0.1s}
 .theme-btn:hover{border-color:var(--cyan);color:var(--cyan)}
 
 .container{max-width:1440px;margin:0 auto;padding:20px}
@@ -38,11 +38,11 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
 /* ── STEPPER ── */
 .stepper{display:flex;gap:8px;margin:18px 0 20px;flex-wrap:wrap}
-.step-btn{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:9px 14px;cursor:pointer;transition:0.18s;flex:1;min-width:150px}
+.step-btn{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border2);border-radius:0;padding:9px 14px;cursor:pointer;transition:0.1s;flex:1;min-width:150px}
 .step-btn:hover{border-color:var(--cyan)}
 .step-btn.active{border-color:var(--cyan);background:var(--cyan-dim)}
 .step-btn.done{border-color:rgba(34,197,94,0.4)}
-.step-num{width:24px;height:24px;border-radius:50%;background:var(--bg4);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text2);flex-shrink:0;transition:0.15s}
+.step-num{width:24px;height:24px;border-radius:0;background:var(--bg4);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text2);flex-shrink:0;transition:0.1s}
 .step-btn.active .step-num{background:var(--cyan);color:#04141a;border-color:var(--cyan)}
 .step-btn.done .step-num{background:var(--green);color:#04141a;border-color:var(--green)}
 .step-meta{display:flex;flex-direction:column;min-width:0}
@@ -52,7 +52,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .panel-grid{display:grid;grid-template-columns:360px 1fr;gap:18px;align-items:start}
 @media(max-width:980px){.panel-grid{grid-template-columns:1fr}}
 
-.card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:18px}
+.card{background:var(--bg2);border:1px solid var(--border2);border-radius:0;padding:18px}
 .card-label{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px}
 .card-sub{font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:14px}
 
@@ -60,19 +60,20 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .form-group{margin-bottom:12px}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .f-label{display:block;font-family:var(--mono);font-size:9.5px;color:var(--text2);letter-spacing:0.04em;margin-bottom:5px;text-transform:uppercase}
-.f-input,.f-select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:7px 9px;font-family:var(--mono);font-size:12px;outline:none;transition:border-color 0.15s}
+.f-input,.f-select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text);padding:7px 9px;font-family:var(--mono);font-size:12px;outline:none;transition:border-color 0.1s}
 .f-input:focus,.f-select:focus{border-color:var(--cyan)}
 .section-label{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--cyan);letter-spacing:0.06em;text-transform:uppercase;margin:16px 0 10px;padding-top:14px;border-top:1px solid var(--border)}
 .section-label:first-child{margin-top:0;padding-top:0;border-top:none}
 .chk-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2);margin-bottom:9px;cursor:pointer}
 .chk-row input{accent-color:var(--cyan);width:14px;height:14px}
 
-.run-btn{width:100%;padding:11px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--cyan),#0891b2);color:#04141a;font-family:var(--mono);font-weight:700;font-size:12.5px;letter-spacing:0.04em;cursor:pointer;margin-top:4px;transition:transform 0.15s,box-shadow 0.15s;text-transform:uppercase}
-.run-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 18px rgba(6,182,212,0.25)}
+.run-btn{width:100%;padding:11px;border-radius:0;border:1px solid var(--cyan);background:var(--cyan);color:#04141a;font-family:var(--mono);font-weight:700;font-size:12.5px;letter-spacing:0.04em;cursor:pointer;margin-top:4px;transition:background 0.1s,color 0.1s,border-color 0.1s;text-transform:uppercase}
+.run-btn:hover:not(:disabled){background:var(--bg2);color:var(--cyan)}
 .run-btn:disabled{opacity:0.5;cursor:not-allowed}
-.run-btn.secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border2);box-shadow:none}
-.run-btn.secondary:hover{border-color:var(--cyan);color:var(--cyan);transform:none}
-.run-btn.green{background:linear-gradient(135deg,var(--green),#16a34a);color:#04141a}
+.run-btn.secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border2)}
+.run-btn.secondary:hover{background:var(--text);color:var(--bg)}
+.run-btn.green{background:var(--green);border-color:var(--green);color:#04141a}
+.run-btn.green:hover:not(:disabled){background:var(--bg2);color:var(--green)}
 .status-line{font-size:10.5px;font-family:var(--mono);color:var(--text2);margin-top:8px;line-height:1.5;min-height:26px}
 
 .step{display:none}
@@ -81,7 +82,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
 .step-actions{display:flex;gap:10px;margin-top:16px}
 .step-actions .run-btn{flex:1}
-.ghost-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:8px;padding:11px 14px;font-family:var(--mono);font-size:12px;cursor:pointer;transition:0.15s}
+.ghost-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:0;padding:11px 14px;font-family:var(--mono);font-size:12px;cursor:pointer;transition:0.1s}
 .ghost-btn:hover{border-color:var(--cyan);color:var(--cyan)}
 
 .map-col{display:flex;flex-direction:column;gap:14px;min-width:0}
@@ -89,21 +90,25 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 #predictMap{height:560px;width:100%}
 @media(max-width:700px){#predictMap{height:400px}}
 
-.legend-box{position:absolute;bottom:14px;left:14px;z-index:500;background:rgba(10,10,11,0.88);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;font-family:var(--mono);font-size:9.5px;color:var(--text2);backdrop-filter:blur(6px)}
+.legend-box{position:absolute;bottom:14px;left:14px;z-index:500;background:rgba(10,10,11,0.88);border:1px solid var(--border2);border-radius:0;padding:10px 12px;font-family:var(--mono);font-size:9.5px;color:var(--text2);backdrop-filter:blur(6px)}
 [data-theme="light"] .legend-box{background:rgba(255,255,255,0.9)}
 .legend-title{color:var(--text3);margin-bottom:6px;letter-spacing:0.06em}
 .legend-row{display:flex;align-items:center;gap:6px;margin-bottom:3px}
-.legend-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.legend-swatch{width:10px;height:10px;flex-shrink:0}
+
+.site-marker-dot{width:14px;height:14px;border:2px solid #fff;box-sizing:border-box}
+.ho-marker{width:18px;height:18px;background:#0a0a0b;border:2px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.ho-marker.pingpong{border-color:var(--red);color:var(--red)}
 
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
-.stat-card{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px}
+.stat-card{background:var(--bg2);border:1px solid var(--border2);border-radius:0;padding:12px 14px}
 .stat-label{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:5px}
 .stat-value{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text)}
 .stat-value.good{color:var(--green)}
 .stat-value.warn{color:var(--amber)}
 .stat-value.bad{color:var(--red)}
 
-.info-note{background:var(--cyan-dim);border:1px solid rgba(6,182,212,0.22);border-radius:8px;padding:12px 14px;font-size:11px;color:var(--text2);line-height:1.65}
+.info-note{background:var(--cyan-dim);border:1px solid rgba(6,182,212,0.22);border-radius:0;padding:12px 14px;font-size:11px;color:var(--text2);line-height:1.65}
 .info-note b{color:var(--cyan)}
 .info-note ul{margin:6px 0 0 16px}
 
@@ -111,19 +116,38 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 #routeChart{width:100%;height:300px}
 
 .route-list{max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-top:8px}
-.route-item{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:10.5px}
-.route-item .badge{font-size:8px;font-weight:600;padding:2px 6px;border-radius:3px;flex-shrink:0}
+.route-item{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:0;padding:8px 10px;font-family:var(--mono);font-size:10.5px}
+.route-item .badge{font-size:8px;font-weight:600;padding:2px 6px;border-radius:0;flex-shrink:0}
 .route-item .rd{color:var(--text2);flex:1}
 .route-item .rv{color:var(--text);font-weight:600}
 
-.report-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:var(--mono);font-size:11px;line-height:1.7;color:var(--text2);white-space:pre-wrap}
+.report-box{background:var(--bg3);border:1px solid var(--border);border-radius:0;padding:14px;font-family:var(--mono);font-size:11px;line-height:1.7;color:var(--text2);white-space:pre-wrap}
 
-.map-hint{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:500;background:rgba(6,182,212,0.92);color:#04141a;font-family:var(--mono);font-size:11px;font-weight:600;padding:8px 16px;border-radius:20px;box-shadow:0 6px 20px rgba(6,182,212,0.35);display:none}
+.map-hint{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:500;background:var(--cyan);border:1px solid var(--cyan);color:#04141a;font-family:var(--mono);font-size:11px;font-weight:600;padding:8px 16px;border-radius:0;display:none}
 .map-hint.show{display:block}
 
 .draw-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .draw-tools .run-btn{flex:none;width:auto;padding:9px 14px;font-size:11px}
-.chip{font-family:var(--mono);font-size:10px;color:var(--text2);background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 10px}
+.chip{font-family:var(--mono);font-size:10px;color:var(--text2);background:var(--bg3);border:1px solid var(--border2);padding:4px 10px}
+
+/* ── MULTI-SITE LIST ── */
+.site-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.site-chip{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border2);padding:8px 10px;cursor:pointer;transition:border-color 0.1s,background 0.1s}
+.site-chip:hover{border-color:var(--cyan)}
+.site-chip.active{border-color:var(--cyan);background:var(--cyan-dim)}
+.site-dot{width:9px;height:9px;flex-shrink:0;border:1px solid rgba(255,255,255,0.4)}
+.site-chip-meta{display:flex;flex-direction:column;min-width:0;flex:1}
+.site-chip-name{font-family:var(--mono);font-size:11.5px;color:var(--text);font-weight:600}
+.site-chip-sub{font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:1px}
+.site-chip-del{background:transparent;border:1px solid var(--border2);color:var(--text3);width:20px;height:20px;flex-shrink:0;cursor:pointer;font-size:10px;transition:border-color 0.1s,color 0.1s}
+.site-chip-del:hover{border-color:var(--red);color:var(--red)}
+
+.site-share{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.share-row{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px}
+.share-name{width:70px;flex-shrink:0;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.share-bar-wrap{flex:1;height:8px;background:var(--bg3);border:1px solid var(--border2)}
+.share-bar{display:block;height:100%}
+.share-pct{width:34px;text-align:right;color:var(--text2)}
 
 footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10px;color:var(--text3);border-top:1px solid var(--border);margin-top:40px;letter-spacing:0.06em}
 </style>
@@ -163,14 +187,27 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
 
       <!-- STEP 1 -->
       <section class="step active" id="step1">
-        <div class="card-label">Skenario & Lokasi Site</div>
+        <div class="card-label">Skenario & Site (Multi-Site)</div>
         <div class="form-group">
           <span class="f-label">Nama Skenario</span>
-          <input class="f-input" id="scenarioName" type="text" placeholder="Mis. Site Kelapa Gading BTS-03">
+          <input class="f-input" id="scenarioName" type="text" placeholder="Mis. Cluster Kelapa Gading">
         </div>
         <div class="form-group">
           <span class="f-label">Operator / MNO</span>
           <input class="f-input" id="scenarioOp" type="text" placeholder="Mis. Telkomsel / XL">
+        </div>
+
+        <div class="section-label">Daftar Site <span id="siteCount" class="chip" style="margin-left:6px"></span></div>
+        <div id="siteList" class="site-list"></div>
+        <div class="draw-tools" style="margin-top:8px">
+          <button class="run-btn secondary" onclick="CakraVDT.addSite()">+ Tambah Site</button>
+        </div>
+        <label class="chk-row" style="margin-top:8px"><input type="checkbox" id="addSiteMode"> Mode: klik di peta = tambah site baru di lokasi itu</label>
+
+        <div class="section-label">Site Aktif — Lokasi</div>
+        <div class="form-group">
+          <span class="f-label">Nama Site</span>
+          <input class="f-input" id="siteName" type="text" placeholder="Mis. BTS-03 Sektor 1">
         </div>
         <div class="form-group">
           <span class="f-label">Preset Lokasi</span>
@@ -189,10 +226,10 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
           <div><span class="f-label">Latitude</span><input class="f-input" id="siteLat" type="number" step="0.000001"></div>
           <div><span class="f-label">Longitude</span><input class="f-input" id="siteLon" type="number" step="0.000001"></div>
         </div>
-        <label class="chk-row"><input type="checkbox" id="clickToPlace" checked> Klik di peta untuk pindahkan site (atau drag marker)</label>
+        <label class="chk-row"><input type="checkbox" id="clickToPlace" checked> Klik di peta untuk pindahkan site aktif (atau drag marker)</label>
         <button class="run-btn secondary" id="useCentroidBtn" style="display:none" onclick="CakraVDT.useRealCentroid()">Gunakan centroid data drive test terakhir</button>
         <div class="info-note" style="margin-top:14px">
-          <b>Langkah 1:</b> tentukan lokasi site (eNodeB/gNodeB). Klik mana saja di peta untuk menempatkan site, atau gunakan centroid dari sesi drive test terakhir jika tersedia.
+          <b>Langkah 1:</b> tambahkan 1 atau lebih site (eNodeB/gNodeB) untuk simulasi single-site atau multi-site/handover. Pilih site di daftar untuk mengedit parameternya di Step 2. Warna titik = warna site di peta &amp; grafik.
         </div>
         <div class="step-actions">
           <button class="ghost-btn" onclick="CakraVDT.goto(2)">Lanjut →</button>
@@ -202,6 +239,7 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
       <!-- STEP 2 -->
       <section class="step" id="step2">
         <div class="card-label">Parameter Site & Antenna</div>
+        <div class="card-sub">Mengedit parameter untuk site yang dipilih di Step 1. Pindah site lewat daftar di Step 1 kapan saja.</div>
 
         <div class="section-label">Antenna</div>
         <div class="form-group">
@@ -326,6 +364,36 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
           </div>
         </div>
         <div class="chip" id="routeInfo">Rute: belum digambar</div>
+
+        <div class="section-label" style="margin-top:16px">Parameter Mobility (3GPP TS 36.331)</div>
+        <div class="form-row form-group">
+          <div><span class="f-label">Hysteresis (dB)</span><input class="f-input" id="hoHysteresis" type="number" value="2" step="0.5" min="0"></div>
+          <div><span class="f-label">A3-Offset (dB)</span><input class="f-input" id="hoA3Offset" type="number" value="1" step="0.5"></div>
+        </div>
+        <div class="form-row form-group">
+          <div><span class="f-label">Time-to-Trigger (ms)</span>
+            <select class="f-select" id="hoTTT">
+              <option value="0">0</option><option value="40">40</option><option value="64">64</option>
+              <option value="80">80</option><option value="100">100</option><option value="128">128</option>
+              <option value="160">160</option><option value="256">256</option>
+              <option value="320" selected>320</option><option value="480">480</option>
+              <option value="512">512</option><option value="640">640</option>
+              <option value="1024">1024</option><option value="1280">1280</option>
+              <option value="2560">2560</option><option value="5120">5120</option>
+            </select>
+          </div>
+          <div><span class="f-label">Filter Coeff. k</span>
+            <select class="f-select" id="hoFilterK">
+              <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+              <option value="3">3</option><option value="4" selected>4</option><option value="5">5</option>
+              <option value="6">6</option><option value="7">7</option><option value="8">8</option>
+              <option value="9">9</option><option value="11">11</option><option value="13">13</option>
+              <option value="15">15</option><option value="17">17</option><option value="19">19</option>
+            </select>
+          </div>
+        </div>
+        <div class="info-note" style="margin-top:6px"><b>Cara kerja:</b> RSRP mentah tiap site di-smooth dulu dgn L3 filter (F_n=(1-a)F_n-1+a·M_n, a=1/2^(k/4)), lalu handover baru dieksekusi jika Event A3 (RSRP neighbour − Hys &gt; RSRP serving + Offset) bertahan terus-menerus selama Time-to-Trigger — persis parameter yang di-tuning RF engineer di OSS (Hysteresis/A3Offset/TimeToTrigger/FilterCoefficient), bukan sekadar "site terkuat langsung menang".</div>
+
         <button class="run-btn green" id="simRouteBtn" style="margin-top:12px" onclick="CakraVDT.simulateRoute()" disabled>▶ Jalankan Virtual Drive</button>
         <div class="status-line" id="simStatus"></div>
         <div class="step-actions">
@@ -362,6 +430,7 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
     <div class="map-col">
       <div class="card map-card">
         <div class="map-hint" id="mapHint">Klik di peta untuk menambah titik rute</div>
+        <button class="run-btn secondary" id="open3dBtn" style="position:absolute;top:10px;right:10px;z-index:900" onclick="CakraMap3D.open(CakraVDT.getSceneData())">🧊 Peta 3D (Real Bangunan)</button>
         <div id="predictMap"></div>
         <div class="legend-box" id="legendBox">
           <div class="legend-title">PREDIKSI RSRP</div>
@@ -378,6 +447,7 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
       <div>
         <div class="card-label" style="margin-bottom:8px">Ringkasan Prediksi</div>
         <div class="stats-grid" id="predictStatsPanel" style="display:none"></div>
+        <div class="site-share" id="siteSharePanel" style="display:none"></div>
       </div>
 
       <div id="routeStatsWrap" class="card" style="display:none">
@@ -409,6 +479,8 @@ applyTheme();
 <script src="js/chart.umd.js"></script>
 <script src="js/propagation.js"></script>
 <script src="js/buildings.js"></script>
+<script src="js/handover.js"></script>
 <script src="js/predict.js"></script>
+<script src="js/map3d.js"></script>
 </body>
 </html>
