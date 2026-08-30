@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/predict", "destination": "/predict.html" },
+    { "source": "/compare", "destination": "/compare.html" },
+    { "source": "/docs", "destination": "/docs.html" },
+    { "source": "/about", "destination": "/about.html" }
+  ]
+}

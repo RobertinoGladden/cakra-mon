@@ -15,6 +15,7 @@
 
 
 <link rel="stylesheet" href="css/leaflet.min.css"/>
+<script src="js/route.js"></script>
 <style>
 /* RESET & TOKENS */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1073,7 +1074,7 @@ body {
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <a href="index.html" class="logo">
+    <a href="/" data-route class="logo">
       <span class="logo-icon">◈</span>
       <span class="logo-text">CAKRA</span>
     </a>
@@ -1132,7 +1133,7 @@ body {
     </a>
   </nav>
   <div class="sidebar-footer">
-    <a href="index.html" class="back-btn">
+    <a href="/" data-route class="back-btn">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
       Upload Baru
     </a>
@@ -1212,7 +1213,7 @@ body {
     <div class="no-data-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
     <h2>Tidak ada data</h2>
     <p style="color:var(--text2);font-size:13px">Silakan upload file G-NetTrack Pro terlebih dahulu</p>
-    <a href="index.html" class="back-home-btn">← Kembali ke Upload</a>
+    <a href="/" data-route class="back-home-btn">← Kembali ke Upload</a>
   </div>
 
   <div id="dashContent" style="display:none">

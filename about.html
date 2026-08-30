@@ -140,13 +140,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 <body>
 
 <nav class="nav">
-  <a href="index.html" class="nav-logo">
+  <a href="/" data-route class="nav-logo">
     <span class="nav-icon">◈</span>
     <span class="nav-text">CAKRA</span>
   </a>
   <div class="nav-right">
-    <a href="docs.html" class="nav-btn">Dokumentasi</a>
-    <a href="index.html" class="nav-btn nav-cta">Buka Aplikasi →</a>
+    <a href="/docs" data-route class="nav-btn">Dokumentasi</a>
+    <a href="/" data-route class="nav-btn nav-cta">Buka Aplikasi →</a>
     <button class="theme-btn" id="themeBtn" onclick="cycleTheme()" title="Ganti tema"></button>
   </div>
 </nav>
@@ -317,8 +317,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     <div class="cta-title">Siap mulai analisis?</div>
     <p class="cta-sub">Upload file drive test Anda sekarang — gratis, tanpa registrasi, tanpa batas.</p>
     <div class="cta-buttons">
-      <a href="index.html" class="cta-btn cta-primary">◈ Buka Cakra →</a>
-      <a href="docs.html" class="cta-btn cta-secondary">Baca Dokumentasi</a>
+      <a href="/" data-route class="cta-btn cta-primary">◈ Buka Cakra →</a>
+      <a href="/docs" data-route class="cta-btn cta-secondary">Baca Dokumentasi</a>
     </div>
   </div>
 
@@ -327,9 +327,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 <footer class="footer">
   <div class="footer-text">CAKRA v2.0.1 — Drive Test Intelligence · © 2026 · Hak Cipta Dilindungi</div>
   <div class="footer-links">
-    <a href="docs.html" class="footer-link">Panduan Penggunaan</a>
-    <a href="about.html" class="footer-link">Tentang Cakra</a>
-    <a href="index.html" class="footer-link">Buka Aplikasi</a>
+    <a href="/docs" data-route class="footer-link">Panduan Penggunaan</a>
+    <a href="/about" data-route class="footer-link">Tentang Cakra</a>
+    <a href="/" data-route class="footer-link">Buka Aplikasi</a>
   </div>
 </footer>
 

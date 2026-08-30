@@ -5,12 +5,13 @@
 <meta name="theme-color" content="#06b6d4">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Cakra Virtual Drive Test — Prediksi coverage RSRP dari parameter site & antenna, dengan deteksi obstruksi LOS/NLOS dari data bangunan real (OpenStreetMap).">
+<meta name="description" content="Cakra Virtual Drive Test — Simulasikan drive test sebelum turun ke lapangan: prediksi coverage RSRP/RSRQ/SINR, obstruksi LOS/NLOS dari data bangunan real (OpenStreetMap), dan simulasi rute virtual drive lengkap dengan validasi vs data asli.">
 <link rel="icon" href="icons/icon.svg">
 <title>Virtual Drive Test — Cakra</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/leaflet.min.css"/>
+<script src="js/route.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#0a0a0b;--bg2:#111113;--bg3:#18181b;--bg4:#1f1f23;--bg5:#26262c;--border:rgba(255,255,255,0.055);--border2:rgba(255,255,255,0.09);--text:#ececee;--text2:#8e8e97;--text3:#50505a;--cyan:#06b6d4;--cyan-hi:#22d3ee;--cyan-dim:rgba(6,182,212,0.10);--green:#22c55e;--green-dim:rgba(34,197,94,0.10);--amber:#f59e0b;--amber-dim:rgba(245,158,11,0.10);--red:#ef4444;--red-dim:rgba(239,68,68,0.10);--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',system-ui,sans-serif}
@@ -30,16 +31,30 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .theme-btn:hover{border-color:var(--cyan);color:var(--cyan)}
 
 .container{max-width:1440px;margin:0 auto;padding:20px}
-.header{margin:76px 0 22px}
+.header{margin:76px 0 14px}
 .header-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--cyan);text-transform:uppercase;margin-bottom:6px}
 .title{font-family:var(--mono);font-size:30px;font-weight:600;margin-bottom:6px}
-.subtitle{font-size:13px;color:var(--text2);max-width:680px;line-height:1.6}
+.subtitle{font-size:13px;color:var(--text2);max-width:760px;line-height:1.6}
 
-.panel-grid{display:grid;grid-template-columns:320px 1fr;gap:18px;align-items:start}
-@media(max-width:900px){.panel-grid{grid-template-columns:1fr}}
+/* ── STEPPER ── */
+.stepper{display:flex;gap:8px;margin:18px 0 20px;flex-wrap:wrap}
+.step-btn{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:9px 14px;cursor:pointer;transition:0.18s;flex:1;min-width:150px}
+.step-btn:hover{border-color:var(--cyan)}
+.step-btn.active{border-color:var(--cyan);background:var(--cyan-dim)}
+.step-btn.done{border-color:rgba(34,197,94,0.4)}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--bg4);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text2);flex-shrink:0;transition:0.15s}
+.step-btn.active .step-num{background:var(--cyan);color:#04141a;border-color:var(--cyan)}
+.step-btn.done .step-num{background:var(--green);color:#04141a;border-color:var(--green)}
+.step-meta{display:flex;flex-direction:column;min-width:0}
+.step-kicker{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3)}
+.step-name{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text);margin-top:1px}
+
+.panel-grid{display:grid;grid-template-columns:360px 1fr;gap:18px;align-items:start}
+@media(max-width:980px){.panel-grid{grid-template-columns:1fr}}
 
 .card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:18px}
 .card-label{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px}
+.card-sub{font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:14px}
 
 .form-panel{position:sticky;top:70px;max-height:calc(100vh - 90px);overflow-y:auto}
 .form-group{margin-bottom:12px}
@@ -55,7 +70,19 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .run-btn{width:100%;padding:11px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--cyan),#0891b2);color:#04141a;font-family:var(--mono);font-weight:700;font-size:12.5px;letter-spacing:0.04em;cursor:pointer;margin-top:4px;transition:transform 0.15s,box-shadow 0.15s;text-transform:uppercase}
 .run-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 18px rgba(6,182,212,0.25)}
 .run-btn:disabled{opacity:0.5;cursor:not-allowed}
+.run-btn.secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border2);box-shadow:none}
+.run-btn.secondary:hover{border-color:var(--cyan);color:var(--cyan);transform:none}
+.run-btn.green{background:linear-gradient(135deg,var(--green),#16a34a);color:#04141a}
 .status-line{font-size:10.5px;font-family:var(--mono);color:var(--text2);margin-top:8px;line-height:1.5;min-height:26px}
+
+.step{display:none}
+.step.active{display:block;animation:fade 0.25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.step-actions{display:flex;gap:10px;margin-top:16px}
+.step-actions .run-btn{flex:1}
+.ghost-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:8px;padding:11px 14px;font-family:var(--mono);font-size:12px;cursor:pointer;transition:0.15s}
+.ghost-btn:hover{border-color:var(--cyan);color:var(--cyan)}
 
 .map-col{display:flex;flex-direction:column;gap:14px;min-width:0}
 .map-card{position:relative;padding:0;overflow:hidden}
@@ -72,141 +99,279 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .stat-card{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px}
 .stat-label{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:5px}
 .stat-value{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text)}
+.stat-value.good{color:var(--green)}
+.stat-value.warn{color:var(--amber)}
+.stat-value.bad{color:var(--red)}
 
 .info-note{background:var(--cyan-dim);border:1px solid rgba(6,182,212,0.22);border-radius:8px;padding:12px 14px;font-size:11px;color:var(--text2);line-height:1.65}
 .info-note b{color:var(--cyan)}
 .info-note ul{margin:6px 0 0 16px}
+
+.chart-card{padding:16px}
+#routeChart{width:100%;height:300px}
+
+.route-list{max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.route-item{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:10.5px}
+.route-item .badge{font-size:8px;font-weight:600;padding:2px 6px;border-radius:3px;flex-shrink:0}
+.route-item .rd{color:var(--text2);flex:1}
+.route-item .rv{color:var(--text);font-weight:600}
+
+.report-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:var(--mono);font-size:11px;line-height:1.7;color:var(--text2);white-space:pre-wrap}
+
+.map-hint{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:500;background:rgba(6,182,212,0.92);color:#04141a;font-family:var(--mono);font-size:11px;font-weight:600;padding:8px 16px;border-radius:20px;box-shadow:0 6px 20px rgba(6,182,212,0.35);display:none}
+.map-hint.show{display:block}
+
+.draw-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.draw-tools .run-btn{flex:none;width:auto;padding:9px 14px;font-size:11px}
+.chip{font-family:var(--mono);font-size:10px;color:var(--text2);background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 10px}
+
+footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10px;color:var(--text3);border-top:1px solid var(--border);margin-top:40px;letter-spacing:0.06em}
 </style>
 </head>
 <body>
 <script>(function(){var s=sessionStorage.getItem('cakra_theme')||'system';var t=s==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):s;document.documentElement.setAttribute('data-theme',t)})();</script>
 
 <nav class="nav">
-  <a href="index.html" class="nav-logo">
+  <a href="/" class="nav-logo" data-route>
     <span class="nav-logo-icon">◈</span>
     <span class="nav-logo-text">CAKRA</span>
   </a>
   <div class="nav-right">
-    <a href="dashboard.html" class="nav-back">← Dashboard</a>
+    <a href="/dashboard" class="nav-back" data-route>← Dashboard</a>
     <button class="theme-btn" id="themeBtn" onclick="cycleTheme()">◐</button>
   </div>
 </nav>
 
 <div class="container">
   <div class="header">
-    <div class="header-eyebrow">Coverage Prediction · LOS/NLOS Simulation</div>
+    <div class="header-eyebrow">Virtual Drive Test · LOS/NLOS Simulation</div>
     <div class="title">Virtual Drive Test</div>
-    <div class="subtitle">Prediksi RSRP dari parameter site & antenna sebelum turun ke lapangan — model propagasi Hata/COST231/3GPP&nbsp;38.901, pola antena 3D, tilt mekanik+elektrik, dan obstruksi LOS dari data bangunan real (OpenStreetMap).</div>
+    <div class="subtitle">Simulasikan drive test lengkap sebelum turun ke lapangan — prediksi coverage RSRP/RSRQ/SINR dari parameter site &amp; antenna, obstruksi bangunan real (OpenStreetMap), lalu jalankan simulasi rute virtual drive dan validasi terhadap data sesungguhnya.</div>
+  </div>
+
+  <div class="stepper" id="stepper">
+    <button class="step-btn active" data-step="1" onclick="CakraVDT.goto(1)"><span class="step-num">1</span><span class="step-meta"><span class="step-kicker">Setup</span><span class="step-name">Skenario & Site</span></span></button>
+    <button class="step-btn" data-step="2" onclick="CakraVDT.goto(2)"><span class="step-num">2</span><span class="step-meta"><span class="step-kicker">Parameter</span><span class="step-name">Antenna & Radio</span></span></button>
+    <button class="step-btn" data-step="3" onclick="CakraVDT.goto(3)"><span class="step-num">3</span><span class="step-meta"><span class="step-kicker">Model</span><span class="step-name">Prediksi Coverage</span></span></button>
+    <button class="step-btn" data-step="4" onclick="CakraVDT.goto(4)"><span class="step-num">4</span><span class="step-meta"><span class="step-kicker">Simulasi</span><span class="step-name">Virtual Drive (Rute)</span></span></button>
+    <button class="step-btn" data-step="5" onclick="CakraVDT.goto(5)"><span class="step-num">5</span><span class="step-meta"><span class="step-kicker">Hasil</span><span class="step-name">Validasi & Laporan</span></span></button>
   </div>
 
   <div class="panel-grid">
-    <!-- FORM PANEL -->
-    <div class="card form-panel">
-      <div class="card-label">Parameter Site & Antenna</div>
+    <!-- LEFT: STEP PANELS -->
+    <div class="card form-panel" id="leftPanel">
 
-      <div class="section-label">Lokasi Site</div>
-      <div class="form-row form-group">
-        <div><span class="f-label">Latitude</span><input class="f-input" id="siteLat" type="number" step="0.000001"></div>
-        <div><span class="f-label">Longitude</span><input class="f-input" id="siteLon" type="number" step="0.000001"></div>
-      </div>
-      <label class="chk-row"><input type="checkbox" id="clickToPlace" checked> Klik di peta untuk pindahkan site (atau drag marker)</label>
+      <!-- STEP 1 -->
+      <section class="step active" id="step1">
+        <div class="card-label">Skenario & Lokasi Site</div>
+        <div class="form-group">
+          <span class="f-label">Nama Skenario</span>
+          <input class="f-input" id="scenarioName" type="text" placeholder="Mis. Site Kelapa Gading BTS-03">
+        </div>
+        <div class="form-group">
+          <span class="f-label">Operator / MNO</span>
+          <input class="f-input" id="scenarioOp" type="text" placeholder="Mis. Telkomsel / XL">
+        </div>
+        <div class="form-group">
+          <span class="f-label">Preset Lokasi</span>
+          <input class="f-input" id="presetCity" list="cityList" placeholder="Pilih kota preset…" autocomplete="off">
+          <datalist id="cityList">
+            <option value="Jakarta (-6.2088, 106.8456)"></option>
+            <option value="Surabaya (-7.2575, 112.7521)"></option>
+            <option value="Bandung (-6.9175, 107.6191)"></option>
+            <option value="Yogyakarta (-7.7956, 110.3695)"></option>
+            <option value="Denpasar (-8.6705, 115.2126)"></option>
+            <option value="Medan (3.5952, 98.6722)"></option>
+            <option value="Makassar (-5.1476, 119.4327)"></option>
+          </datalist>
+        </div>
+        <div class="form-row form-group">
+          <div><span class="f-label">Latitude</span><input class="f-input" id="siteLat" type="number" step="0.000001"></div>
+          <div><span class="f-label">Longitude</span><input class="f-input" id="siteLon" type="number" step="0.000001"></div>
+        </div>
+        <label class="chk-row"><input type="checkbox" id="clickToPlace" checked> Klik di peta untuk pindahkan site (atau drag marker)</label>
+        <button class="run-btn secondary" id="useCentroidBtn" style="display:none" onclick="CakraVDT.useRealCentroid()">Gunakan centroid data drive test terakhir</button>
+        <div class="info-note" style="margin-top:14px">
+          <b>Langkah 1:</b> tentukan lokasi site (eNodeB/gNodeB). Klik mana saja di peta untuk menempatkan site, atau gunakan centroid dari sesi drive test terakhir jika tersedia.
+        </div>
+        <div class="step-actions">
+          <button class="ghost-btn" onclick="CakraVDT.goto(2)">Lanjut →</button>
+        </div>
+      </section>
 
-      <div class="section-label">Antenna</div>
-      <div class="form-group">
-        <span class="f-label">Tinggi Antena AGL (m)</span>
-        <input class="f-input" id="siteHeight" type="number" value="30" step="1">
-      </div>
-      <div class="form-row form-group">
-        <div><span class="f-label">Azimuth (°)</span><input class="f-input" id="siteAzimuth" type="number" value="0" step="1"></div>
-        <div><span class="f-label">Gain (dBi)</span><input class="f-input" id="antGain" type="number" value="17" step="0.5"></div>
-      </div>
-      <div class="form-row form-group">
-        <div><span class="f-label">Tilt Mekanik (°)</span><input class="f-input" id="mechTilt" type="number" value="2" step="0.5"></div>
-        <div><span class="f-label">Tilt Elektrik (°)</span><input class="f-input" id="elecTilt" type="number" value="4" step="0.5"></div>
-      </div>
-      <div class="form-row form-group">
-        <div><span class="f-label">Beamwidth H (°)</span><input class="f-input" id="beamwidthH" type="number" value="65" step="1"></div>
-        <div><span class="f-label">Beamwidth V (°)</span><input class="f-input" id="beamwidthV" type="number" value="8" step="0.5"></div>
-      </div>
-      <div class="form-row form-group">
-        <div><span class="f-label">Front-to-Back (dB)</span><input class="f-input" id="frontToBack" type="number" value="25" step="1"></div>
-        <div><span class="f-label">SLA-v (dB)</span><input class="f-input" id="slaV" type="number" value="20" step="1"></div>
-      </div>
+      <!-- STEP 2 -->
+      <section class="step" id="step2">
+        <div class="card-label">Parameter Site & Antenna</div>
 
-      <div class="section-label">Radio & Link Budget</div>
-      <div class="form-group">
-        <span class="f-label">Band Frekuensi</span>
-        <select class="f-select" id="band">
-          <option value="900">900 MHz (GSM/LTE)</option>
-          <option value="1800" selected>1800 MHz (DCS/LTE)</option>
-          <option value="2100">2100 MHz (UMTS/LTE)</option>
-          <option value="2300">2300 MHz (TDD LTE)</option>
-          <option value="2600">2600 MHz (LTE)</option>
-          <option value="3500">3500 MHz (5G NR n78)</option>
-        </select>
-      </div>
-      <div class="form-row form-group">
-        <div><span class="f-label">TX Power (dBm)</span><input class="f-input" id="txPower" type="number" value="43" step="0.5"></div>
-        <div><span class="f-label">Feeder Loss (dB)</span><input class="f-input" id="feederLoss" type="number" value="2" step="0.5"></div>
-      </div>
-      <div class="form-group">
-        <span class="f-label">Lingkungan (Clutter)</span>
-        <select class="f-select" id="env">
-          <option value="urban_large">Urban Padat</option>
-          <option value="urban" selected>Urban / Medium City</option>
-          <option value="suburban">Suburban</option>
-          <option value="rural">Rural / Terbuka</option>
-        </select>
-      </div>
+        <div class="section-label">Antenna</div>
+        <div class="form-group">
+          <span class="f-label">Tinggi Antena AGL (m)</span>
+          <input class="f-input" id="siteHeight" type="number" value="30" step="1">
+        </div>
+        <div class="form-row form-group">
+          <div><span class="f-label">Azimuth (°)</span><input class="f-input" id="siteAzimuth" type="number" value="0" step="1"></div>
+          <div><span class="f-label">Gain (dBi)</span><input class="f-input" id="antGain" type="number" value="17" step="0.5"></div>
+        </div>
+        <div class="form-row form-group">
+          <div><span class="f-label">Tilt Mekanik (°)</span><input class="f-input" id="mechTilt" type="number" value="2" step="0.5"></div>
+          <div><span class="f-label">Tilt Elektrik (°)</span><input class="f-input" id="elecTilt" type="number" value="4" step="0.5"></div>
+        </div>
+        <div class="form-row form-group">
+          <div><span class="f-label">Beamwidth H (°)</span><input class="f-input" id="beamwidthH" type="number" value="65" step="1"></div>
+          <div><span class="f-label">Beamwidth V (°)</span><input class="f-input" id="beamwidthV" type="number" value="8" step="0.5"></div>
+        </div>
+        <div class="form-row form-group">
+          <div><span class="f-label">Front-to-Back (dB)</span><input class="f-input" id="frontToBack" type="number" value="25" step="1"></div>
+          <div><span class="f-label">SLA-v (dB)</span><input class="f-input" id="slaV" type="number" value="20" step="1"></div>
+        </div>
 
-      <div class="section-label">Area Prediksi</div>
-      <div class="form-row form-group">
-        <div><span class="f-label">Radius (m)</span>
-          <select class="f-select" id="radius">
-            <option value="300">300</option>
-            <option value="500" selected>500</option>
-            <option value="800">800</option>
-            <option value="1200">1200</option>
+        <div class="section-label">Radio & Link Budget</div>
+        <div class="form-group">
+          <span class="f-label">Band Frekuensi</span>
+          <select class="f-select" id="band">
+            <option value="900">900 MHz (GSM/LTE)</option>
+            <option value="1800" selected>1800 MHz (DCS/LTE)</option>
+            <option value="2100">2100 MHz (UMTS/LTE)</option>
+            <option value="2300">2300 MHz (TDD LTE)</option>
+            <option value="2600">2600 MHz (LTE)</option>
+            <option value="3500">3500 MHz (5G NR n78)</option>
           </select>
         </div>
-        <div><span class="f-label">Resolusi Grid (m)</span>
-          <select class="f-select" id="resolution">
-            <option value="15">15</option>
-            <option value="20" selected>20</option>
-            <option value="30">30</option>
-            <option value="50">50</option>
+        <div class="form-row form-group">
+          <div><span class="f-label">TX Power (dBm)</span><input class="f-input" id="txPower" type="number" value="43" step="0.5"></div>
+          <div><span class="f-label">Feeder Loss (dB)</span><input class="f-input" id="feederLoss" type="number" value="2" step="0.5"></div>
+        </div>
+        <div class="form-group">
+          <span class="f-label">Lingkungan (Clutter)</span>
+          <select class="f-select" id="env">
+            <option value="urban_large">Urban Padat</option>
+            <option value="urban" selected>Urban / Medium City</option>
+            <option value="suburban">Suburban</option>
+            <option value="rural">Rural / Terbuka</option>
           </select>
         </div>
-      </div>
-      <div class="form-group">
-        <span class="f-label">Threshold Coverage (dBm)</span>
-        <input class="f-input" id="threshold" type="number" value="-100" step="1">
-      </div>
 
-      <div class="section-label">Data Tambahan</div>
-      <label class="chk-row"><input type="checkbox" id="useBuildings" checked> Deteksi obstruksi bangunan real (OpenStreetMap)</label>
-      <label class="chk-row" id="useRealDataWrap" style="display:none"><input type="checkbox" id="useRealData" checked> Bandingkan dengan data drive test sesi terakhir</label>
+        <div class="section-label">Area Prediksi</div>
+        <div class="form-row form-group">
+          <div><span class="f-label">Radius (m)</span>
+            <select class="f-select" id="radius">
+              <option value="300">300</option>
+              <option value="500" selected>500</option>
+              <option value="800">800</option>
+              <option value="1200">1200</option>
+            </select>
+          </div>
+          <div><span class="f-label">Resolusi Grid (m)</span>
+            <select class="f-select" id="resolution">
+              <option value="15">15</option>
+              <option value="20" selected>20</option>
+              <option value="30">30</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <span class="f-label">Threshold Coverage (dBm)</span>
+          <input class="f-input" id="threshold" type="number" value="-100" step="1">
+        </div>
+        <div class="form-group">
+          <span class="f-label">Batas Interferensi (dB) —Noise+Load*</span>
+          <input class="f-input" id="noiseFloor" type="number" value="-100" step="1">
+        </div>
 
-      <button class="run-btn" id="runPredictBtn">Jalankan Prediksi →</button>
-      <div class="status-line" id="predictStatus">Atur parameter lalu klik jalankan.</div>
+        <div class="section-label">Data Tambahan</div>
+        <label class="chk-row"><input type="checkbox" id="useBuildings" checked> Deteksi obstruksi bangunan real (OpenStreetMap)</label>
+        <label class="chk-row" id="useRealDataWrap" style="display:none"><input type="checkbox" id="useRealData" checked> Bandingkan dengan data drive test sesi terakhir</label>
 
-      <div class="info-note" style="margin-top:14px">
-        <b>Catatan model:</b> path loss otomatis pakai Okumura-Hata (&lt;1500MHz), COST231-Hata (1500-2300MHz), atau 3GPP TR 38.901 UMa (≥2300MHz). Obstruksi bangunan dihitung sebagai difraksi knife-edge dominan (aproksimasi ITU-R P.526) dari footprint & estimasi tinggi OSM — bukan pengganti survei RF penuh.
-      </div>
+        <div class="info-note" style="margin-top:14px">
+          <b>Catatan model:</b> path loss otomatis pakai Okumura-Hata (&lt;1500MHz), COST231-Hata (1500-2300MHz), atau 3GPP TR 38.901 UMa (≥2300MHz). Obstruksi bangunan dihitung sebagai difraksi knife-edge dominan (aproksimasi ITU-R P.526). RSRQ/SINR diestimasi dari RSRP + margin interferensi/noise (bukan pengganti survei RF penuh).
+        </div>
+        <div class="step-actions">
+          <button class="ghost-btn" onclick="CakraVDT.goto(1)">← Kembali</button>
+          <button class="run-btn" onclick="CakraVDT.goto(3)">Lanjut →</button>
+        </div>
+      </section>
+
+      <!-- STEP 3 -->
+      <section class="step" id="step3">
+        <div class="card-label">Prediksi Coverage</div>
+        <div class="card-sub">Jalankan model propagasi untuk membentuk peta prediksi RSRP di sekitar site. Hasil grid dipakai sebagai dasar simulasi rute (Step 4).</div>
+        <button class="run-btn" id="runPredictBtn" onclick="CakraVDT.runPrediction()">Jalankan Prediksi →</button>
+        <div class="status-line" id="predictStatus">Atur parameter lalu klik jalankan.</div>
+        <div class="info-note" style="margin-top:14px"><b>Interpretasi:</b> warna peta = prediksi RSRP (cyan=baik, merah=buruk). Bangunan merah = memotong garis LOS site→titik sehingga sinyal terdifraksi.</div>
+        <div class="step-actions">
+          <button class="ghost-btn" onclick="CakraVDT.goto(2)">← Parameter</button>
+          <button class="run-btn green" id="toStep4" onclick="CakraVDT.goto(4)" disabled>Lanjut: Rute →</button>
+        </div>
+      </section>
+
+      <!-- STEP 4 -->
+      <section class="step" id="step4">
+        <div class="card-label">Simulasi Virtual Drive — Rute</div>
+        <div class="card-sub">Gambar rute di peta (klik untuk tambah titik, lalu "Selesai"). Cakra akan mensimulasikan perjalanan kendaraan dan memprediksi RSRP/RSRQ/SINR sepanjang rute.</div>
+        <div class="draw-tools">
+          <button class="run-btn" id="drawRouteBtn" onclick="CakraVDT.toggleDraw()">✎ Gambar Rute</button>
+          <button class="run-btn secondary" id="finishRouteBtn" onclick="CakraVDT.finishDraw()" disabled>Selesai</button>
+          <button class="run-btn secondary" onclick="CakraVDT.clearRoute()">Bersihkan</button>
+        </div>
+        <div class="form-row form-group">
+          <div><span class="f-label">Kecepatan (km/jam)</span><input class="f-input" id="vehSpeed" type="number" value="30" step="1"></div>
+          <div><span class="f-label">Jarak Sampling (m)</span>
+            <select class="f-select" id="sampStep">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+            </select>
+          </div>
+        </div>
+        <div class="chip" id="routeInfo">Rute: belum digambar</div>
+        <button class="run-btn green" id="simRouteBtn" style="margin-top:12px" onclick="CakraVDT.simulateRoute()" disabled>▶ Jalankan Virtual Drive</button>
+        <div class="status-line" id="simStatus"></div>
+        <div class="step-actions">
+          <button class="ghost-btn" onclick="CakraVDT.goto(3)">← Coverage</button>
+          <button class="run-btn" id="toStep5" onclick="CakraVDT.goto(5)" disabled>Lanjut: Laporan →</button>
+        </div>
+      </section>
+
+      <!-- STEP 5 -->
+      <section class="step" id="step5">
+        <div class="card-label">Validasi & Laporan</div>
+        <div class="card-sub">Ringkasan hasil virtual drive test, validasi terhadap data asli (jika ada), dan ekspor.</div>
+
+        <div id="reportWrap"></div>
+
+        <div class="section-label">Validasi vs Data Nyata</div>
+        <div id="validationPanel" class="info-note">Belum ada data drive test asli di sesi ini. Upload file log di <a href="/" data-route style="color:var(--cyan)">halaman utama</a> untuk membandingkan.</div>
+
+        <div class="section-label">Ekspor & Lanjutan</div>
+        <div class="draw-tools">
+          <button class="run-btn secondary" onclick="CakraVDT.exportCSV()">⬇ Unduh CSV Virtual Drive</button>
+          <button class="run-btn secondary" onclick="CakraVDT.exportPNG()">⬇ Unduh Gambar Chart</button>
+          <button class="run-btn" onclick="CakraVDT.openInDashboard()">◈ Buka di Dashboard Cakra</button>
+        </div>
+        <div class="status-line" id="exportStatus"></div>
+        <div class="step-actions">
+          <button class="ghost-btn" onclick="CakraVDT.goto(4)">← Rute</button>
+        </div>
+      </section>
+
     </div>
 
-    <!-- MAP + STATS -->
+    <!-- RIGHT: MAP + STATS -->
     <div class="map-col">
       <div class="card map-card">
+        <div class="map-hint" id="mapHint">Klik di peta untuk menambah titik rute</div>
         <div id="predictMap"></div>
-        <div class="legend-box">
+        <div class="legend-box" id="legendBox">
           <div class="legend-title">PREDIKSI RSRP</div>
           <div class="legend-row"><span class="legend-swatch" style="background:#38bdf8"></span> &gt; -80 dBm</div>
           <div class="legend-row"><span class="legend-swatch" style="background:#4ade80"></span> -80 s/d -90</div>
           <div class="legend-row"><span class="legend-swatch" style="background:#facc15"></span> -90 s/d -100</div>
           <div class="legend-row"><span class="legend-swatch" style="background:#fb923c"></span> -100 s/d -110</div>
           <div class="legend-row"><span class="legend-swatch" style="background:#f87171"></span> &lt; -110 dBm</div>
-          <div class="legend-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border2)"><span class="legend-swatch" style="background:#f87171;opacity:.5"></span> Bangunan menghalangi LOS</div>
+          <div class="legend-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border2)"><span class="legend-swatch" style="background:#f87171;opacity:.5"></span> Bangunan LOS terhalang</div>
+          <div class="legend-row"><span class="legend-swatch" style="background:#ffffff;border:1px solid #888"></span> Rute virtual drive</div>
         </div>
       </div>
 
@@ -215,15 +380,21 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
         <div class="stats-grid" id="predictStatsPanel" style="display:none"></div>
       </div>
 
-      <div id="compareStatsWrap" style="display:none">
-        <div class="card-label" style="margin-bottom:8px">Validasi vs Data Drive Test Asli</div>
-        <div class="stats-grid" id="compareStatsPanel"></div>
+      <div id="routeStatsWrap" class="card" style="display:none">
+        <div class="card-label" style="margin-bottom:8px">Hasil Virtual Drive (Rute)</div>
+        <div class="stats-grid" id="routeStatsPanel"></div>
+        <div class="route-list" id="routeWeakList"></div>
+      </div>
+
+      <div class="card chart-card" id="chartCard" style="display:none">
+        <div class="card-label" style="margin-bottom:8px">Profil Sinyal Sepanjang Rute</div>
+        <canvas id="routeChart"></canvas>
       </div>
     </div>
   </div>
 </div>
 
-<footer style="text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10px;color:var(--text3);border-top:1px solid var(--border);margin-top:40px;letter-spacing:0.06em">CAKRA v2.1 — Virtual Drive Test &nbsp;·&nbsp; © 2026 · Hak Cipta Dilindungi</footer>
+<footer>CAKRA v2.1 — Virtual Drive Test &nbsp;·&nbsp; © 2026 · Hak Cipta Dilindungi</footer>
 
 <script>
 var THEMES=['system','dark','light'];var TICONS=['◐','●','○'];
@@ -235,6 +406,7 @@ applyTheme();
 </script>
 
 <script src="js/leaflet.min.js"></script>
+<script src="js/chart.umd.js"></script>
 <script src="js/propagation.js"></script>
 <script src="js/buildings.js"></script>
 <script src="js/predict.js"></script>

@@ -3,9 +3,11 @@ const CACHE_NAME = 'cakra-v2.0.1';
 const CDN_CACHE  = 'cakra-cdn-v2.0.1';
 
 const LOCAL_ASSETS = [
+  '/index.html', '/dashboard.html', '/predict.html', '/compare.html', '/docs.html', '/about.html',
   '/css/base.css', '/css/dashboard.css', '/css/upload.css',
-  '/js/parser.js', '/js/charts.js', '/js/map.js',
-  '/js/dashboard.js', '/js/ai.js', '/js/upload.js',
+  '/js/parser.js', '/js/charts.js', '/js/map.js', '/js/route.js',
+  '/js/dashboard.js', '/js/ai.js', '/js/upload.js', '/js/predict.js',
+  '/js/propagation.js', '/js/buildings.js', '/js/export.js',
   '/icons/icon.svg', '/manifest.json'
 ];
 
@@ -33,13 +35,30 @@ self.addEventListener('activate', e => {
   );
 });
 
-self.addEventListener('fetch', e => {
+  self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
 
   const url = e.request.url;
+  const accept = e.request.headers.get('accept') || '';
+  const isHTML = url.endsWith('.html') || e.request.mode === 'navigate' ||
+    (accept.includes('text/html') && !url.includes('cdnjs') && !url.includes('fonts.'));
 
-  // HTML & JS lokal → Network first (selalu ambil yang terbaru)
-  if (url.endsWith('.html') || (url.includes('/js/') && !url.includes('cdnjs'))) {
+  // HTML (termasuk URL bersih tanpa .html) → Network first + simpan ke cache (PWA offline)
+  if (isHTML) {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then(c => c.put(e.request, copy));
+          return res;
+        })
+        .catch(() => caches.match(e.request).then(m => m || caches.match('/index.html')))
+    );
+    return;
+  }
+
+  // JS lokal → Network first (selalu ambil yang terbaru)
+  if (url.includes('/js/') && !url.includes('cdnjs')) {
     e.respondWith(
       fetch(e.request).catch(() => caches.match(e.request))
     );

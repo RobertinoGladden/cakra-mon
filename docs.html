@@ -10,6 +10,7 @@
   }
 })();
 </script>
+<script src="js/route.js"></script>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -215,15 +216,15 @@ p.doc-p strong{color:var(--text);font-weight:600}
 <!-- TOP NAV -->
 <nav class="topnav">
   <button class="hamburger" id="menuBtn" onclick="toggleSidebar()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-  <a href="index.html" class="topnav-logo">
+  <a href="/" data-route class="topnav-logo">
     <span class="topnav-icon">◈</span>
     <span class="topnav-text">CAKRA</span>
   </a>
   <span class="topnav-sep">/</span>
   <span class="topnav-section">Dokumentasi</span>
   <div class="topnav-right">
-    <a href="about.html" class="topnav-btn">Tentang Cakra</a>
-    <a href="index.html" class="topnav-btn topnav-cta">Buka Aplikasi →</a>
+    <a href="/about" data-route class="topnav-btn">Tentang Cakra</a>
+    <a href="/" data-route class="topnav-btn topnav-cta">Buka Aplikasi →</a>
     <button class="theme-toggle" id="themeToggle" onclick="cycleTheme()" title="Ganti tema"></button>
   </div>
 </nav>
@@ -284,7 +285,7 @@ p.doc-p strong{color:var(--text);font-weight:600}
   <!-- MAIN CONTENT -->
   <main class="doc-main">
     <div class="breadcrumb">
-      <a href="index.html">Cakra</a>
+      <a href="/" data-route>Cakra</a>
       <span class="breadcrumb-sep">/</span>
       <span>Dokumentasi</span>
     </div>
@@ -365,7 +366,7 @@ p.doc-p strong{color:var(--text);font-weight:600}
           <div class="step-num">2</div>
           <div class="step-body">
             <div class="step-title">Upload ke Cakra</div>
-            <div class="step-desc">Buka <a href="index.html" style="color:var(--cyan)">halaman utama Cakra</a>. Drag & drop file log ke zona upload kiri, atau klik untuk pilih file. Untuk KML, gunakan zona upload kanan. Cakra mendukung <strong>multi-file sekaligus</strong> — upload beberapa rute sekaligus!</div>
+            <div class="step-desc">Buka <a href="/" data-route style="color:var(--cyan)">halaman utama Cakra</a>. Drag & drop file log ke zona upload kiri, atau klik untuk pilih file. Untuk KML, gunakan zona upload kanan. Cakra mendukung <strong>multi-file sekaligus</strong> — upload beberapa rute sekaligus!</div>
           </div>
         </div>
         <div class="step">
@@ -1270,9 +1271,9 @@ p.doc-p strong{color:var(--text);font-weight:600}
 <footer class="doc-footer">
   <div class="doc-footer-left">© 2026 · CAKRA Drive Test Intelligence · v2.0.1 · Hak Cipta Dilindungi</div>
   <div class="doc-footer-links">
-    <a href="docs.html" class="doc-footer-link">Panduan Penggunaan</a>
-    <a href="about.html" class="doc-footer-link">Tentang Cakra</a>
-    <a href="index.html" class="doc-footer-link">Buka Aplikasi</a>
+    <a href="/docs" data-route class="doc-footer-link">Panduan Penggunaan</a>
+    <a href="/about" data-route class="doc-footer-link">Tentang Cakra</a>
+    <a href="/" data-route class="doc-footer-link">Buka Aplikasi</a>
   </div>
 </footer>
 

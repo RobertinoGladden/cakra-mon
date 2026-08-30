@@ -177,7 +177,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 </div>
 
 <nav class="nav">
-  <a href="#" class="nav-logo">
+  <a href="/" class="nav-logo" data-route>
     <span class="nav-logo-icon">◈</span>
     <span class="nav-logo-text">CAKRA</span>
   </a>
@@ -217,7 +217,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     <span class="pill">Titik Rawan</span>
     <span class="pill">✦ AI Analyst</span>
     <span class="pill">Offline (PWA)</span>
-    <a href="predict.html" class="pill" style="text-decoration:none;border-color:rgba(74,222,128,0.3);color:var(--green,#4ade80);background:rgba(74,222,128,0.07)">◈ Virtual Drive Test (Baru)</a>
+    <a href="/predict" class="pill" style="text-decoration:none;border-color:rgba(74,222,128,0.3);color:var(--green,#4ade80);background:rgba(74,222,128,0.07)">◈ Virtual Drive Test</a>
   </div>
 
   <div class="upload-zone">
@@ -278,9 +278,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 <footer class="footer">
   <div class="footer-text">CAKRA — Drive Test Intelligence · LTE & 5G NR</div>
   <div class="footer-links">
-    <a href="docs.html" class="footer-link">Panduan Penggunaan</a>
-    <a href="about.html" class="footer-link">Tentang Cakra</a>
-    <a href="predict.html" class="footer-link">Virtual Drive Test</a>
+    <a href="/docs" class="footer-link" data-route>Panduan Penggunaan</a>
+    <a href="/about" class="footer-link" data-route>Tentang Cakra</a>
+    <a href="/predict" class="footer-link" data-route>Virtual Drive Test</a>
   </div>
 </footer>
 
@@ -300,6 +300,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   <button class="pwa-dismiss" onclick="dismissPWA()">✕</button>
 </div>
 
+<script src="js/route.js"></script>
 <script src="js/parser.js"></script>
 <script>
 // ── THEME ──
@@ -475,7 +476,7 @@ async function startAnalyze() {
 
     ptxt.textContent = 'Membuka dashboard...';
     psub.textContent = '';
-    setTimeout(() => { window.location.href = 'dashboard.html'; }, 200);
+    setTimeout(() => { if (window.CakraNav) CakraNav.go('/dashboard'); else window.location.href = '/dashboard'; }, 200);
   } catch(err) {
     overlay.classList.remove('show');
     alert('Error: ' + err.message);
