@@ -15,6 +15,7 @@
 
 
 <link rel="stylesheet" href="css/leaflet.min.css"/>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css"/>
 <script src="js/route.js"></script>
 <style>
 /* RESET & TOKENS */
@@ -244,12 +245,15 @@ body {
 }
 .back-home-btn:hover { border-color: var(--cyan); color: var(--cyan); }
 
-/* SECTIONS */
+/* SECTIONS — panel-switch (bukan scroll-spy): hanya section aktif yang tampil,
+   supaya dashboard tidak jadi satu halaman super panjang saat discroll. */
 .dash-section {
   padding: 26px 22px;
   border-bottom: 1px solid var(--border);
   scroll-margin-top: calc(var(--topbar-h) + 8px);
+  display: none;
 }
+.dash-section.active-section { display: block; }
 .section-hdr {
   display: flex; align-items: flex-start; gap: 14px;
   margin-bottom: 18px;
@@ -1215,7 +1219,7 @@ body {
   <div id="dashContent" style="display:none">
 
     <!-- 01 INFO -->
-    <section class="dash-section" id="info">
+    <section class="dash-section active-section" id="info">
       <div class="section-hdr">
         <div class="section-num">01</div>
         <div>
@@ -1676,6 +1680,8 @@ body {
 
 <script src="js/chart.umd.js"></script>
 <script src="js/leaflet.min.js"></script>
+<script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.20/leaflet-maplibre-gl.js"></script>
 
 <script src="js/parser.js?v=201"></script>
 <script src="js/charts.js?v=201"></script>
@@ -1920,9 +1926,9 @@ function buildFieldTools() {
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:7px">
-          <button onclick="document.getElementById('peta').scrollIntoView({behavior:'smooth'})" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='var(--border2)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> Buka Peta Sinyal</button>
-          <button onclick="document.getElementById('rawanSection').scrollIntoView({behavior:'smooth'})" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='#f87171'" onmouseout="this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Lihat Titik Rawan</button>
-          <button onclick="document.querySelector('[data-prompt=full]').click();document.getElementById('aiSection').scrollIntoView({behavior:'smooth'})" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='#a78bfa'" onmouseout="this.style.borderColor='var(--border2)'">Generate Laporan AI</button>
+          <button onclick="CakraGoToSection('peta')" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='var(--border2)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> Buka Peta Sinyal</button>
+          <button onclick="CakraGoToSection('rawan')" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='#f87171'" onmouseout="this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Lihat Titik Rawan</button>
+          <button onclick="document.querySelector('[data-prompt=full]').click();CakraGoToSection('ai')" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='#a78bfa'" onmouseout="this.style.borderColor='var(--border2)'">Generate Laporan AI</button>
           <button onclick="window.location.href='index.html'" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border2)'">⬆ Upload File Baru</button>
         </div>
       </div>

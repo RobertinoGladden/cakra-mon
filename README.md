@@ -55,6 +55,14 @@ Peta 3D (tombol "🧊 Peta 3D" di halaman Virtual Drive Test) memakai **MapLibre
 
 ---
 
+## Update Peta & Layout Dashboard (v2.3)
+
+- **Basemap diganti dari CARTO → MapLibre GL JS + OpenFreeMap** (`js/map.js`, `js/predict.js`, via plugin `maplibre-gl-leaflet`). CARTO sejak akhir Agustus 2026 mewajibkan API key untuk raster basemap dan menampilkan watermark "API KEY REQUIRED" tanpa key. OpenFreeMap gratis, tanpa API key sama sekali. Semua peta "flat" (dashboard Peta Sinyal, peta Virtual Drive Test) memakai style vector `dark`/`positron` sesuai tema; peta 3D (`js/map3d.js`) tetap terpisah sbg fitur lanjutan.
+- **Tabel Events & Titik Rawan: 10 baris/halaman** (sebelumnya 25).
+- **Dashboard kini panel-switch, bukan satu halaman scroll panjang.** Klik item di sidebar langsung menampilkan section tsb saja (spt dashboard profesional/Grafana-style), section lain disembunyikan (`display:none`). Judul topbar otomatis mengikuti section aktif.
+
+---
+
 ## Struktur File
 
 ```

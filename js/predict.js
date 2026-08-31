@@ -187,10 +187,9 @@ window.CakraVDT = (() => {
   function initMap(defaultLat, defaultLon) {
     if (map) return;
     map = L.map('predictMap', { zoomControl: true, attributionControl: true }).setView([defaultLat, defaultLon], 15);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 20, subdomains: 'abcd',
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-    }).addTo(map);
+    // Basemap: MapLibre GL vector tiles dari OpenFreeMap (via plugin maplibre-gl-leaflet)
+    // — gratis, tanpa API key, mengganti CARTO yg sekarang mewajibkan key.
+    L.maplibreGL({ style: 'https://tiles.openfreemap.org/styles/dark' }).addTo(map);
 
     ['predictPane', 'buildingPane', 'routePane', 'sitePane'].forEach((pane, i) => {
       if (!map.getPane(pane)) { map.createPane(pane); map.getPane(pane).style.zIndex = 350 + i * 30; }

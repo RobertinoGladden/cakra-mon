@@ -6,7 +6,7 @@
 let DATA   = [];
 let EVENTS = [];
 let EVENTS_PAGE = 0;
-const EVENTS_PER_PAGE = 25;
+const EVENTS_PER_PAGE = 10;
 
 Object.defineProperty(window, 'DATA',            { get: () => DATA });
 Object.defineProperty(window, 'EVENTS',          { get: () => EVENTS });
@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSidebar();
   setupChartTabs();
   setupMapLayerBtns();
-  setupScrollSpy();
   setupScrollTop();
 });
 
@@ -483,7 +482,7 @@ function renderDist(id, items, totalOverride) {
 
 
 let RAWAN_PAGE = 0;
-const RAWAN_PER_PAGE = 25;
+const RAWAN_PER_PAGE = 10;
 
 function buildRawan() {
   const rawan = DATA.filter(d => d.rsrp < -100 || d.rsrq < -19 || d.snr < -10);
@@ -577,21 +576,8 @@ function setupSidebar() {
     link.addEventListener('click', e => {
       const sectionId = link.dataset.section;
       if (sectionId) {
-        e.preventDefault(); // Cegah default anchor agar kita kontrol scrollnya
-
-        // 1. Pause scroll spy dulu supaya gak override
-        pauseScrollSpy(1500);
-
-        // 2. Set active langsung di sidebar
-        setNavActive(sectionId);
-
-        // 3. Scroll ke section yang dituju
-        const target = document.getElementById(sectionId);
-        if (target) {
-          const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-h')) || 48;
-          const y = target.getBoundingClientRect().top + window.scrollY - topbarH - 8;
-          window.scrollTo({ top: y, behavior: 'smooth' });
-        }
+        e.preventDefault(); // Kontrol penuh via showSection(), bukan anchor default
+        showSection(sectionId);
       }
 
       // Tutup sidebar di mobile
@@ -604,6 +590,39 @@ function setupSidebar() {
     });
   });
 }
+
+// Dashboard sebagai "halaman per section" (panel-switch), bukan satu halaman
+// panjang yang discroll — hanya section yang dipilih di sidebar yang ditampilkan.
+// Ini yang dipanggil sidebar nav DAN tombol "quick action" di manapun di dashboard.
+function showSection(sectionId) {
+  const target = document.getElementById(sectionId);
+  if (!target || !target.classList.contains('dash-section')) return;
+
+  document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active-section'));
+  target.classList.add('active-section');
+  setNavActive(sectionId);
+
+  // Update judul topbar agar jelas section mana yang sedang aktif (spt dashboard profesional)
+  const navItem = document.querySelector(`.nav-item[data-section="${sectionId}"] .nav-label`);
+  const topbarTitle = document.getElementById('topbarTitle');
+  if (navItem && topbarTitle) topbarTitle.textContent = navItem.textContent;
+
+  // Scroll area konten kembali ke atas setiap pindah "halaman"
+  const dashMain = document.getElementById('dashMain');
+  if (dashMain) dashMain.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+  window.scrollTo({ top: 0 });
+
+  // Beberapa section punya map/chart yang perlu di-resize krn sebelumnya display:none
+  // (ukuran canvas/leaflet salah dihitung saat container tersembunyi).
+  requestAnimationFrame(() => {
+    if (sectionId === 'peta' && window.CakraMap && CakraMap.invalidateSize) CakraMap.invalidateSize();
+    document.querySelectorAll(`#${sectionId} canvas`).forEach(cv => {
+      const chart = window.Chart && Chart.getChart ? Chart.getChart(cv) : null;
+      if (chart) chart.resize();
+    });
+  });
+}
+window.CakraGoToSection = showSection;
 
 function setupChartTabs() {
   document.querySelectorAll('.chart-tab').forEach(tab => {
@@ -637,15 +656,6 @@ function toggleEventLayer(type) {
   }
 }
 
-let _scrollSpyPaused = false;
-let _scrollSpyTimer  = null;
-
-function pauseScrollSpy(ms = 1200) {
-  _scrollSpyPaused = true;
-  clearTimeout(_scrollSpyTimer);
-  _scrollSpyTimer = setTimeout(() => { _scrollSpyPaused = false; }, ms);
-}
-
 function setNavActive(sectionId) {
   const navItems   = document.querySelectorAll('.nav-item[data-section]');
   const sidebarNav = document.querySelector('.sidebar-nav');
@@ -663,49 +673,6 @@ function setNavActive(sectionId) {
       }
     }
   }
-}
-
-function setupScrollSpy() {
-  const sections   = document.querySelectorAll('.dash-section[id]');
-
-  // Lacak semua section yang sedang intersecting
-  const intersecting = new Set();
-
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) intersecting.add(e.target);
-      else                   intersecting.delete(e.target);
-    });
-
-    if (_scrollSpyPaused) return; // Jangan override saat sedang klik nav
-
-    // Pilih section yang paling atas di viewport (bukan sembarang yang intersect)
-    let topSection = null;
-    let minTop     = Infinity;
-    intersecting.forEach(sec => {
-      const rect = sec.getBoundingClientRect();
-      if (rect.top >= 0 && rect.top < minTop) { minTop = rect.top; topSection = sec; }
-      // Kalau semua section di atas viewport, ambil yang paling bawah dari atas
-      else if (rect.top < 0 && !topSection) { topSection = sec; minTop = rect.top; }
-    });
-
-    // Fallback: ambil yang paling kecil nilai top negatifnya (paling dekat atas)
-    if (!topSection && intersecting.size > 0) {
-      let closest = Infinity;
-      intersecting.forEach(sec => {
-        const rect = sec.getBoundingClientRect();
-        const dist = Math.abs(rect.top);
-        if (dist < closest) { closest = dist; topSection = sec; }
-      });
-    }
-
-    if (topSection) setNavActive(topSection.id);
-  }, {
-    threshold: [0, 0.1, 0.5],
-    rootMargin: '-48px 0px -30% 0px'
-  });
-
-  sections.forEach(s => obs.observe(s));
 }
 
 function setupScrollTop() {

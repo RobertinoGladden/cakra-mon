@@ -12,9 +12,12 @@ window.CakraMap = (() => {
   let _flags = { gap: new Set(), churn: new Set(), throughputTier: new Map() };
   let _flagOpts = { gapThreshold: -100, windowSize: 10 };
 
-  const TILES = {
-    dark:  'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  // Basemap: MapLibre GL vector tiles dari OpenFreeMap (via plugin maplibre-gl-leaflet)
+  // — GRATIS, TANPA API KEY (beda dari CARTO yang sekarang mewajibkan key & memberi
+  // watermark "API KEY REQUIRED" pada request tanpa key sejak Agu 2026).
+  const STYLES = {
+    dark:  'https://tiles.openfreemap.org/styles/dark',
+    light: 'https://tiles.openfreemap.org/styles/positron',
   };
 
   const COLOR = {
@@ -29,19 +32,27 @@ window.CakraMap = (() => {
     return { radius: 5, fillColor: color, color: 'transparent', fillOpacity: 0.82, weight: 0 };
   }
 
-  function getCurrentTileUrl() {
+  function getCurrentStyleUrl() {
     const theme = document.documentElement.getAttribute('data-theme');
-    return theme === 'light' ? TILES.light : TILES.dark;
+    return theme === 'light' ? STYLES.light : STYLES.dark;
   }
 
   function updateTheme(isDark) {
     if (!map) return;
-    const url = isDark ? TILES.dark : TILES.light;
-    if (tileLayer) {
-      tileLayer.setUrl(url);
+    const url = isDark ? STYLES.dark : STYLES.light;
+    if (tileLayer && tileLayer.getMaplibreMap) {
+      tileLayer.getMaplibreMap().setStyle(url);
     } else {
-      tileLayer = L.tileLayer(url, { maxZoom: 19, subdomains: 'abcd' }).addTo(map);
+      if (tileLayer) map.removeLayer(tileLayer);
+      tileLayer = L.maplibreGL({ style: url }).addTo(map);
+      tileLayer.getContainer && tileLayer.getContainer().style && (tileLayer.getContainer().style.zIndex = 0);
     }
+  }
+
+  // Container Leaflet map perlu di-resize saat baru saja ditampilkan lagi
+  // (mis. setelah sebelumnya display:none via dashboard panel-switch).
+  function invalidateSize() {
+    if (map) setTimeout(() => map.invalidateSize(), 50);
   }
 
   function makePopupHtml(d) {
@@ -68,11 +79,9 @@ window.CakraMap = (() => {
       gps.reduce((s,d) => s + d.lon, 0) / gps.length
     ];
 
-    map = L.map('map', { zoomControl: true, attributionControl: false }).setView(center, 14);
+    map = L.map('map', { zoomControl: true, attributionControl: true }).setView(center, 14);
 
-    tileLayer = L.tileLayer(getCurrentTileUrl(), {
-      maxZoom: 19, subdomains: 'abcd'
-    }).addTo(map);
+    tileLayer = L.maplibreGL({ style: getCurrentStyleUrl() }).addTo(map);
 
     if (!map.getPane('analysisRings')) {
       map.createPane('analysisRings');
@@ -580,7 +589,7 @@ window.CakraMap = (() => {
   }
 
   return {
-    build, addEvents, switchLayer, toggleEventLayer, updateTheme,
+    build, addEvents, switchLayer, toggleEventLayer, updateTheme, invalidateSize,
     initAnnotationLayer, toggleAnnotationMode, deleteAnnotation,
     buildAnalysisLayers, switchAnalysisLayer,
     // Opsi A — overlay rings
