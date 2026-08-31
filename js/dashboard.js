@@ -594,7 +594,7 @@ function setupSidebar() {
 // Dashboard sebagai "halaman per section" (panel-switch), bukan satu halaman
 // panjang yang discroll — hanya section yang dipilih di sidebar yang ditampilkan.
 // Ini yang dipanggil sidebar nav DAN tombol "quick action" di manapun di dashboard.
-function showSection(sectionId) {
+function showSection(sectionId, focusCardId) {
   const target = document.getElementById(sectionId);
   if (!target || !target.classList.contains('dash-section')) return;
 
@@ -620,6 +620,18 @@ function showSection(sectionId) {
       const chart = window.Chart && Chart.getChart ? Chart.getChart(cv) : null;
       if (chart) chart.resize();
     });
+    // Fokus ke bento-card tertentu dalam page (mis. langsung ke kartu "Titik Rawan"
+    // di dalam page "Peta & Events" via quick-action button)
+    if (focusCardId) {
+      const card = document.getElementById(focusCardId);
+      if (card && dashMain) {
+        dashMain.scrollTo({ top: card.offsetTop - 12, behavior: 'smooth' });
+        card.style.transition = 'border-color 0.2s';
+        const prevBorder = card.style.borderColor;
+        card.style.borderColor = 'var(--cyan)';
+        setTimeout(() => { card.style.borderColor = prevBorder; }, 1200);
+      }
+    }
   });
 }
 window.CakraGoToSection = showSection;

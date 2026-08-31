@@ -55,6 +55,22 @@ Peta 3D (tombol "🧊 Peta 3D" di halaman Virtual Drive Test) memakai **MapLibre
 
 ---
 
+## Update Layout Dashboard — Bento Grid (v2.4)
+
+Sidebar dashboard yang tadinya **14 item (1 fitur = 1 page)** dipadatkan jadi **5 item**, tiap item menampilkan beberapa fitur relevan sekaligus dalam layout **bento grid** (compact, tidak perlu scroll panjang):
+
+| Sidebar | Isi (bento cards) |
+|---|---|
+| **Overview** | Info Drive Test, Serving Cell, Ringkasan KPI |
+| **Grafik & Distribusi** | Grafik parameter (tabs RSRP/RSRQ/SNR/Throughput/dst), Tabel standar & distribusi |
+| **Peta & Events** | Peta Sinyal (kartu besar), Events (handover/reselection), Titik Rawan |
+| **Analisis RF Lanjutan** | Coverage Gap, Cell Churn, Throughput Corr., Site View, PCI Mod-3 |
+| **AI Analyst** | Chat AI (full-width, standalone) |
+
+Klik sidebar → hanya page itu yang ditampilkan (`display:none` untuk yang lain), bukan scroll ke bawah. Semua `id` internal (`infoGrid`, `rsrpChart`, `eventsContent`, dst) tidak berubah — jadi seluruh logic `dashboard.js` yang sudah ada tetap jalan tanpa modifikasi, cuma dibungkus ulang ke dalam `.bento-card`.
+
+---
+
 ## Update Peta & Layout Dashboard (v2.3)
 
 - **Basemap diganti dari CARTO → MapLibre GL JS + OpenFreeMap** (`js/map.js`, `js/predict.js`, via plugin `maplibre-gl-leaflet`). CARTO sejak akhir Agustus 2026 mewajibkan API key untuk raster basemap dan menampilkan watermark "API KEY REQUIRED" tanpa key. OpenFreeMap gratis, tanpa API key sama sekali. Semua peta "flat" (dashboard Peta Sinyal, peta Virtual Drive Test) memakai style vector `dark`/`positron` sesuai tema; peta 3D (`js/map3d.js`) tetap terpisah sbg fitur lanjutan.
