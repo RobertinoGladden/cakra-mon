@@ -229,9 +229,6 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
         </div>
         <label class="chk-row"><input type="checkbox" id="clickToPlace" checked> Klik di peta untuk pindahkan site aktif (atau drag marker)</label>
         <button class="run-btn secondary" id="useCentroidBtn" style="display:none" onclick="CakraVDT.useRealCentroid()">Gunakan centroid data drive test terakhir</button>
-        <div class="info-note" style="margin-top:14px">
-          <b>Langkah 1:</b> tambahkan 1 atau lebih site (eNodeB/gNodeB) untuk simulasi single-site atau multi-site/handover. Pilih site di daftar untuk mengedit parameternya di Step 2. Warna titik = warna site di peta &amp; grafik.
-        </div>
         <div class="step-actions">
           <button class="ghost-btn" onclick="CakraVDT.goto(2)">Lanjut →</button>
         </div>
@@ -322,9 +319,6 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
         <label class="chk-row"><input type="checkbox" id="useBuildings" checked> Deteksi obstruksi bangunan real (OpenStreetMap)</label>
         <label class="chk-row" id="useRealDataWrap" style="display:none"><input type="checkbox" id="useRealData" checked> Bandingkan dengan data drive test sesi terakhir</label>
 
-        <div class="info-note" style="margin-top:14px">
-          <b>Catatan model:</b> path loss otomatis pakai Okumura-Hata (&lt;1500MHz), COST231-Hata (1500-2300MHz), atau 3GPP TR 38.901 UMa (≥2300MHz). Obstruksi bangunan dihitung sebagai difraksi knife-edge dominan (aproksimasi ITU-R P.526). RSRQ/SINR diestimasi dari RSRP + margin interferensi/noise (bukan pengganti survei RF penuh).
-        </div>
         <div class="step-actions">
           <button class="ghost-btn" onclick="CakraVDT.goto(1)">← Kembali</button>
           <button class="run-btn" onclick="CakraVDT.goto(3)">Lanjut →</button>
@@ -337,7 +331,6 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
         <div class="card-sub">Jalankan model propagasi untuk membentuk peta prediksi RSRP di sekitar site. Hasil grid dipakai sebagai dasar simulasi rute (Step 4).</div>
         <button class="run-btn" id="runPredictBtn" onclick="CakraVDT.runPrediction()">Jalankan Prediksi →</button>
         <div class="status-line" id="predictStatus">Atur parameter lalu klik jalankan.</div>
-        <div class="info-note" style="margin-top:14px"><b>Interpretasi:</b> warna peta = prediksi RSRP (cyan=baik, merah=buruk). Bangunan merah = memotong garis LOS site→titik sehingga sinyal terdifraksi.</div>
         <div class="step-actions">
           <button class="ghost-btn" onclick="CakraVDT.goto(2)">← Parameter</button>
           <button class="run-btn green" id="toStep4" onclick="CakraVDT.goto(4)" disabled>Lanjut: Rute →</button>
@@ -393,7 +386,6 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
             </select>
           </div>
         </div>
-        <div class="info-note" style="margin-top:6px"><b>Cara kerja:</b> RSRP mentah tiap site di-smooth dulu dgn L3 filter (F_n=(1-a)F_n-1+a·M_n, a=1/2^(k/4)), lalu handover baru dieksekusi jika Event A3 (RSRP neighbour − Hys &gt; RSRP serving + Offset) bertahan terus-menerus selama Time-to-Trigger — persis parameter yang di-tuning RF engineer di OSS (Hysteresis/A3Offset/TimeToTrigger/FilterCoefficient), bukan sekadar "site terkuat langsung menang".</div>
 
         <button class="run-btn green" id="simRouteBtn" style="margin-top:12px" onclick="CakraVDT.simulateRoute()" disabled>▶ Jalankan Virtual Drive</button>
         <div class="status-line" id="simStatus"></div>

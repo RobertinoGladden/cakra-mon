@@ -14,12 +14,50 @@ Object.defineProperty(window, 'EVENTS_PAGE',     { get: () => EVENTS_PAGE });
 Object.defineProperty(window, 'EVENTS_PER_PAGE', { get: () => EVENTS_PER_PAGE });
 
 document.addEventListener('DOMContentLoaded', () => {
+  wrapBentoCardBodies();
   loadData();
   setupSidebar();
   setupChartTabs();
   setupMapLayerBtns();
   setupScrollTop();
+  setupCacaWidget();
 });
+
+// Floating chatbot "Caca" — buka/tutup panel, terpisah dari sidebar/section switch
+function setupCacaWidget() {
+  const launcher = document.getElementById('cacaLauncher');
+  const panel = document.getElementById('cacaPanel');
+  const closeBtn = document.getElementById('cacaCloseBtn');
+  if (!launcher || !panel) return;
+  const toggle = () => panel.classList.toggle('open');
+  launcher.addEventListener('click', toggle);
+  if (closeBtn) closeBtn.addEventListener('click', () => panel.classList.remove('open'));
+}
+window.CakraOpenCaca = (promptKey) => {
+  const panel = document.getElementById('cacaPanel');
+  if (panel) panel.classList.add('open');
+  if (promptKey) {
+    const chip = document.querySelector(`.ai-chip[data-prompt="${promptKey}"]`);
+    if (chip) chip.click();
+  }
+};
+
+// Bungkus konten tiap .bento-card (selain header) ke dalam .bento-card-body
+// supaya scroll terjadi DI DALAM kartu (bukan di halaman) — inilah yang bikin
+// tiap page pas dengan tinggi viewport tanpa perlu scroll panjang.
+function wrapBentoCardBodies() {
+  document.querySelectorAll('.bento-card').forEach(card => {
+    if (card.querySelector(':scope > .bento-card-body')) return; // sudah dibungkus
+    const hdr = card.querySelector(':scope > .section-hdr');
+    const body = document.createElement('div');
+    body.className = 'bento-card-body';
+    const toMove = [];
+    let node = hdr ? hdr.nextSibling : card.firstChild;
+    while (node) { toMove.push(node); node = node.nextSibling; }
+    toMove.forEach(n => body.appendChild(n));
+    card.appendChild(body);
+  });
+}
 
 async function loadData() {
   try {
@@ -91,7 +129,6 @@ async function buildAll() {
   buildInfo();
   buildCell();
   buildKPI();
-  buildVerdict();
 
   await yieldToUI();
 
@@ -268,47 +305,6 @@ function buildKPI() {
   `;
 }
 
-function buildVerdict() {
-  const el = document.getElementById('verdictContent');
-  if (!el || !DATA.length) return;
-
-  const _vals = k => DATA.map(d => d[k]).filter(v => v !== null && v !== undefined && !isNaN(v));
-  const avg   = k => { const v = _vals(k); return v.length ? v.reduce((a,b)=>a+b,0) / v.length : null; };
-  const aRsrp = avg('rsrp'), aRsrq = avg('rsrq'), aSnr = avg('snr');
-
-  let score = 0, total = 0;
-  if (aRsrp !== null) { total++; score += aRsrp > -80 ? 3 : aRsrp > -90 ? 2 : aRsrp > -100 ? 1 : 0; }
-  if (aRsrq !== null) { total++; score += aRsrq > -10 ? 3 : aRsrq > -15 ? 2 : aRsrq > -19 ? 1 : 0; }
-  if (aSnr  !== null) { total++; score += aSnr  > 10  ? 3 : aSnr  > 0   ? 2 : aSnr  > -10 ? 1 : 0; }
-  const pct = total ? score / (total * 3) : 0;
-
-  const grade = pct >= 0.8  ? { label: 'SANGAT BAIK',     color: 'var(--green)'  }
-              : pct >= 0.55 ? { label: 'BAIK',             color: 'var(--cyan-hi)'}
-              : pct >= 0.3  ? { label: 'CUKUP',            color: 'var(--yellow)' }
-              :               { label: 'PERLU PERHATIAN',  color: 'var(--red)'    };
-
-  const rawanCount = DATA.filter(d => d.rsrp < -100 || d.rsrq < -19 || d.snr < -10).length;
-  const rawanPct   = DATA.length ? (rawanCount / DATA.length * 100) : 0;
-  const uniq       = new Set(DATA.map(d => d.cellname).filter(Boolean)).size;
-  const hoNote     = uniq > 6 ? 'cukup sering berpindah sel (indikasi mobilitas/handover aktif)' : 'relatif stabil di satu/beberapa sel';
-
-  el.innerHTML = `
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">
-      <span class="kpi-badge" style="background:color-mix(in srgb, ${grade.color} 15%, transparent);color:${grade.color};border:1px solid color-mix(in srgb, ${grade.color} 35%, transparent);font-size:11px;padding:4px 10px;flex-shrink:0">${grade.label}</span>
-      <span style="font-size:12.5px;color:var(--text2);line-height:1.6">
-        Kualitas sinyal keseluruhan sesi ini dinilai <b style="color:${grade.color}">${grade.label.toLowerCase()}</b>
-        berdasarkan rata-rata RSRP/RSRQ/SNR, dengan <b style="color:var(--text)">${uniq}</b> cell unik terekam &mdash; ${hoNote}.
-      </span>
-    </div>
-    <div class="kpi-extra">
-      ${extraCard('Titik Rawan', rawanPct.toFixed(1)+'%', rawanCount.toLocaleString()+' dari '+DATA.length.toLocaleString()+' titik', rawanPct>10?'var(--red)':rawanPct>5?'var(--yellow)':'var(--green)')}
-      ${extraCard('Unique Cells', uniq, hoNote.split(' (')[0])}
-      ${extraCard('Rata-rata RSRP', (aRsrp!==null?aRsrp.toFixed(1):'—')+' dBm')}
-      ${extraCard('Rata-rata RSRQ', (aRsrq!==null?aRsrq.toFixed(1):'—')+' dB')}
-      ${extraCard('Rata-rata SNR', (aSnr!==null?aSnr.toFixed(1):'—')+' dB')}
-    </div>`;
-}
-
 function extraCard(label, val, sub='', accent='') {
   const accentStyle = accent ? `style="color:${accent}"` : '';
   return `<div class="info-card">
@@ -349,8 +345,8 @@ function buildEvents() {
       <td><span class="${tagClass}">${tagLabel}</span>${nrBadge}</td>
       <td style="font-size:9px;color:var(--cyan)">${ev.type || '—'}</td>
       <td>${ev.timeDisp || ev.time}</td>
-      <td title="${ev.fromCell}">${ev.fromCell}</td>
-      <td title="${ev.toCell}">${ev.toCell}</td>
+      <td>${ev.fromCell}</td>
+      <td>${ev.toCell}</td>
       <td style="color:${parseInt(ev.rsrp)<-100?'var(--red)':parseInt(ev.rsrp)<-80?'var(--yellow)':'var(--green)'}">${ev.rsrp}</td>
       <td>${ev.rsrq}</td>
       <td>${ev.snr}</td>
@@ -657,13 +653,7 @@ function showSection(sectionId, focusCardId) {
   // Beberapa section punya map/chart yang perlu di-resize krn sebelumnya display:none
   // (ukuran canvas/leaflet salah dihitung saat container tersembunyi).
   requestAnimationFrame(() => {
-    if (sectionId === 'peta' && window.CakraMap && CakraMap.invalidateSize) {
-      CakraMap.invalidateSize();
-      // Panggil ulang setelah layout flex/sticky-nya settle (kartu peta sekarang
-      // ikut tinggi kolom events+rawan di sebelahnya, jadi ukurannya baru pasti
-      // setelah konten async ter-render).
-      setTimeout(() => CakraMap.invalidateSize(), 250);
-    }
+    if (sectionId === 'peta' && window.CakraMap && CakraMap.invalidateSize) CakraMap.invalidateSize();
     document.querySelectorAll(`#${sectionId} canvas`).forEach(cv => {
       const chart = window.Chart && Chart.getChart ? Chart.getChart(cv) : null;
       if (chart) chart.resize();

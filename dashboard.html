@@ -209,12 +209,17 @@ body {
   max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-/* MAIN */
+/* MAIN — viewport-fit, TANPA scroll di level halaman. Tiap page (dash-section)
+   punya tinggi = viewport, dan hanya bento-card individual yang scroll internal. */
 .dashboard-main {
   margin-left: var(--sidebar-w);
   padding-top: var(--topbar-h);
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
+#dashContent { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .no-data-state {
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; min-height: 70vh; gap: 14px; text-align: center;
@@ -246,66 +251,57 @@ body {
 .back-home-btn:hover { border-color: var(--cyan); color: var(--cyan); }
 
 /* SECTIONS — panel-switch (bukan scroll-spy): hanya section aktif yang tampil,
-   supaya dashboard tidak jadi satu halaman super panjang saat discroll. */
+   dan tiap page mengisi PERSIS tinggi viewport (tanpa scroll halaman). */
 .dash-section {
-  padding: 26px 22px;
-  border-bottom: 1px solid var(--border);
-  scroll-margin-top: calc(var(--topbar-h) + 8px);
+  padding: 16px 20px;
   display: none;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
 }
-.dash-section.active-section { display: block; }
+.dash-section.active-section { display: flex; }
 
 /* PAGE HEADER (di atas bento grid tiap page) */
-.dash-page-hdr { display:flex; align-items:baseline; gap:10px; margin-bottom:16px; }
-.dash-page-title { font-family: var(--mono); font-size: 15px; font-weight: 600; letter-spacing:0.02em; color: var(--text); }
-.dash-page-sub { font-size: 11.5px; color: var(--text3); }
+.dash-page-hdr { display:flex; align-items:baseline; gap:10px; margin-bottom:10px; flex-shrink:0; }
+.dash-page-title { font-family: var(--mono); font-size: 14px; font-weight: 600; letter-spacing:0.02em; color: var(--text); }
+.dash-page-sub { font-size: 11px; color: var(--text3); }
 
-/* BENTO GRID — beberapa fitur relevan dipadatkan dalam satu page, compact & rapi */
-.bento-grid { display: grid; gap: 14px; align-items: start; }
+/* BENTO GRID — beberapa fitur relevan dipadatkan dalam satu page, mengisi
+   tinggi tersisa (flex:1) dan tiap kartu scroll SENDIRI (bukan halaman) */
+.bento-grid { display: grid; gap: 12px; flex: 1; min-height: 0; }
 .bento-card {
   background: var(--bg2); border: 1px solid var(--border);
-  padding: 18px 20px; min-width: 0; overflow: auto;
+  padding: 14px 16px; min-width: 0; min-height: 0;
+  display: flex; flex-direction: column;
+  overflow: hidden;
 }
-.bento-card .section-hdr { margin-bottom: 14px; }
-.bento-card .section-title { font-size: 11px; }
+.bento-card-body { overflow-y: auto; min-height: 0; flex: 1; }
+.bento-card .section-hdr { margin-bottom: 10px; flex-shrink: 0; }
+.bento-card .section-title { font-size: 10.5px; }
+.bento-card .section-sub { font-size: 10px; }
 
-.bento-overview { grid-template-columns: repeat(3, 1fr); }
+.bento-overview { grid-template-columns: repeat(3, 1fr); grid-template-rows: auto auto 1fr; }
 .bento-overview .bento-span-2 { grid-column: span 2; }
 .bento-overview .bento-span-3 { grid-column: span 3; }
 
-/* Grafik & Distribusi: chart di kiri, tabel standar+distribusi jadi sidebar kanan
-   (dulu semua ditumpuk 1 kolom penuh ke bawah = halaman jadi sangat panjang) */
-.bento-grafik { grid-template-columns: 1.6fr 1fr; align-items: start; }
-.bento-grafik .dist-layout { grid-template-columns: 1fr; }
+.bento-grafik { grid-template-columns: 1.3fr 1fr; grid-template-rows: 1fr; }
 
-/* Peta & Events: peta jadi sticky + stretch mengisi tinggi kolom kanan (events+rawan),
-   supaya tidak nyisain kotak kosong besar di bawah peta seperti sebelumnya */
-.bento-peta { grid-template-columns: 1.6fr 1fr; grid-auto-rows: min-content; align-items: stretch; }
-.bento-peta .bento-map {
-  grid-row: span 2;
-  display: flex; flex-direction: column;
-  position: sticky; top: calc(var(--topbar-h) + 14px);
-  max-height: calc(100vh - var(--topbar-h) - 28px);
+.bento-peta { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; }
+.bento-peta .bento-map { grid-row: span 2; }
+
+.bento-analisis { grid-template-columns: repeat(5, 1fr); grid-template-rows: 1fr; }
+
+@media (max-width: 1400px) {
+  .bento-analisis { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); }
 }
-.bento-peta .bento-map .map-container { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.bento-peta .bento-map #map { flex: 1; height: auto; min-height: 420px; }
-
-/* Analisis RF: tiap kartu dibatasi tinggi + scroll internal, supaya halaman tidak
-   memanjang tak terbatas mengikuti kartu paling panjang (dulu bisa >1500px) */
-.bento-analisis { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: stretch; }
-.bento-analisis .bento-card { display: flex; flex-direction: column; height: 560px; }
-.bento-analisis .bento-card > div[id$="Content"] { flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px; }
-
-.bento-ai { grid-template-columns: 1fr; }
-
 @media (max-width: 980px) {
-  .bento-overview, .bento-peta, .bento-grafik { grid-template-columns: 1fr; }
+  .dashboard-main { height: auto; overflow: visible; }
+  .dash-section, .dash-section.active-section { display: block; height: auto; }
+  .bento-grid { display: grid; height: auto; }
+  .bento-card { max-height: 70vh; }
+  .bento-overview, .bento-grafik, .bento-peta, .bento-analisis { grid-template-columns: 1fr; grid-template-rows: none; }
   .bento-overview .bento-span-2, .bento-overview .bento-span-3 { grid-column: span 1; }
-  .bento-peta .bento-map {
-    grid-row: auto; position: static; max-height: none;
-  }
-  .bento-peta .bento-map #map { flex: none; height: 380px; min-height: 0; }
-  .bento-analisis .bento-card { height: 460px; }
+  .bento-peta .bento-map { grid-row: auto; }
 }
 .section-hdr {
   display: flex; align-items: flex-start; gap: 14px;
@@ -597,7 +593,7 @@ body {
   overflow-x: auto; border-radius:0;
   border: 1px solid var(--border); background: var(--bg2);
 }
-.events-table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 820px; }
+.events-table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 580px; }
 .events-table th {
   background: var(--bg3); padding: 8px 12px;
   font-family: var(--mono); font-size: 9px; font-weight: 600;
@@ -608,9 +604,7 @@ body {
 .events-table td {
   padding: 7px 12px; border-bottom: 1px solid var(--border);
   font-family: var(--mono); color: var(--text2); vertical-align: middle;
-  white-space: nowrap; /* cell id (mis. 510-10-2096-149863-11-1850-415) jangan wrap jadi 5 baris — scroll horizontal saja */
 }
-.events-table td:nth-child(5), .events-table td:nth-child(6) { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
 .events-table tr:last-child td { border-bottom: none; }
 .events-table tr:hover td { background: rgba(255,255,255,0.03); }
 .tag-ho {
@@ -955,9 +949,87 @@ body {
 .ai-send-btn:hover { background: var(--bg2); color: var(--cyan); }
 .ai-send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
+/* ═══ FLOATING AI CHATBOT "CACA" — standalone, terpisah dari sidebar ═══ */
+#cacaWidget { position: fixed; bottom: 22px; right: 22px; z-index: 600; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+
+.caca-launcher {
+  width: 58px; height: 58px; border-radius: 50%; border: none; cursor: pointer;
+  background: transparent; display: flex; align-items: center; justify-content: center;
+  padding: 0; flex-shrink: 0;
+}
+.caca-fireball {
+  width: 42px; height: 50px; position: relative;
+  background: radial-gradient(circle at 35% 32%, #ffe08a 0%, #ffb23e 38%, #ff7a2e 70%, #e6391a 100%);
+  border-radius: 50% 50% 48% 48% / 62% 62% 38% 38%;
+  box-shadow: 0 0 16px rgba(255,120,30,0.5), 0 6px 16px rgba(0,0,0,0.45);
+  animation: caca-float 2.6s ease-in-out infinite;
+}
+.caca-fireball::before {
+  content: ''; position: absolute; top: -9px; left: 50%; width: 15px; height: 19px;
+  background: radial-gradient(circle, #fff4cf 0%, #ffb23e 60%, transparent 100%);
+  border-radius: 50% 50% 50% 50% / 68% 68% 32% 32%;
+  animation: caca-flicker 1.7s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+.caca-fireball-sm { width: 30px; height: 36px; box-shadow: 0 0 8px rgba(255,120,30,0.4); }
+.caca-fireball-sm::before { width: 11px; height: 14px; top: -6px; }
+@keyframes caca-float { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-5px) rotate(2deg); } }
+@keyframes caca-flicker { 0%,100% { transform: translateX(-50%) scale(1) rotate(-4deg); } 50% { transform: translateX(-50%) scale(1.1) rotate(5deg); } }
+
+.caca-face { position: absolute; inset: 0; }
+.caca-eye {
+  width: 5.5px; height: 7.5px; background: #241207; border-radius: 50%;
+  position: absolute; top: 17px; animation: caca-blink 4.3s infinite;
+}
+.caca-eye-l { left: 12px; } .caca-eye-r { right: 12px; }
+.caca-fireball-sm .caca-eye { width: 4px; height: 5px; top: 12px; }
+.caca-fireball-sm .caca-eye-l { left: 8.5px; } .caca-fireball-sm .caca-eye-r { right: 8.5px; }
+@keyframes caca-blink { 0%,90%,100% { transform: scaleY(1); } 95% { transform: scaleY(0.12); } }
+.caca-mouth {
+  width: 9px; height: 5px; border-bottom: 2px solid #241207; border-radius: 0 0 8px 8px;
+  position: absolute; top: 27px; left: 50%; transform: translateX(-50%);
+  animation: caca-talk 3.4s ease-in-out infinite;
+}
+.caca-fireball-sm .caca-mouth { width: 6px; height: 3px; top: 19px; border-bottom-width: 1.5px; }
+@keyframes caca-talk { 0%,100% { width: 9px; } 50% { width: 5px; } }
+
+.caca-panel {
+  width: 380px; height: 560px; max-height: 74vh;
+  background: var(--bg2); border: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 20px 56px rgba(0,0,0,0.55);
+  transform: translateY(16px) scale(0.96); opacity: 0; pointer-events: none;
+  transition: transform 0.18s cubic-bezier(0.4,0,0.2,1), opacity 0.18s ease;
+}
+.caca-panel.open { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; }
+.caca-close-btn {
+  width: 22px; height: 22px; background: none; border: 1px solid var(--border2);
+  color: var(--text2); cursor: pointer; font-size: 11px; flex-shrink: 0;
+}
+.caca-close-btn:hover { border-color: #f87171; color: #f87171; }
+
+@media (max-width: 560px) {
+  #cacaWidget { right: 14px; bottom: 14px; }
+  .caca-panel { width: calc(100vw - 28px); height: 68vh; }
+}
+
 /* SCROLL TOP & TOAST */
+/* LANGUAGE SWITCH (ID/EN) */
+.lang-switch {
+  display: flex; align-items: center; gap: 4px; margin-left: 10px;
+  font-family: var(--mono); font-size: 10px; flex-shrink: 0;
+}
+.lang-sep { color: var(--border2); }
+.lang-btn {
+  background: none; border: none; color: var(--text3); cursor: pointer;
+  font-family: var(--mono); font-size: 10px; font-weight: 600; padding: 3px 4px;
+  letter-spacing: 0.04em;
+}
+.lang-btn:hover { color: var(--text); }
+.lang-btn.active { color: var(--cyan); }
+
 .scroll-top {
-  position: fixed; bottom: 20px; right: 20px; z-index: 200;
+  position: fixed; bottom: 20px; left: 20px; z-index: 200;
   width: 34px; height: 34px; border-radius:0;
   background: var(--bg3); border: 1px solid var(--border2);
   color: var(--text2); font-size: 13px; cursor: pointer;
@@ -1138,24 +1210,19 @@ body {
   <nav class="sidebar-nav">
     <div class="nav-group-label">Dashboard</div>
     <a href="#overview" class="nav-item active" data-section="overview">
-      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span><span class="nav-label">Overview</span>
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span><span class="nav-label" data-i18n="nav.overview">Overview</span>
     </a>
     <a href="#grafik" class="nav-item" data-section="grafik">
-      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span><span class="nav-label">Grafik &amp; Distribusi</span>
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span><span class="nav-label" data-i18n="nav.grafik">Grafik &amp; Distribusi</span>
     </a>
     <a href="#peta" class="nav-item" data-section="peta" id="navEvents">
-      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span><span class="nav-label">Peta &amp; Events</span>
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span><span class="nav-label" data-i18n="nav.peta">Peta &amp; Events</span>
       <span class="nav-badge" id="eventsBadge" style="display:none">0</span>
       <span class="nav-badge nav-badge-red" id="rawanBadge" style="display:none">0</span>
     </a>
     <a href="#analisis" class="nav-item" data-section="analisis">
-      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/><line x1="2" y1="2" x2="22" y2="22"/></svg></span><span class="nav-label">Analisis RF Lanjutan</span>
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/><line x1="2" y1="2" x2="22" y2="22"/></svg></span><span class="nav-label" data-i18n="nav.analisis">Analisis RF Lanjutan</span>
       <span class="nav-badge nav-badge-red" id="gapNavBadge" style="display:none">!</span>
-    </a>
-    <div class="nav-group-label">AI</div>
-    <a href="#ai" class="nav-item nav-item-ai" data-section="ai">
-      <span class="nav-icon">✦</span><span class="nav-label">AI Analyst</span>
-      <span class="nav-badge nav-badge-ai">AI</span>
     </a>
   </nav>
   <div class="sidebar-footer">
@@ -1183,6 +1250,11 @@ body {
     <button id="exportExcelBtn" title="Export Excel" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:0;cursor:pointer;color:var(--green);transition:background 0.1s,color 0.1s,border-color 0.1s;font-size:14px;font-weight:600" onclick="CakraExport.exportExcel()" onmouseover="this.style.background='var(--green-dim)';this.style.borderColor='var(--green)'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg></button>
     <button id="compareBtn" title="Compare Sessions" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:0;cursor:pointer;color:#a78bfa;transition:background 0.1s,color 0.1s,border-color 0.1s;font-size:14px;margin-left:4px;font-weight:600" onclick="if(typeof openCompareDialog==='function')openCompareDialog()" onmouseover="this.style.background='rgba(168,85,247,0.1)';this.style.borderColor='#a78bfa'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><rect x="2" y="3" width="7" height="18" rx="1"/><rect x="15" y="3" width="7" height="18" rx="1"/><line x1="12" y1="6" x2="12" y2="18" stroke-dasharray="3 3"/></svg></button>
     <button id="virtualDtBtn" title="Virtual Drive Test — Prediksi Coverage" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:0;cursor:pointer;color:#4ade80;transition:background 0.1s,color 0.1s,border-color 0.1s;font-size:14px;margin-left:4px;font-weight:600" onclick="window.location.href='predict.html'" onmouseover="this.style.background='rgba(74,222,128,0.1)';this.style.borderColor='#4ade80'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9"/><path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5"/><circle cx="12" cy="9" r="2"/><path d="M16.2 4.8c2 2 2.26 5.11.8 7.47"/><path d="M19.1 1.9a10.75 10.75 0 0 1 0 15.2"/><line x1="12" y1="9" x2="12" y2="22"/></svg></button>
+    <div class="lang-switch" id="langSwitch" role="group" aria-label="Language">
+      <button class="lang-btn active" id="langBtnId" data-lang="id" onclick="CakraI18n.setLanguage('id')">ID</button>
+      <span class="lang-sep">|</span>
+      <button class="lang-btn" id="langBtnEn" data-lang="en" onclick="CakraI18n.setLanguage('en')">EN</button>
+    </div>
     <div id="exportStatus" style="font-size:10px;color:var(--text2);margin-left:12px;min-width:140px;text-align:right;font-family:var(--mono)"></div>
   </div>
 </div>
@@ -1247,16 +1319,16 @@ body {
     <!-- PAGE: OVERVIEW -->
     <section class="dash-section active-section" id="overview">
       <div class="dash-page-hdr">
-        <div class="dash-page-title">Overview</div>
-        <div class="dash-page-sub">Ringkasan sesi drive test</div>
+        <div class="dash-page-title" data-i18n="page.overview.title">Overview</div>
+        <div class="dash-page-sub" data-i18n="page.overview.sub">Ringkasan sesi drive test</div>
       </div>
       <div class="bento-grid bento-overview">
 <div class="bento-card bento-span-2" id="bento_info">
       <div class="section-hdr">
         <div class="section-num">01</div>
         <div>
-          <div class="section-title">Informasi Drive Test</div>
-          <div class="section-sub">Data umum sesi pengukuran</div>
+          <div class="section-title" data-i18n="card.info.title">Informasi Drive Test</div>
+          <div class="section-sub" data-i18n="card.info.sub">Data umum sesi pengukuran</div>
         </div>
       </div>
       <div class="info-grid" id="infoGrid"></div>
@@ -1264,8 +1336,8 @@ body {
       <div class="section-hdr">
         <div class="section-num">02</div>
         <div>
-          <div class="section-title">Data Serving Cell</div>
-          <div class="section-sub">Parameter jaringan aktif</div>
+          <div class="section-title" data-i18n="card.cell.title">Data Serving Cell</div>
+          <div class="section-sub" data-i18n="card.cell.sub">Parameter jaringan aktif</div>
         </div>
       </div>
       <div class="info-grid" id="cellGrid"></div>
@@ -1273,8 +1345,8 @@ body {
       <div class="section-hdr">
         <div class="section-num">03</div>
         <div>
-          <div class="section-title">Ringkasan KPI</div>
-          <div class="section-sub">Key Performance Indicators rata-rata</div>
+          <div class="section-title" data-i18n="card.kpi.title">Ringkasan KPI</div>
+          <div class="section-sub" data-i18n="card.kpi.sub">Key Performance Indicators rata-rata</div>
         </div>
       </div>
       <div class="kpi-grid">
@@ -1304,31 +1376,33 @@ body {
         </div>
       </div>
       <div class="kpi-extra" id="kpiExtra"></div>
-    </div><div class="bento-card bento-span-3" id="bento_verdict">
+    </div>
+<div class="bento-card bento-span-3" id="bento_fieldtools">
       <div class="section-hdr">
         <div class="section-num">04</div>
         <div>
-          <div class="section-title">Ringkasan &amp; Verdict</div>
-          <div class="section-sub">Kesimpulan otomatis kualitas sesi drive test</div>
+          <div class="section-title" data-i18n="card.fieldtools.title">Quick Tools</div>
+          <div class="section-sub" data-i18n="card.fieldtools.sub">Kualitas sinyal, kecepatan, checklist &amp; aksi cepat</div>
         </div>
       </div>
-      <div id="verdictContent"><div class="info-card" style="text-align:center;padding:24px;color:var(--text3)">Menghitung ringkasan...</div></div>
-    </div>      </div>
+      <div id="fieldToolsContent"></div>
+    </div>
+      </div>
     </section>
 
     <!-- PAGE: GRAFIK & DISTRIBUSI -->
     <section class="dash-section" id="grafik">
       <div class="dash-page-hdr">
-        <div class="dash-page-title">Grafik &amp; Distribusi</div>
-        <div class="dash-page-sub">Time series parameter &amp; sebaran data</div>
+        <div class="dash-page-title" data-i18n="page.grafik.title">Grafik &amp; Distribusi</div>
+        <div class="dash-page-sub" data-i18n="page.grafik.sub">Time series parameter &amp; sebaran data</div>
       </div>
       <div class="bento-grid bento-grafik">
 <div class="bento-card " id="bento_grafik">
       <div class="section-hdr">
         <div class="section-num">01</div>
         <div>
-          <div class="section-title">Grafik Parameter</div>
-          <div class="section-sub">Time series RSRP, RSRQ, SNR, Throughput</div>
+          <div class="section-title" data-i18n="card.grafik.title">Grafik Parameter</div>
+          <div class="section-sub" data-i18n="card.grafik.sub">Time series RSRP, RSRQ, SNR, Throughput</div>
         </div>
       </div>
       <div class="chart-tabs">
@@ -1437,8 +1511,8 @@ body {
       <div class="section-hdr">
         <div class="section-num">02</div>
         <div>
-          <div class="section-title">Tabel Standar &amp; Distribusi</div>
-          <div class="section-sub">Kategori parameter dan persentase sebaran data</div>
+          <div class="section-title" data-i18n="card.distribusi.title">Tabel Standar &amp; Distribusi</div>
+          <div class="section-sub" data-i18n="card.distribusi.sub">Kategori parameter dan persentase sebaran data</div>
         </div>
       </div>
       <div class="dist-layout">
@@ -1506,16 +1580,16 @@ body {
     <!-- PAGE: PETA & EVENTS -->
     <section class="dash-section" id="peta">
       <div class="dash-page-hdr">
-        <div class="dash-page-title">Peta &amp; Events</div>
-        <div class="dash-page-sub">Visualisasi geografis, handover, dan titik rawan</div>
+        <div class="dash-page-title" data-i18n="page.peta.title">Peta &amp; Events</div>
+        <div class="dash-page-sub" data-i18n="page.peta.sub">Visualisasi geografis, handover, dan titik rawan</div>
       </div>
       <div class="bento-grid bento-peta">
 <div class="bento-card bento-map" id="bento_map">
       <div class="section-hdr">
         <div class="section-num">01</div>
         <div>
-          <div class="section-title">Peta Sinyal</div>
-          <div class="section-sub">Visualisasi geografis parameter jaringan</div>
+          <div class="section-title" data-i18n="card.peta.title">Peta Sinyal</div>
+          <div class="section-sub" data-i18n="card.peta.sub">Visualisasi geografis parameter jaringan</div>
         </div>
       </div>
       <div class="map-toolbar">
@@ -1563,8 +1637,8 @@ body {
       <div class="section-hdr">
         <div class="section-num">02</div>
         <div>
-          <div class="section-title">Events — Handover &amp; Cell Reselection</div>
-          <div class="section-sub">Data perpindahan sel dari file KML</div>
+          <div class="section-title" data-i18n="card.events.title">Events — Handover &amp; Cell Reselection</div>
+          <div class="section-sub" data-i18n="card.events.sub">Data perpindahan sel dari file KML</div>
         </div>
       </div>
       <div id="eventsContent">
@@ -1581,8 +1655,8 @@ body {
       <div class="section-hdr">
         <div class="section-num">03</div>
         <div>
-          <div class="section-title">Titik Rawan Sinyal</div>
-          <div class="section-sub">Titik dengan parameter di luar threshold normal</div>
+          <div class="section-title" data-i18n="card.rawan.title">Titik Rawan Sinyal</div>
+          <div class="section-sub" data-i18n="card.rawan.sub">Titik dengan parameter di luar threshold normal</div>
         </div>
       </div>
       <div id="rawanContent"></div>
@@ -1592,16 +1666,16 @@ body {
     <!-- PAGE: ANALISIS RF LANJUTAN -->
     <section class="dash-section" id="analisis">
       <div class="dash-page-hdr">
-        <div class="dash-page-title">Analisis RF Lanjutan</div>
-        <div class="dash-page-sub">Coverage gap, cell churn, korelasi throughput, site view, PCI conflict</div>
+        <div class="dash-page-title" data-i18n="page.analisis.title">Analisis RF Lanjutan</div>
+        <div class="dash-page-sub" data-i18n="page.analisis.sub">Coverage gap, cell churn, korelasi throughput, site view, PCI conflict</div>
       </div>
       <div class="bento-grid bento-analisis">
 <div class="bento-card " id="bento_covgap">
       <div class="section-hdr">
         <div class="section-num" style="color:#f87171;display:flex;align-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
         <div>
-          <div class="section-title">Coverage Gap Detection</div>
-          <div class="section-sub">Segmen rute dengan RSRP di bawah threshold — area blank spot</div>
+          <div class="section-title" data-i18n="card.covgap.title">Coverage Gap Detection</div>
+          <div class="section-sub" data-i18n="card.covgap.sub">Segmen rute dengan RSRP di bawah threshold — area blank spot</div>
         </div>
       </div>
       <div id="coverageGapContent"><div class="info-card" style="text-align:center;padding:24px;color:var(--text3)">Memuat...</div></div>
@@ -1609,8 +1683,8 @@ body {
       <div class="section-hdr">
         <div class="section-num" style="color:#f97316;display:flex;align-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
         <div>
-          <div class="section-title">Cell Churn / Handover Instability</div>
-          <div class="section-sub">Area dengan ≥3 serving cell berbeda dalam window pendek — bisa indikasi pilot pollution, mobility, atau misconfig HO</div>
+          <div class="section-title" data-i18n="card.cellchurn.title">Cell Churn / Handover Instability</div>
+          <div class="section-sub" data-i18n="card.cellchurn.sub">Area dengan ≥3 serving cell berbeda dalam window pendek — bisa indikasi pilot pollution, mobility, atau misconfig HO</div>
         </div>
       </div>
       <div id="cellChurnContent"><div class="info-card" style="text-align:center;padding:24px;color:var(--text3)">Memuat...</div></div>
@@ -1618,8 +1692,8 @@ body {
       <div class="section-hdr">
         <div class="section-num" style="color:#22c55e;display:flex;align-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
         <div>
-          <div class="section-title">Throughput Correlation</div>
-          <div class="section-sub">Korelasi DL throughput vs RSRP — identifikasi bottleneck RF vs non-RF</div>
+          <div class="section-title" data-i18n="card.throughputcorr.title">Throughput Correlation</div>
+          <div class="section-sub" data-i18n="card.throughputcorr.sub">Korelasi DL throughput vs RSRP — identifikasi bottleneck RF vs non-RF</div>
         </div>
       </div>
       <div id="throughputCorrContent"><div class="info-card" style="text-align:center;padding:24px;color:var(--text3)">Memuat...</div></div>
@@ -1627,8 +1701,8 @@ body {
       <div class="section-hdr">
         <div class="section-num" style="color:#38bdf8;display:flex;align-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9"/><path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5"/><circle cx="12" cy="9" r="2"/><path d="M16.2 4.8c2 2 2.26 5.11.8 7.47"/><path d="M19.1 1.9a10.75 10.75 0 0 1 0 15.2"/><line x1="12" y1="9" x2="12" y2="22"/></svg></div>
         <div>
-          <div class="section-title">Site-based View</div>
-          <div class="section-sub">KPI dikelompokkan per site / eNodeB — identifikasi site bermasalah</div>
+          <div class="section-title" data-i18n="card.siteview.title">Site-based View</div>
+          <div class="section-sub" data-i18n="card.siteview.sub">KPI dikelompokkan per site / eNodeB — identifikasi site bermasalah</div>
         </div>
       </div>
       <div id="siteViewContent"><div class="info-card" style="text-align:center;padding:24px;color:var(--text3)">Memuat...</div></div>
@@ -1636,8 +1710,8 @@ body {
       <div class="section-hdr">
         <div class="section-num" style="color:#a78bfa;display:flex;align-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6"/><path d="M12 17v6"/><path d="M4.22 4.22l4.24 4.24"/><path d="M15.54 15.54l4.24 4.24"/><path d="M1 12h6"/><path d="M17 12h6"/></svg></div>
         <div>
-          <div class="section-title">PCI Mod-3 Conflict Analysis</div>
-          <div class="section-sub">Deteksi cell yang berbagi PCI mod 3 — potensi PSS collision saat initial cell sync</div>
+          <div class="section-title" data-i18n="card.pciconflict.title">PCI Mod-3 Conflict Analysis</div>
+          <div class="section-sub" data-i18n="card.pciconflict.sub">Deteksi cell yang berbagi PCI mod 3 — potensi PSS collision saat initial cell sync</div>
         </div>
       </div>
       <div id="pciConflictContent"><div class="info-card" style="text-align:center;padding:24px;color:var(--text3)">Memuat...</div></div>
@@ -1645,73 +1719,64 @@ body {
     </section>
 
     <!-- PAGE: AI ANALYST -->
-    <section class="dash-section" id="ai">
-
-      <div class="section-hdr">
-        <div class="section-num ai-num" style="color:#a78bfa">✦</div>
-        <div>
-          <div class="section-title">AI Analyst <span class="ai-title-badge">Groq · Llama 3.3 70B</span></div>
-          <div class="section-sub">Chat interaktif berbasis data drive test LTE/5G Anda</div>
-        </div>
-      </div>
-
-      <div class="ai-chatbot-wrap">
-        <div class="ai-chat-header">
-          <div class="ai-chat-header-left">
-            <div class="ai-chat-avatar">✦</div>
-            <div>
-              <div class="ai-chat-name">Cakra AI</div>
-              <div class="ai-chat-status">
-                <span class="ai-status-dot"></span>
-                Siap menganalisis data drive test
-              </div>
-            </div>
-          </div>
-          <span class="ai-model-badge">Groq · Free</span>
-        </div>
-
-        <div class="ai-quick-bar">
-          <div class="ai-quick-bar-label">Analisis Cepat</div>
-          <div class="ai-quick-chips">
-            <button class="ai-chip" data-prompt="full"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Laporan Lengkap</button>
-            <button class="ai-chip" data-prompt="kpi">Evaluasi KPI</button>
-            <button class="ai-chip" data-prompt="coverage"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> Coverage</button>
-            <button class="ai-chip" data-prompt="handover"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg> Handover</button>
-            <button class="ai-chip" data-prompt="throughput"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg> Throughput</button>
-            <button class="ai-chip" data-prompt="recommend"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Rekomendasi</button>
-          </div>
-        </div>
-
-        <div class="ai-messages" id="aiMessages">
-          <div class="ai-welcome">
-            <div class="ai-welcome-icon">✦</div>
-            <div class="ai-welcome-title">Halo! Saya AI Analyst Drive Test</div>
-            <div class="ai-welcome-sub">Pilih analisis cepat di atas atau ketik pertanyaan tentang data RSRP, RSRQ, SNR, throughput, handover, dan parameter LTE/5G lainnya.</div>
-          </div>
-        </div>
-
-        <div class="ai-typing" id="aiTyping">
-          <div class="ai-typing-avatar">✦</div>
-          <div class="ai-typing-dots"><span></span><span></span><span></span></div>
-        </div>
-
-        <div class="ai-chat-input-wrap">
-          <textarea
-            id="aiChatInput"
-            class="ai-chat-input"
-            placeholder="Tanya tentang data drive test... (Enter kirim, Shift+Enter baris baru)"
-            rows="1"
-          ></textarea>
-          <button class="ai-send-btn" id="aiSendBtn" onclick="AIAnalyst.sendChat()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          </button>
-        </div>
-      </div>
-    
-    </section>
   </div><!-- /dashContent -->
 
 </main>
+
+<!-- FLOATING AI CHATBOT — "Caca", terpisah dari sidebar, standalone kanan-bawah -->
+<div id="cacaWidget">
+  <div class="caca-panel" id="cacaPanel">
+    <div class="ai-chat-header">
+      <div class="ai-chat-header-left">
+        <div class="caca-fireball caca-fireball-sm"><div class="caca-face"><div class="caca-eye caca-eye-l"></div><div class="caca-eye caca-eye-r"></div><div class="caca-mouth"></div></div></div>
+        <div>
+          <div class="ai-chat-name">Caca</div>
+          <div class="ai-chat-status"><span class="ai-status-dot"></span><span data-i18n="ai.status">Siap menganalisis data drive test</span></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="ai-model-badge">Groq · Free</span>
+        <button class="caca-close-btn" id="cacaCloseBtn" aria-label="Tutup">✕</button>
+      </div>
+    </div>
+
+    <div class="ai-quick-bar">
+      <div class="ai-quick-bar-label" data-i18n="ai.quickbar">Analisis Cepat</div>
+      <div class="ai-quick-chips">
+        <button class="ai-chip" data-prompt="full"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> <span data-i18n="ai.chip.full">Laporan Lengkap</span></button>
+        <button class="ai-chip" data-prompt="kpi"><span data-i18n="ai.chip.kpi">Evaluasi KPI</span></button>
+        <button class="ai-chip" data-prompt="coverage"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> <span data-i18n="ai.chip.coverage">Coverage</span></button>
+        <button class="ai-chip" data-prompt="handover"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg> <span data-i18n="ai.chip.handover">Handover</span></button>
+        <button class="ai-chip" data-prompt="throughput"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg> <span data-i18n="ai.chip.throughput">Throughput</span></button>
+        <button class="ai-chip" data-prompt="recommend"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> <span data-i18n="ai.chip.recommend">Rekomendasi</span></button>
+      </div>
+    </div>
+
+    <div class="ai-messages" id="aiMessages">
+      <div class="ai-welcome">
+        <div class="ai-welcome-icon">✦</div>
+        <div class="ai-welcome-title" data-i18n="ai.welcome.title">Halo! Aku Caca, AI Analyst kamu</div>
+        <div class="ai-welcome-sub" data-i18n="ai.welcome.sub">Pilih analisis cepat di atas atau ketik pertanyaan tentang data RSRP, RSRQ, SNR, throughput, handover, dan parameter LTE/5G lainnya.</div>
+      </div>
+    </div>
+
+    <div class="ai-typing" id="aiTyping">
+      <div class="ai-typing-avatar">✦</div>
+      <div class="ai-typing-dots"><span></span><span></span><span></span></div>
+    </div>
+
+    <div class="ai-chat-input-wrap">
+      <textarea id="aiChatInput" class="ai-chat-input" placeholder="Tanya tentang data drive test... (Enter kirim, Shift+Enter baris baru)" data-i18n-placeholder="ai.input.placeholder" rows="1"></textarea>
+      <button class="ai-send-btn" id="aiSendBtn" onclick="AIAnalyst.sendChat()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <button id="cacaLauncher" class="caca-launcher" aria-label="Buka Caca AI Analyst">
+    <div class="caca-fireball"><div class="caca-face"><div class="caca-eye caca-eye-l"></div><div class="caca-eye caca-eye-r"></div><div class="caca-mouth"></div></div></div>
+  </button>
+</div>
 
 <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 <div class="toast" id="toast"></div>
@@ -1726,6 +1791,7 @@ body {
 <script src="js/map.js?v=201"></script>
 <script src="js/export.js?v=201"></script>
 <script src="js/ai.js?v=201"></script>
+<script src="js/i18n.js?v=201"></script>
 <script src="js/dashboard.js?v=201"></script>
 
 <script>
@@ -1966,7 +2032,7 @@ function buildFieldTools() {
         <div style="display:flex;flex-direction:column;gap:7px">
           <button onclick="CakraGoToSection('peta')" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='var(--border2)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> Buka Peta Sinyal</button>
           <button onclick="CakraGoToSection('peta','bento_rawan')" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='#f87171'" onmouseout="this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Lihat Titik Rawan</button>
-          <button onclick="document.querySelector('[data-prompt=full]').click();CakraGoToSection('ai')" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='#a78bfa'" onmouseout="this.style.borderColor='var(--border2)'">Generate Laporan AI</button>
+          <button onclick="CakraOpenCaca('full')" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='#a78bfa'" onmouseout="this.style.borderColor='var(--border2)'">Generate Laporan AI</button>
           <button onclick="window.location.href='index.html'" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border2)'">⬆ Upload File Baru</button>
         </div>
       </div>

@@ -55,6 +55,18 @@ Peta 3D (tombol "🧊 Peta 3D" di halaman Virtual Drive Test) memakai **MapLibre
 
 ---
 
+## Redesign Compact Bento + Chatbot "Caca" + i18n (v2.5)
+
+- **Viewport-fit, tanpa scroll halaman**: `.dashboard-main` sekarang `height:100vh`; tiap page bento (Overview/Grafik & Distribusi/Peta & Events/Analisis RF Lanjutan) mengisi PERSIS tinggi viewport. Scroll terjadi **di dalam tiap bento-card** (dibungkus otomatis via `wrapBentoCardBodies()` di `dashboard.js`), bukan di level halaman.
+- **Bug "Overview tengah kosong" ditemukan & diperbaiki**: container `#fieldToolsContent` (panel Quick Tools — gauge sinyal, checklist, aksi cepat) sempat hilang dari markup sehingga gagal render. Sekarang jadi card ke-4 pengisi Overview.
+- **AI Analyst → floating chatbot "Caca"**: dikeluarkan total dari sidebar, jadi widget mengambang pojok kanan-bawah dengan mascot bola api CSS (mengambang, api berkedip, mata & mulut animasi kedip/bicara). Klik ikon untuk buka/tutup panel chat.
+- **Tutorial/panduan dihapus** dari Virtual Drive Test (predict.html) — 4 blok info-note panduan dibuang; hanya status fungsional yang tersisa.
+- **Bilingual ID/EN (parsial)**: toggle "ID | EN" di topbar dashboard, kerangka `js/i18n.js` + atribut `data-i18n` sudah mencakup label sidebar, judul/subjudul tiap page, judul/subjudul 14 bento-card, dan teks statis chatbot Caca. **Belum mencakup** konten yang di-generate dinamis oleh `dashboard.js` (isi tabel, badge KPI, dll) — perlu iterasi lanjutan dengan pola yang sama.
+
+**Belum dikerjakan (scope besar terpisah)**: peta di Virtual Drive Test (predict.html) masih flat 2D + modal 3D terpisah — untuk jadi 3D native yang sepenuhnya interaktif (klik tambah site/rute, drag marker, dengan kamera tilt asli) perlu rewrite total ke MapLibre GL JS native, karena plugin `maplibre-gl-leaflet` yang dipakai saat ini **tidak mendukung pitch/tilt** sama sekali.
+
+---
+
 ## Update Layout Dashboard — Bento Grid (v2.4)
 
 Sidebar dashboard yang tadinya **14 item (1 fitur = 1 page)** dipadatkan jadi **5 item**, tiap item menampilkan beberapa fitur relevan sekaligus dalam layout **bento grid** (compact, tidak perlu scroll panjang):
