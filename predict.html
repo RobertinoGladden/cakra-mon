@@ -10,8 +10,7 @@
 <title>Virtual Drive Test — Cakra</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/leaflet.min.css"/>
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css"/>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css"/>
 <script src="js/route.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -97,9 +96,19 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .legend-row{display:flex;align-items:center;gap:6px;margin-bottom:3px}
 .legend-swatch{width:10px;height:10px;flex-shrink:0}
 
-.site-marker-dot{width:14px;height:14px;border:2px solid #fff;box-sizing:border-box}
-.ho-marker{width:18px;height:18px;background:#0a0a0b;border:2px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.site-marker-dot{width:14px;height:14px;border:2px solid #fff;box-sizing:border-box;border-radius:50%;cursor:pointer}
+.ho-marker{width:18px;height:18px;background:#0a0a0b;border:2px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border-radius:50%}
 .ho-marker.pingpong{border-color:var(--red);color:var(--red)}
+.cakra-map-popup{font-family:var(--mono);font-size:10.5px;color:#ececee}
+.maplibregl-popup-content{background:#111214;border:1px solid rgba(255,255,255,0.12);padding:6px 9px;border-radius:0;box-shadow:none}
+.maplibregl-popup-tip{border-top-color:#111214!important;border-bottom-color:#111214!important}
+.map-view-toggle{position:absolute;top:10px;right:10px;z-index:900;display:flex;gap:6px}
+.map-view-toggle .run-btn{flex:none;width:auto;padding:7px 12px;font-size:10.5px;margin-top:0}
+.map-view-toggle .run-btn.active{background:var(--cyan);color:#04141a;border-color:var(--cyan)}
+.maplibregl-ctrl-group{background:#111214!important;border:1px solid rgba(255,255,255,0.12)!important}
+.maplibregl-ctrl-group button{background:transparent!important}
+.maplibregl-ctrl-group button:not(:disabled):hover{background:rgba(255,255,255,0.08)!important}
+.maplibregl-ctrl-icon{filter:invert(1) brightness(1.6)}
 
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
 .stat-card{background:var(--bg2);border:1px solid var(--border2);border-radius:0;padding:12px 14px}
@@ -151,6 +160,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .share-pct{width:34px;text-align:right;color:var(--text2)}
 
 footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10px;color:var(--text3);border-top:1px solid var(--border);margin-top:40px;letter-spacing:0.06em}
+
+/* LANGUAGE SWITCH (ID/EN) */
+.lang-switch{display:flex;align-items:center;gap:4px;margin-left:4px;font-family:var(--mono);font-size:10px;flex-shrink:0}
+.lang-sep{color:var(--border2)}
+.lang-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:600;padding:3px 4px;letter-spacing:0.04em}
+.lang-btn:hover{color:var(--text)}
+.lang-btn.active{color:var(--cyan)}
 </style>
 </head>
 <body>
@@ -162,24 +178,29 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
     <span class="nav-logo-text">CAKRA</span>
   </a>
   <div class="nav-right">
-    <a href="/dashboard" class="nav-back" data-route>← Dashboard</a>
+    <a href="/dashboard" class="nav-back" data-route data-i18n="common.backDashboard">← Dashboard</a>
+    <div class="lang-switch" id="langSwitch" role="group" aria-label="Language">
+      <button class="lang-btn active" id="langBtnId" data-lang="id" onclick="CakraI18n.setLanguage('id')">ID</button>
+      <span class="lang-sep">|</span>
+      <button class="lang-btn" id="langBtnEn" data-lang="en" onclick="CakraI18n.setLanguage('en')">EN</button>
+    </div>
     <button class="theme-btn" id="themeBtn" onclick="cycleTheme()">◐</button>
   </div>
 </nav>
 
 <div class="container">
   <div class="header">
-    <div class="header-eyebrow">Virtual Drive Test · LOS/NLOS Simulation</div>
-    <div class="title">Virtual Drive Test</div>
-    <div class="subtitle">Simulasikan drive test lengkap sebelum turun ke lapangan — prediksi coverage RSRP/RSRQ/SINR dari parameter site &amp; antenna, obstruksi bangunan real (OpenStreetMap), lalu jalankan simulasi rute virtual drive dan validasi terhadap data sesungguhnya.</div>
+    <div class="header-eyebrow" data-i18n="predict.eyebrow">Virtual Drive Test · LOS/NLOS Simulation</div>
+    <div class="title" data-i18n="predict.title">Virtual Drive Test</div>
+    <div class="subtitle" data-i18n="predict.subtitle">Simulasikan drive test lengkap sebelum turun ke lapangan — prediksi coverage RSRP/RSRQ/SINR dari parameter site &amp; antenna, obstruksi bangunan real (OpenStreetMap), lalu jalankan simulasi rute virtual drive dan validasi terhadap data sesungguhnya.</div>
   </div>
 
   <div class="stepper" id="stepper">
-    <button class="step-btn active" data-step="1" onclick="CakraVDT.goto(1)"><span class="step-num">1</span><span class="step-meta"><span class="step-kicker">Setup</span><span class="step-name">Skenario & Site</span></span></button>
-    <button class="step-btn" data-step="2" onclick="CakraVDT.goto(2)"><span class="step-num">2</span><span class="step-meta"><span class="step-kicker">Parameter</span><span class="step-name">Antenna & Radio</span></span></button>
-    <button class="step-btn" data-step="3" onclick="CakraVDT.goto(3)"><span class="step-num">3</span><span class="step-meta"><span class="step-kicker">Model</span><span class="step-name">Prediksi Coverage</span></span></button>
-    <button class="step-btn" data-step="4" onclick="CakraVDT.goto(4)"><span class="step-num">4</span><span class="step-meta"><span class="step-kicker">Simulasi</span><span class="step-name">Virtual Drive (Rute)</span></span></button>
-    <button class="step-btn" data-step="5" onclick="CakraVDT.goto(5)"><span class="step-num">5</span><span class="step-meta"><span class="step-kicker">Hasil</span><span class="step-name">Validasi & Laporan</span></span></button>
+    <button class="step-btn active" data-step="1" onclick="CakraVDT.goto(1)"><span class="step-num">1</span><span class="step-meta"><span class="step-kicker" data-i18n="predict.step1.kicker">Setup</span><span class="step-name" data-i18n="predict.step1.name">Skenario & Site</span></span></button>
+    <button class="step-btn" data-step="2" onclick="CakraVDT.goto(2)"><span class="step-num">2</span><span class="step-meta"><span class="step-kicker" data-i18n="predict.step2.kicker">Parameter</span><span class="step-name" data-i18n="predict.step2.name">Antenna & Radio</span></span></button>
+    <button class="step-btn" data-step="3" onclick="CakraVDT.goto(3)"><span class="step-num">3</span><span class="step-meta"><span class="step-kicker" data-i18n="predict.step3.kicker">Model</span><span class="step-name" data-i18n="predict.step3.name">Prediksi Coverage</span></span></button>
+    <button class="step-btn" data-step="4" onclick="CakraVDT.goto(4)"><span class="step-num">4</span><span class="step-meta"><span class="step-kicker" data-i18n="predict.step4.kicker">Simulasi</span><span class="step-name" data-i18n="predict.step4.name">Virtual Drive (Rute)</span></span></button>
+    <button class="step-btn" data-step="5" onclick="CakraVDT.goto(5)"><span class="step-num">5</span><span class="step-meta"><span class="step-kicker" data-i18n="predict.step5.kicker">Hasil</span><span class="step-name" data-i18n="predict.step5.name">Validasi & Laporan</span></span></button>
   </div>
 
   <div class="panel-grid">
@@ -188,31 +209,31 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
 
       <!-- STEP 1 -->
       <section class="step active" id="step1">
-        <div class="card-label">Skenario & Site (Multi-Site)</div>
+        <div class="card-label" data-i18n="predict.s1.title">Skenario & Site (Multi-Site)</div>
         <div class="form-group">
-          <span class="f-label">Nama Skenario</span>
-          <input class="f-input" id="scenarioName" type="text" placeholder="Mis. Cluster Kelapa Gading">
+          <span class="f-label" data-i18n="predict.s1.scenarioName">Nama Skenario</span>
+          <input class="f-input" id="scenarioName" type="text" placeholder="Mis. Cluster Kelapa Gading" data-i18n-placeholder="predict.s1.scenarioNamePh">
         </div>
         <div class="form-group">
-          <span class="f-label">Operator / MNO</span>
-          <input class="f-input" id="scenarioOp" type="text" placeholder="Mis. Telkomsel / XL">
+          <span class="f-label" data-i18n="predict.s1.operator">Operator / MNO</span>
+          <input class="f-input" id="scenarioOp" type="text" placeholder="Mis. Telkomsel / XL" data-i18n-placeholder="predict.s1.operatorPh">
         </div>
 
-        <div class="section-label">Daftar Site <span id="siteCount" class="chip" style="margin-left:6px"></span></div>
+        <div class="section-label"><span data-i18n="predict.s1.siteList">Daftar Site</span> <span id="siteCount" class="chip" style="margin-left:6px"></span></div>
         <div id="siteList" class="site-list"></div>
         <div class="draw-tools" style="margin-top:8px">
-          <button class="run-btn secondary" onclick="CakraVDT.addSite()">+ Tambah Site</button>
+          <button class="run-btn secondary" onclick="CakraVDT.addSite()" data-i18n="predict.s1.addSite">+ Tambah Site</button>
         </div>
-        <label class="chk-row" style="margin-top:8px"><input type="checkbox" id="addSiteMode"> Mode: klik di peta = tambah site baru di lokasi itu</label>
+        <label class="chk-row" style="margin-top:8px"><input type="checkbox" id="addSiteMode"> <span data-i18n="predict.s1.addSiteMode">Mode: klik di peta = tambah site baru di lokasi itu</span></label>
 
-        <div class="section-label">Site Aktif — Lokasi</div>
+        <div class="section-label" data-i18n="predict.s1.activeSite">Site Aktif — Lokasi</div>
         <div class="form-group">
-          <span class="f-label">Nama Site</span>
-          <input class="f-input" id="siteName" type="text" placeholder="Mis. BTS-03 Sektor 1">
+          <span class="f-label" data-i18n="predict.s1.siteName">Nama Site</span>
+          <input class="f-input" id="siteName" type="text" placeholder="Mis. BTS-03 Sektor 1" data-i18n-placeholder="predict.s1.siteNamePh">
         </div>
         <div class="form-group">
-          <span class="f-label">Preset Lokasi</span>
-          <input class="f-input" id="presetCity" list="cityList" placeholder="Pilih kota preset…" autocomplete="off">
+          <span class="f-label" data-i18n="predict.s1.locationPreset">Preset Lokasi</span>
+          <input class="f-input" id="presetCity" list="cityList" placeholder="Pilih kota preset…" autocomplete="off" data-i18n-placeholder="predict.s1.locationPresetPh">
           <datalist id="cityList">
             <option value="Jakarta (-6.2088, 106.8456)"></option>
             <option value="Surabaya (-7.2575, 112.7521)"></option>
@@ -227,30 +248,30 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
           <div><span class="f-label">Latitude</span><input class="f-input" id="siteLat" type="number" step="0.000001"></div>
           <div><span class="f-label">Longitude</span><input class="f-input" id="siteLon" type="number" step="0.000001"></div>
         </div>
-        <label class="chk-row"><input type="checkbox" id="clickToPlace" checked> Klik di peta untuk pindahkan site aktif (atau drag marker)</label>
-        <button class="run-btn secondary" id="useCentroidBtn" style="display:none" onclick="CakraVDT.useRealCentroid()">Gunakan centroid data drive test terakhir</button>
+        <label class="chk-row"><input type="checkbox" id="clickToPlace" checked> <span data-i18n="predict.s1.clickToPlace">Klik di peta untuk pindahkan site aktif (atau drag marker)</span></label>
+        <button class="run-btn secondary" id="useCentroidBtn" style="display:none" onclick="CakraVDT.useRealCentroid()" data-i18n="predict.s1.useCentroid">Gunakan centroid data drive test terakhir</button>
         <div class="step-actions">
-          <button class="ghost-btn" onclick="CakraVDT.goto(2)">Lanjut →</button>
+          <button class="ghost-btn" onclick="CakraVDT.goto(2)" data-i18n="predict.next">Lanjut →</button>
         </div>
       </section>
 
       <!-- STEP 2 -->
       <section class="step" id="step2">
-        <div class="card-label">Parameter Site & Antenna</div>
-        <div class="card-sub">Mengedit parameter untuk site yang dipilih di Step 1. Pindah site lewat daftar di Step 1 kapan saja.</div>
+        <div class="card-label" data-i18n="predict.s2.title">Parameter Site & Antenna</div>
+        <div class="card-sub" data-i18n="predict.s2.sub">Mengedit parameter untuk site yang dipilih di Step 1. Pindah site lewat daftar di Step 1 kapan saja.</div>
 
-        <div class="section-label">Antenna</div>
+        <div class="section-label" data-i18n="predict.s2.antenna">Antenna</div>
         <div class="form-group">
-          <span class="f-label">Tinggi Antena AGL (m)</span>
+          <span class="f-label" data-i18n="predict.s2.antHeight">Tinggi Antena AGL (m)</span>
           <input class="f-input" id="siteHeight" type="number" value="30" step="1">
         </div>
         <div class="form-row form-group">
           <div><span class="f-label">Azimuth (°)</span><input class="f-input" id="siteAzimuth" type="number" value="0" step="1"></div>
-          <div><span class="f-label">Gain (dBi)</span><input class="f-input" id="antGain" type="number" value="17" step="0.5"></div>
+          <div><span class="f-label" data-i18n="predict.s2.gain">Gain (dBi)</span><input class="f-input" id="antGain" type="number" value="17" step="0.5"></div>
         </div>
         <div class="form-row form-group">
-          <div><span class="f-label">Tilt Mekanik (°)</span><input class="f-input" id="mechTilt" type="number" value="2" step="0.5"></div>
-          <div><span class="f-label">Tilt Elektrik (°)</span><input class="f-input" id="elecTilt" type="number" value="4" step="0.5"></div>
+          <div><span class="f-label" data-i18n="predict.s2.mechTilt">Tilt Mekanik (°)</span><input class="f-input" id="mechTilt" type="number" value="2" step="0.5"></div>
+          <div><span class="f-label" data-i18n="predict.s2.elecTilt">Tilt Elektrik (°)</span><input class="f-input" id="elecTilt" type="number" value="4" step="0.5"></div>
         </div>
         <div class="form-row form-group">
           <div><span class="f-label">Beamwidth H (°)</span><input class="f-input" id="beamwidthH" type="number" value="65" step="1"></div>
@@ -261,9 +282,9 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
           <div><span class="f-label">SLA-v (dB)</span><input class="f-input" id="slaV" type="number" value="20" step="1"></div>
         </div>
 
-        <div class="section-label">Radio & Link Budget</div>
+        <div class="section-label" data-i18n="predict.s2.radio">Radio & Link Budget</div>
         <div class="form-group">
-          <span class="f-label">Band Frekuensi</span>
+          <span class="f-label" data-i18n="predict.s2.band">Band Frekuensi</span>
           <select class="f-select" id="band">
             <option value="900">900 MHz (GSM/LTE)</option>
             <option value="1800" selected>1800 MHz (DCS/LTE)</option>
@@ -275,21 +296,21 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
         </div>
         <div class="form-row form-group">
           <div><span class="f-label">TX Power (dBm)</span><input class="f-input" id="txPower" type="number" value="43" step="0.5"></div>
-          <div><span class="f-label">Feeder Loss (dB)</span><input class="f-input" id="feederLoss" type="number" value="2" step="0.5"></div>
+          <div><span class="f-label" data-i18n="predict.s2.feederLoss">Feeder Loss (dB)</span><input class="f-input" id="feederLoss" type="number" value="2" step="0.5"></div>
         </div>
         <div class="form-group">
-          <span class="f-label">Lingkungan (Clutter)</span>
+          <span class="f-label" data-i18n="predict.s2.clutter">Lingkungan (Clutter)</span>
           <select class="f-select" id="env">
-            <option value="urban_large">Urban Padat</option>
+            <option value="urban_large" data-i18n="predict.s2.env.denseUrban">Urban Padat</option>
             <option value="urban" selected>Urban / Medium City</option>
             <option value="suburban">Suburban</option>
-            <option value="rural">Rural / Terbuka</option>
+            <option value="rural" data-i18n="predict.s2.env.rural">Rural / Terbuka</option>
           </select>
         </div>
 
-        <div class="section-label">Area Prediksi</div>
+        <div class="section-label" data-i18n="predict.s2.predictionArea">Area Prediksi</div>
         <div class="form-row form-group">
-          <div><span class="f-label">Radius (m)</span>
+          <div><span class="f-label" data-i18n="predict.s2.radius">Radius (m)</span>
             <select class="f-select" id="radius">
               <option value="300">300</option>
               <option value="500" selected>500</option>
@@ -297,7 +318,7 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
               <option value="1200">1200</option>
             </select>
           </div>
-          <div><span class="f-label">Resolusi Grid (m)</span>
+          <div><span class="f-label" data-i18n="predict.s2.gridRes">Resolusi Grid (m)</span>
             <select class="f-select" id="resolution">
               <option value="15">15</option>
               <option value="20" selected>20</option>
@@ -307,48 +328,48 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
           </div>
         </div>
         <div class="form-group">
-          <span class="f-label">Threshold Coverage (dBm)</span>
+          <span class="f-label" data-i18n="predict.s2.threshold">Threshold Coverage (dBm)</span>
           <input class="f-input" id="threshold" type="number" value="-100" step="1">
         </div>
         <div class="form-group">
-          <span class="f-label">Batas Interferensi (dB) —Noise+Load*</span>
+          <span class="f-label" data-i18n="predict.s2.interfLimit">Batas Interferensi (dB) —Noise+Load*</span>
           <input class="f-input" id="noiseFloor" type="number" value="-100" step="1">
         </div>
 
-        <div class="section-label">Data Tambahan</div>
-        <label class="chk-row"><input type="checkbox" id="useBuildings" checked> Deteksi obstruksi bangunan real (OpenStreetMap)</label>
-        <label class="chk-row" id="useRealDataWrap" style="display:none"><input type="checkbox" id="useRealData" checked> Bandingkan dengan data drive test sesi terakhir</label>
+        <div class="section-label" data-i18n="predict.s2.extraData">Data Tambahan</div>
+        <label class="chk-row"><input type="checkbox" id="useBuildings" checked> <span data-i18n="predict.s2.useBuildings">Deteksi obstruksi bangunan real (OpenStreetMap)</span></label>
+        <label class="chk-row" id="useRealDataWrap" style="display:none"><input type="checkbox" id="useRealData" checked> <span data-i18n="predict.s2.useRealData">Bandingkan dengan data drive test sesi terakhir</span></label>
 
         <div class="step-actions">
-          <button class="ghost-btn" onclick="CakraVDT.goto(1)">← Kembali</button>
-          <button class="run-btn" onclick="CakraVDT.goto(3)">Lanjut →</button>
+          <button class="ghost-btn" onclick="CakraVDT.goto(1)" data-i18n="predict.back">← Kembali</button>
+          <button class="run-btn" onclick="CakraVDT.goto(3)" data-i18n="predict.next">Lanjut →</button>
         </div>
       </section>
 
       <!-- STEP 3 -->
       <section class="step" id="step3">
-        <div class="card-label">Prediksi Coverage</div>
-        <div class="card-sub">Jalankan model propagasi untuk membentuk peta prediksi RSRP di sekitar site. Hasil grid dipakai sebagai dasar simulasi rute (Step 4).</div>
-        <button class="run-btn" id="runPredictBtn" onclick="CakraVDT.runPrediction()">Jalankan Prediksi →</button>
-        <div class="status-line" id="predictStatus">Atur parameter lalu klik jalankan.</div>
+        <div class="card-label" data-i18n="predict.s3.title">Prediksi Coverage</div>
+        <div class="card-sub" data-i18n="predict.s3.sub">Jalankan model propagasi untuk membentuk peta prediksi RSRP di sekitar site. Hasil grid dipakai sebagai dasar simulasi rute (Step 4).</div>
+        <button class="run-btn" id="runPredictBtn" onclick="CakraVDT.runPrediction()" data-i18n="predict.s3.run">Jalankan Prediksi →</button>
+        <div class="status-line" id="predictStatus" data-i18n="predict.s3.status0">Atur parameter lalu klik jalankan.</div>
         <div class="step-actions">
-          <button class="ghost-btn" onclick="CakraVDT.goto(2)">← Parameter</button>
-          <button class="run-btn green" id="toStep4" onclick="CakraVDT.goto(4)" disabled>Lanjut: Rute →</button>
+          <button class="ghost-btn" onclick="CakraVDT.goto(2)" data-i18n="predict.backParam">← Parameter</button>
+          <button class="run-btn green" id="toStep4" onclick="CakraVDT.goto(4)" disabled data-i18n="predict.s3.toStep4">Lanjut: Rute →</button>
         </div>
       </section>
 
       <!-- STEP 4 -->
       <section class="step" id="step4">
-        <div class="card-label">Simulasi Virtual Drive — Rute</div>
-        <div class="card-sub">Gambar rute di peta (klik untuk tambah titik, lalu "Selesai"). Cakra akan mensimulasikan perjalanan kendaraan dan memprediksi RSRP/RSRQ/SINR sepanjang rute.</div>
+        <div class="card-label" data-i18n="predict.s4.title">Simulasi Virtual Drive — Rute</div>
+        <div class="card-sub" data-i18n="predict.s4.sub">Gambar rute di peta (klik untuk tambah titik, lalu "Selesai"). Cakra akan mensimulasikan perjalanan kendaraan dan memprediksi RSRP/RSRQ/SINR sepanjang rute.</div>
         <div class="draw-tools">
-          <button class="run-btn" id="drawRouteBtn" onclick="CakraVDT.toggleDraw()">✎ Gambar Rute</button>
-          <button class="run-btn secondary" id="finishRouteBtn" onclick="CakraVDT.finishDraw()" disabled>Selesai</button>
-          <button class="run-btn secondary" onclick="CakraVDT.clearRoute()">Bersihkan</button>
+          <button class="run-btn" id="drawRouteBtn" onclick="CakraVDT.toggleDraw()" data-i18n="predict.s4.drawRoute">✎ Gambar Rute</button>
+          <button class="run-btn secondary" id="finishRouteBtn" onclick="CakraVDT.finishDraw()" disabled data-i18n="predict.s4.finish">Selesai</button>
+          <button class="run-btn secondary" onclick="CakraVDT.clearRoute()" data-i18n="predict.s4.clear">Bersihkan</button>
         </div>
         <div class="form-row form-group">
-          <div><span class="f-label">Kecepatan (km/jam)</span><input class="f-input" id="vehSpeed" type="number" value="30" step="1"></div>
-          <div><span class="f-label">Jarak Sampling (m)</span>
+          <div><span class="f-label" data-i18n="predict.s4.speed">Kecepatan (km/jam)</span><input class="f-input" id="vehSpeed" type="number" value="30" step="1"></div>
+          <div><span class="f-label" data-i18n="predict.s4.sampleDist">Jarak Sampling (m)</span>
             <select class="f-select" id="sampStep">
               <option value="5">5</option>
               <option value="10" selected>10</option>
@@ -357,11 +378,11 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
             </select>
           </div>
         </div>
-        <div class="chip" id="routeInfo">Rute: belum digambar</div>
+        <div class="chip" id="routeInfo" data-i18n="predict.s4.routeNotDrawn">Rute: belum digambar</div>
 
-        <div class="section-label" style="margin-top:16px">Parameter Mobility (3GPP TS 36.331)</div>
+        <div class="section-label" style="margin-top:16px" data-i18n="predict.s4.mobilityParams">Parameter Mobility (3GPP TS 36.331)</div>
         <div class="form-row form-group">
-          <div><span class="f-label">Hysteresis (dB)</span><input class="f-input" id="hoHysteresis" type="number" value="2" step="0.5" min="0"></div>
+          <div><span class="f-label" data-i18n="predict.s4.hysteresis">Hysteresis (dB)</span><input class="f-input" id="hoHysteresis" type="number" value="2" step="0.5" min="0"></div>
           <div><span class="f-label">A3-Offset (dB)</span><input class="f-input" id="hoA3Offset" type="number" value="1" step="0.5"></div>
         </div>
         <div class="form-row form-group">
@@ -387,33 +408,33 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
           </div>
         </div>
 
-        <button class="run-btn green" id="simRouteBtn" style="margin-top:12px" onclick="CakraVDT.simulateRoute()" disabled>▶ Jalankan Virtual Drive</button>
+        <button class="run-btn green" id="simRouteBtn" style="margin-top:12px" onclick="CakraVDT.simulateRoute()" disabled data-i18n="predict.s4.runVirtualDrive">▶ Jalankan Virtual Drive</button>
         <div class="status-line" id="simStatus"></div>
         <div class="step-actions">
-          <button class="ghost-btn" onclick="CakraVDT.goto(3)">← Coverage</button>
-          <button class="run-btn" id="toStep5" onclick="CakraVDT.goto(5)" disabled>Lanjut: Laporan →</button>
+          <button class="ghost-btn" onclick="CakraVDT.goto(3)" data-i18n="predict.backCoverage">← Coverage</button>
+          <button class="run-btn" id="toStep5" onclick="CakraVDT.goto(5)" disabled data-i18n="predict.s4.toStep5">Lanjut: Laporan →</button>
         </div>
       </section>
 
       <!-- STEP 5 -->
       <section class="step" id="step5">
-        <div class="card-label">Validasi & Laporan</div>
-        <div class="card-sub">Ringkasan hasil virtual drive test, validasi terhadap data asli (jika ada), dan ekspor.</div>
+        <div class="card-label" data-i18n="predict.s5.title">Validasi & Laporan</div>
+        <div class="card-sub" data-i18n="predict.s5.sub">Ringkasan hasil virtual drive test, validasi terhadap data asli (jika ada), dan ekspor.</div>
 
         <div id="reportWrap"></div>
 
-        <div class="section-label">Validasi vs Data Nyata</div>
-        <div id="validationPanel" class="info-note">Belum ada data drive test asli di sesi ini. Upload file log di <a href="/" data-route style="color:var(--cyan)">halaman utama</a> untuk membandingkan.</div>
+        <div class="section-label" data-i18n="predict.s5.validation">Validasi vs Data Nyata</div>
+        <div id="validationPanel" class="info-note"><span data-i18n="predict.s5.noRealData">Belum ada data drive test asli di sesi ini. Upload file log di</span> <a href="/" data-route style="color:var(--cyan)" data-i18n="predict.s5.mainPage">halaman utama</a> <span data-i18n="predict.s5.toCompare">untuk membandingkan.</span></div>
 
-        <div class="section-label">Ekspor & Lanjutan</div>
+        <div class="section-label" data-i18n="predict.s5.exportAdvanced">Ekspor & Lanjutan</div>
         <div class="draw-tools">
-          <button class="run-btn secondary" onclick="CakraVDT.exportCSV()">⬇ Unduh CSV Virtual Drive</button>
-          <button class="run-btn secondary" onclick="CakraVDT.exportPNG()">⬇ Unduh Gambar Chart</button>
-          <button class="run-btn" onclick="CakraVDT.openInDashboard()">◈ Buka di Dashboard Cakra</button>
+          <button class="run-btn secondary" onclick="CakraVDT.exportCSV()" data-i18n="predict.s5.downloadCsv">⬇ Unduh CSV Virtual Drive</button>
+          <button class="run-btn secondary" onclick="CakraVDT.exportPNG()" data-i18n="predict.s5.downloadChart">⬇ Unduh Gambar Chart</button>
+          <button class="run-btn" onclick="CakraVDT.openInDashboard()" data-i18n="predict.s5.openDashboard">◈ Buka di Dashboard Cakra</button>
         </div>
         <div class="status-line" id="exportStatus"></div>
         <div class="step-actions">
-          <button class="ghost-btn" onclick="CakraVDT.goto(4)">← Rute</button>
+          <button class="ghost-btn" onclick="CakraVDT.goto(4)" data-i18n="predict.backRoute">← Rute</button>
         </div>
       </section>
 
@@ -422,42 +443,45 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
     <!-- RIGHT: MAP + STATS -->
     <div class="map-col">
       <div class="card map-card">
-        <div class="map-hint" id="mapHint">Klik di peta untuk menambah titik rute</div>
-        <button class="run-btn secondary" id="open3dBtn" style="position:absolute;top:10px;right:10px;z-index:900" onclick="CakraMap3D.open(CakraVDT.getSceneData())">🧊 Peta 3D (Real Bangunan)</button>
+        <div class="map-hint" id="mapHint" data-i18n="predict.map.clickToAddPoint">Klik di peta untuk menambah titik rute</div>
+        <div class="map-view-toggle">
+          <button class="run-btn secondary active" id="viewTiltBtn" onclick="CakraVDT.setMapView('tilt')" data-i18n="predict.map.view3d">◈ 3D</button>
+          <button class="run-btn secondary" id="viewTopBtn" onclick="CakraVDT.setMapView('top')" data-i18n="predict.map.viewTop">⊞ Top-down</button>
+        </div>
         <div id="predictMap"></div>
         <div class="legend-box" id="legendBox">
-          <div class="legend-title">PREDIKSI RSRP</div>
+          <div class="legend-title" data-i18n="predict.map.legendTitle">PREDIKSI RSRP</div>
           <div class="legend-row"><span class="legend-swatch" style="background:#38bdf8"></span> &gt; -80 dBm</div>
           <div class="legend-row"><span class="legend-swatch" style="background:#4ade80"></span> -80 s/d -90</div>
           <div class="legend-row"><span class="legend-swatch" style="background:#facc15"></span> -90 s/d -100</div>
           <div class="legend-row"><span class="legend-swatch" style="background:#fb923c"></span> -100 s/d -110</div>
           <div class="legend-row"><span class="legend-swatch" style="background:#f87171"></span> &lt; -110 dBm</div>
-          <div class="legend-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border2)"><span class="legend-swatch" style="background:#f87171;opacity:.5"></span> Bangunan LOS terhalang</div>
-          <div class="legend-row"><span class="legend-swatch" style="background:#ffffff;border:1px solid #888"></span> Rute virtual drive</div>
+          <div class="legend-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border2)"><span class="legend-swatch" style="background:#f87171;opacity:.5"></span> <span data-i18n="predict.map.blockedLos">Bangunan LOS terhalang</span></div>
+          <div class="legend-row"><span class="legend-swatch" style="background:#ffffff;border:1px solid #888"></span> <span data-i18n="predict.map.virtualRoute">Rute virtual drive</span></div>
         </div>
       </div>
 
       <div>
-        <div class="card-label" style="margin-bottom:8px">Ringkasan Prediksi</div>
+        <div class="card-label" style="margin-bottom:8px" data-i18n="predict.map.predictionSummary">Ringkasan Prediksi</div>
         <div class="stats-grid" id="predictStatsPanel" style="display:none"></div>
         <div class="site-share" id="siteSharePanel" style="display:none"></div>
       </div>
 
       <div id="routeStatsWrap" class="card" style="display:none">
-        <div class="card-label" style="margin-bottom:8px">Hasil Virtual Drive (Rute)</div>
+        <div class="card-label" style="margin-bottom:8px" data-i18n="predict.map.routeResult">Hasil Virtual Drive (Rute)</div>
         <div class="stats-grid" id="routeStatsPanel"></div>
         <div class="route-list" id="routeWeakList"></div>
       </div>
 
       <div class="card chart-card" id="chartCard" style="display:none">
-        <div class="card-label" style="margin-bottom:8px">Profil Sinyal Sepanjang Rute</div>
+        <div class="card-label" style="margin-bottom:8px" data-i18n="predict.map.signalProfile">Profil Sinyal Sepanjang Rute</div>
         <canvas id="routeChart"></canvas>
       </div>
     </div>
   </div>
 </div>
 
-<footer>CAKRA v2.1 — Virtual Drive Test &nbsp;·&nbsp; © 2026 · Hak Cipta Dilindungi</footer>
+<footer><span data-i18n="predict.footer">CAKRA v2.1 — Virtual Drive Test</span> &nbsp;·&nbsp; <span data-i18n="common.copyright">© 2026 · Hak Cipta Dilindungi</span></footer>
 
 <script>
 var THEMES=['system','dark','light'];var TICONS=['◐','●','○'];
@@ -468,14 +492,12 @@ function cycleTheme(){tIdx=(tIdx+1)%THEMES.length;sessionStorage.setItem('cakra_
 applyTheme();
 </script>
 
-<script src="js/leaflet.min.js"></script>
-<script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
-<script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.20/leaflet-maplibre-gl.js"></script>
+<script src="js/i18n.js"></script>
+<script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
 <script src="js/chart.umd.js"></script>
 <script src="js/propagation.js"></script>
 <script src="js/buildings.js"></script>
 <script src="js/handover.js"></script>
 <script src="js/predict.js"></script>
-<script src="js/map3d.js"></script>
 </body>
 </html>

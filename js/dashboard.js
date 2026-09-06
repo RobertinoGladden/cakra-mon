@@ -8,6 +8,10 @@ let EVENTS = [];
 let EVENTS_PAGE = 0;
 const EVENTS_PER_PAGE = 10;
 
+// Shorthand ke CakraI18n.t() supaya konten dinamis (tabel, KPI, badge, dsb) ikut
+// bilingual. Fallback ke key itu sendiri kalau i18n.js belum sempat load.
+const T = (key, params) => (window.CakraI18n ? window.CakraI18n.t(key, params) : key);
+
 Object.defineProperty(window, 'DATA',            { get: () => DATA });
 Object.defineProperty(window, 'EVENTS',          { get: () => EVENTS });
 Object.defineProperty(window, 'EVENTS_PAGE',     { get: () => EVENTS_PAGE });
@@ -193,15 +197,15 @@ function buildInfo() {
   const nrBand = hasNr ? (DATA.find(d => d.nr_band)?.nr_band || '—') : null;
 
   document.getElementById('infoGrid').innerHTML = cards([
-    { label:'Tanggal',          value: dt,                       sub: (first.tsDisp?.substring(11)||'') + ' — ' + (last.tsDisp?.substring(11)||'') },
-    { label:'Durasi',           value: dur,                      sub: 'Total waktu pengukuran' },
-    { label:'Operator',         value: op,                       sub: 'Teknologi: ' + tech },
-    { label:'Total Data Point', value: DATA.length.toLocaleString(), sub: `GPS valid: ${gps.length.toLocaleString()}` },
-    { label:'Kec. Rata-rata',   value: avgSpd + ' km/h',        sub: 'Drive test mode' },
-    { label:'Device',           value: dev,                      sub: 'Model perangkat', mono: true },
+    { label:T('dyn.date'),          value: dt,                       sub: (first.tsDisp?.substring(11)||'') + ' — ' + (last.tsDisp?.substring(11)||'') },
+    { label:T('dyn.duration'),           value: dur,                      sub: T('dyn.durationSub') },
+    { label:T('dyn.operator'),         value: op,                       sub: T('dyn.technologyPrefix') + tech },
+    { label:T('dyn.totalDataPoint'), value: DATA.length.toLocaleString(), sub: `${T('dyn.gpsValidPrefix')}${gps.length.toLocaleString()}` },
+    { label:T('dyn.avgSpeed'),   value: avgSpd + ' km/h',        sub: T('dyn.driveTestMode') },
+    { label:T('dyn.device'),           value: dev,                      sub: T('dyn.deviceModel'), mono: true },
     ...(hasNr ? [
-      { label:'NR Band',        value: nrBand ? 'n' + nrBand : '—', sub: '5G NR band aktif' },
-      { label:'Mode 5G',        value: first._sessionTech === 'NSA' ? 'NSA / EN-DC' : 'SA', sub: 'Non-Standalone / Standalone' },
+      { label:T('dyn.nrBand'),        value: nrBand ? 'n' + nrBand : '—', sub: T('dyn.nrBandSub') },
+      { label:T('dyn.mode5g'),        value: first._sessionTech === 'NSA' ? 'NSA / EN-DC' : 'SA', sub: T('dyn.mode5gSub') },
     ] : []),
   ]);
 }
@@ -216,17 +220,17 @@ function buildCell() {
   const nrRow = DATA.find(d => d.nr_pci || d.nr_arfcn);
 
   document.getElementById('cellGrid').innerHTML = cards([
-    { label:'eNodeB (Node)',  value: first.node||'—',    sub:'Serving eNB ID', mono:true },
-    { label:'Cell ID',        value: first.cellid||'—',  sub:'Cell Identity', mono:true },
-    { label:'LAC / TAC',      value: first.lac||'—',     sub:'Location / Tracking Area', mono:true },
-    { label:'LTE ARFCN',      value: first.arfcn||'—',   sub:'LTE Absolute RF Channel', mono:true },
-    { label:'Band LTE',       value: first.band ? 'Band ' + first.band : '—', sub:'LTE Band' },
-    { label:'Bandwidth',      value: first.bw ? first.bw + ' MHz' : '—', sub:'Channel Bandwidth' },
-    { label:'Dominant Cell',  value: dom[0]?.[0]||'—',   sub: dom[0] ? dom[0][1].toLocaleString() + ' data points' : '' },
-    { label:'Unique Cells',   value: dom.length,          sub: dom.length > 3 ? '<span style="display:inline-flex;align-items:center;gap:3px"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 3 4 7l4 4\"/><path d=\"M4 7h16\"/><path d=\"m16 21 4-4-4-4\"/><path d=\"M20 17H4\"/></svg> Banyak handover</span>' : 'Stabil' },
+    { label:T('dyn.enodeb'),  value: first.node||'—',    sub:T('dyn.servingEnbId'), mono:true },
+    { label:T('dyn.cellId'),        value: first.cellid||'—',  sub:T('dyn.cellIdentity'), mono:true },
+    { label:T('dyn.lacTac'),      value: first.lac||'—',     sub:T('dyn.locationTrackingArea'), mono:true },
+    { label:T('dyn.lteArfcn'),      value: first.arfcn||'—',   sub:T('dyn.lteArfcnSub'), mono:true },
+    { label:T('dyn.bandLte'),       value: first.band ? 'Band ' + first.band : '—', sub:T('dyn.lteBandSub') },
+    { label:T('dyn.bandwidth'),      value: first.bw ? first.bw + ' MHz' : '—', sub:T('dyn.channelBandwidth') },
+    { label:T('dyn.dominantCell'),  value: dom[0]?.[0]||'—',   sub: dom[0] ? dom[0][1].toLocaleString() + T('dyn.dataPointsSuffix') : '' },
+    { label:T('dyn.uniqueCells'),   value: dom.length,          sub: dom.length > 3 ? `<span style="display:inline-flex;align-items:center;gap:3px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg> ${T('dyn.manyHandover')}</span>` : T('dyn.stable') },
     ...(hasNr ? [
-      { label:'NR ARFCN (NR-ARFCN)', value: nrRow?.nr_arfcn || '—', sub:'5G NR Absolute RF Channel', mono:true },
-      { label:'NR PCI',         value: nrRow?.nr_pci   || '—', sub:'5G NR Physical Cell ID', mono:true },
+      { label:T('dyn.nrArfcn'), value: nrRow?.nr_arfcn || '—', sub:T('dyn.nrArfcnSub'), mono:true },
+      { label:T('dyn.nrPci'),         value: nrRow?.nr_pci   || '—', sub:T('dyn.nrPciSub'), mono:true },
     ] : []),
   ]);
 }
@@ -267,9 +271,9 @@ function buildKPI() {
   const aRsrq = parseFloat(avg('rsrq'));
   const aSnr  = parseFloat(avg('snr'));
 
-  setKpi('kpiRsrp', aRsrp, 'kpiRsrpBadge', -80, -100, ['SANGAT BAIK','NORMAL','BURUK']);
+  setKpi('kpiRsrp', aRsrp, 'kpiRsrpBadge', -80, -100, [T('dyn.badge.rsrp.good'),T('dyn.badge.rsrp.warn'),T('dyn.badge.rsrp.bad')]);
   setKpi('kpiRsrq', aRsrq, 'kpiRsrqBadge', -10, -15,  ['EXCELLENT','GOOD','POOR']);
-  setKpi('kpiSnr',  aSnr,  'kpiSnrBadge',   10,  0,   ['BAIK','CUKUP','BURUK']);
+  setKpi('kpiSnr',  aSnr,  'kpiSnrBadge',   10,  0,   [T('dyn.badge.snr.good'),T('dyn.badge.snr.warn'),T('dyn.badge.snr.bad')]);
 
   const dlArr  = DATA.map(d => d.dl).filter(x => x > 0);
   const ulArr  = DATA.map(d => d.ul).filter(x => x > 0);
@@ -297,11 +301,11 @@ function buildKPI() {
     ${extraCard('RSRQ Max', max('rsrq')+' dB')}
     ${extraCard('SNR Min',  min('snr')+' dB')}
     ${extraCard('SNR Max',  max('snr')+' dB')}
-    ${extraCard('Avg DL', avgDl+' Mbps', 'LTE · Max: '+maxDl)}
-    ${extraCard('Avg UL', avgUl+' Mbps', 'LTE · Max: '+maxUl)}
-    ${hasNr ? extraCard('NR-RSRP avg', avgNrRsrp+' dBm', nrPts.length.toLocaleString()+' pts 5G', '#22c55e') : ''}
-    ${avgNrSinr !== null ? extraCard('SS-SINR avg', avgNrSinr+' dB', 'Signal quality 5G', '#a78bfa') : ''}
-    ${avgNrDl !== null ? extraCard('NR DL avg', avgNrDl+' Mbps', '5G · Max: '+maxNrDl, '#22c55e') : ''}
+    ${extraCard(T('dyn.avgDl'), avgDl+' Mbps', T('dyn.lteMaxPrefix')+maxDl)}
+    ${extraCard('Avg UL', avgUl+' Mbps', T('dyn.lteMaxPrefix')+maxUl)}
+    ${hasNr ? extraCard('NR-RSRP avg', avgNrRsrp+' dBm', nrPts.length.toLocaleString()+T('dyn.pts5gSuffix'), '#22c55e') : ''}
+    ${avgNrSinr !== null ? extraCard('SS-SINR avg', avgNrSinr+' dB', T('dyn.signalQuality5g'), '#a78bfa') : ''}
+    ${avgNrDl !== null ? extraCard('NR DL avg', avgNrDl+' Mbps', T('dyn.nrMaxPrefix')+maxNrDl, '#22c55e') : ''}
   `;
 }
 
@@ -356,35 +360,35 @@ function buildEvents() {
 
   const pagination = `
     <div class="tbl-pagination">
-      <button class="tbl-pg-btn" onclick="goPrevPage()" ${EVENTS_PAGE===0?'disabled':''}>← Prev</button>
-      <span class="tbl-pg-info">${startIndex+1}–${Math.min(startIndex+EVENTS_PER_PAGE,EVENTS.length)} dari ${EVENTS.length}</span>
-      <button class="tbl-pg-btn" onclick="goNextPage()" ${EVENTS_PAGE>=totalPages-1?'disabled':''}>Next →</button>
+      <button class="tbl-pg-btn" onclick="goPrevPage()" ${EVENTS_PAGE===0?'disabled':''}>${T('dyn.prev')}</button>
+      <span class="tbl-pg-info">${startIndex+1}–${Math.min(startIndex+EVENTS_PER_PAGE,EVENTS.length)} ${T('dyn.paginationOf')} ${EVENTS.length}</span>
+      <button class="tbl-pg-btn" onclick="goNextPage()" ${EVENTS_PAGE>=totalPages-1?'disabled':''}>${T('dyn.next')}</button>
     </div>`;
 
   document.getElementById('eventsContent').innerHTML = `
     <div class="events-summary">
       <div class="event-stat">
         <div class="event-stat-val">${EVENTS.length}</div>
-        <div class="event-stat-lbl">Total Events</div>
+        <div class="event-stat-lbl">${T('dyn.totalEvents')}</div>
       </div>
       <div class="event-stat">
         <div class="event-stat-val" style="color:var(--yellow)">${hoCount}</div>
-        <div class="event-stat-lbl">Handover</div>
+        <div class="event-stat-lbl">${T('dyn.handover')}</div>
       </div>
       <div class="event-stat">
         <div class="event-stat-val" style="color:var(--purple)">${rsCount}</div>
-        <div class="event-stat-lbl">Reselection</div>
+        <div class="event-stat-lbl">${T('dyn.reselection')}</div>
       </div>
       ${nrHoCount > 0 ? `<div class="event-stat">
         <div class="event-stat-val" style="color:#22c55e">${nrHoCount}</div>
-        <div class="event-stat-lbl">NR Events</div>
+        <div class="event-stat-lbl">${T('dyn.nrEvents')}</div>
       </div>` : ''}
     </div>
     <div class="events-table-wrap">
       <table class="events-table">
         <thead>
           <tr>
-            <th>#</th><th>Tipe</th><th>Event Type</th><th>Waktu</th>
+            <th>#</th><th>${T('dyn.colType')}</th><th>Event Type</th><th>${T('dyn.colTime')}</th>
             <th>From Cell</th><th>To Cell</th>
             <th>RSRP</th><th>RSRQ</th><th>SNR</th>
             <th>eNB/gNB</th>
@@ -409,12 +413,12 @@ window.handleInlineKML = async function(input) {
   if (!f) return;
   const text = await f.text();
   const events = CakraParser.parseKml ? CakraParser.parseKml(text) : [];
-  if (!events.length) { showToast('Tidak ada event dalam file KML'); return; }
+  if (!events.length) { showToast(T('dyn.noEventInKml')); return; }
   EVENTS = events;
   sessionStorage.setItem('cakra_events', JSON.stringify(EVENTS));
   CakraMap.addEvents(EVENTS);
   buildEvents();
-  showToast(`${events.length} event berhasil dimuat`);
+  showToast(`${events.length}${T('dyn.eventsLoadedSuffix')}`);
 };
 
 
@@ -475,7 +479,7 @@ function buildNrDistribution(nrPts) {
   el.style.display = 'block';
   el.innerHTML = `
     <div class="dist-section-label" style="font-family:var(--mono);font-size:10px;color:#22c55e;letter-spacing:0.1em;margin-bottom:8px">
-      5G NR DISTRIBUTION — ${nrPts.length.toLocaleString()} pts NR aktif
+      ${T('dyn.nrDistributionTitle', { n: nrPts.length.toLocaleString() })}
     </div>
     <div class="dist-cols">
       <div class="dist-col">
@@ -529,8 +533,8 @@ function buildRawan() {
 
   if (!rawan.length) {
     el.innerHTML = `<div class="info-card" style="text-align:center;padding:32px">
-      <div style="color:var(--green);font-family:var(--mono);font-size:16px;font-weight:600">TIDAK ADA TITIK RAWAN</div>
-      <div style="color:var(--text3);font-size:12px;margin-top:6px">Semua parameter dalam batas normal</div>
+      <div style="color:var(--green);font-family:var(--mono);font-size:16px;font-weight:600">${T('dyn.noRawanTitle')}</div>
+      <div style="color:var(--text3);font-size:12px;margin-top:6px">${T('dyn.noRawanSub')}</div>
     </div>`;
     return;
   }
@@ -547,18 +551,18 @@ function buildRawan() {
 
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:12px">
-      ${extraCard('RSRP Rawan', `<span style="color:var(--red)">${badRsrp}</span>`, pct(badRsrp)+'% dari total')}
-      ${extraCard('RSRQ Rawan', `<span style="color:var(--red)">${badRsrq}</span>`, pct(badRsrq)+'% dari total')}
-      ${extraCard('SNR Rawan',  `<span style="color:var(--red)">${badSnr}</span>`,  pct(badSnr)+'% dari total')}
-      ${extraCard('Total Rawan',`<span style="color:var(--orange)">${rawan.length}</span>`, pct(rawan.length)+'% dari total')}
+      ${extraCard(T('dyn.rsrpRawan'), `<span style="color:var(--red)">${badRsrp}</span>`, pct(badRsrp)+T('dyn.pctOfTotalSuffix'))}
+      ${extraCard(T('dyn.rsrqRawan'), `<span style="color:var(--red)">${badRsrq}</span>`, pct(badRsrq)+T('dyn.pctOfTotalSuffix'))}
+      ${extraCard(T('dyn.snrRawan'),  `<span style="color:var(--red)">${badSnr}</span>`,  pct(badSnr)+T('dyn.pctOfTotalSuffix'))}
+      ${extraCard(T('dyn.totalRawan'),`<span style="color:var(--orange)">${rawan.length}</span>`, pct(rawan.length)+T('dyn.pctOfTotalSuffix'))}
     </div>
     <div class="danger-wrap">
-      <div class="danger-hdr"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Daftar Titik Rawan — ${rawan.length} titik</div>
+      <div class="danger-hdr"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ${T('dyn.rawanListTitle', { n: rawan.length })}</div>
       <div class="danger-scroll">
         <table class="rawan-table">
           <thead><tr>
-            <th>#</th><th>Waktu</th><th>RSRP</th><th>RSRQ</th><th>SNR</th>
-            <th>Cell</th><th>Lat</th><th>Lon</th><th>Issue</th>
+            <th>#</th><th>${T('dyn.colTime')}</th><th>RSRP</th><th>RSRQ</th><th>SNR</th>
+            <th>Cell</th><th>${T('dyn.colLat')}</th><th>${T('dyn.colLon')}</th><th>${T('dyn.colIssue')}</th>
           </tr></thead>
           <tbody>${sample.map((d,i) => {
             const issues = [];
@@ -580,9 +584,9 @@ function buildRawan() {
         </table>
       </div>
       <div class="tbl-pagination">
-        <button class="tbl-pg-btn" onclick="goRawanPrev()" ${RAWAN_PAGE===0?'disabled':''}>← Prev</button>
-        <span class="tbl-pg-info">${start+1}–${Math.min(start+RAWAN_PER_PAGE,rawan.length)} dari ${rawan.length}</span>
-        <button class="tbl-pg-btn" onclick="goRawanNext()" ${RAWAN_PAGE>=totalPages-1?'disabled':''}>Next →</button>
+        <button class="tbl-pg-btn" onclick="goRawanPrev()" ${RAWAN_PAGE===0?'disabled':''}>${T('dyn.prev')}</button>
+        <span class="tbl-pg-info">${start+1}–${Math.min(start+RAWAN_PER_PAGE,rawan.length)} ${T('dyn.paginationOf')} ${rawan.length}</span>
+        <button class="tbl-pg-btn" onclick="goRawanNext()" ${RAWAN_PAGE>=totalPages-1?'disabled':''}>${T('dyn.next')}</button>
       </div>
     </div>`;
 }
@@ -762,8 +766,8 @@ function buildCoverageGapPanel() {
 
   if (!segments.length) {
     el.innerHTML = `<div class="info-card" style="text-align:center;padding:28px">
-      <div style="color:var(--green);font-family:var(--mono);font-size:15px;font-weight:600">TIDAK ADA COVERAGE GAP</div>
-      <div style="color:var(--text3);font-size:12px;margin-top:6px">RSRP ≥ ${threshold} dBm di seluruh rute</div>
+      <div style="color:var(--green);font-family:var(--mono);font-size:15px;font-weight:600">${T('dyn.noCoverageGapTitle')}</div>
+      <div style="color:var(--text3);font-size:12px;margin-top:6px">${T('dyn.noCoverageGapSub', { thr: threshold })}</div>
     </div>`;
     return;
   }
@@ -786,16 +790,16 @@ function buildCoverageGapPanel() {
 
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:14px">
-      ${extraCard('Gap Segmen', `<span style="color:var(--red)">${segments.length}</span>`, 'Segmen RSRP ≤ ' + threshold + ' dBm')}
-      ${extraCard('Total Titik Buruk', `<span style="color:var(--red)">${totalBad}</span>`, pct + '% dari total')}
-      ${extraCard('Avg Gap Length', (segments.reduce((a,s) => a+s.length, 0) / segments.length).toFixed(0) + ' pts', 'Per segmen')}
-      ${extraCard('Gap Terpanjang', Math.max(...segments.map(s => s.length)) + ' pts', 'Segmen terburuk')}
+      ${extraCard(T('dyn.gapSegmen'), `<span style="color:var(--red)">${segments.length}</span>`, T('dyn.segmentRsrpLePrefix') + threshold + ' dBm')}
+      ${extraCard(T('dyn.totalTitikBuruk'), `<span style="color:var(--red)">${totalBad}</span>`, pct + T('dyn.pctOfTotalSuffix'))}
+      ${extraCard(T('dyn.avgGapLength'), (segments.reduce((a,s) => a+s.length, 0) / segments.length).toFixed(0) + ' pts', T('dyn.perSegmen'))}
+      ${extraCard(T('dyn.gapTerpanjang'), Math.max(...segments.map(s => s.length)) + ' pts', T('dyn.segmenTerburuk'))}
     </div>
     <div class="danger-wrap">
       <div class="danger-hdr" style="display:flex;align-items:center;justify-content:space-between">
-        <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z\"/><line x1=\"12\" y1=\"9\" x2=\"12\" y2=\"13\"/><line x1=\"12\" y1=\"17\" x2=\"12.01\" y2=\"17\"/></svg> Coverage Gap — ${segments.length} segmen (RSRP ≤ ${threshold} dBm)</span>
+        <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ${T('dyn.coverageGapHeader', { n: segments.length, thr: threshold })}</span>
         <div style="display:flex;align-items:center;gap:8px">
-          <label style="font-size:10px;color:var(--text3)">Threshold</label>
+          <label style="font-size:10px;color:var(--text3)">${T('dyn.threshold')}</label>
           <select id="gapThresholdSel" onchange="updateGapThreshold()" style="background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:10px;border-radius:0;padding:2px 6px;font-family:var(--mono)">
             <option value="-90">−90 dBm</option>
             <option value="-95">−95 dBm</option>
@@ -804,13 +808,13 @@ function buildCoverageGapPanel() {
             <option value="-110">−110 dBm</option>
           </select>
           <button class="tbl-pg-btn" onclick="showGapOnMap()" style="background:var(--cyan-dim);border-color:rgba(6,182,212,0.3);color:var(--cyan)">
-            Tampilkan di Peta →
+            ${T('dyn.showOnMap')}
           </button>
         </div>
       </div>
       <div class="danger-scroll">
         <table class="rawan-table">
-          <thead><tr><th>#</th><th>Waktu</th><th>Avg RSRP</th><th>Min RSRP</th><th>Panjang</th><th>Cell</th></tr></thead>
+          <thead><tr><th>#</th><th>${T('dyn.colTime')}</th><th>${T('dyn.colAvgRsrp')}</th><th>${T('dyn.colMinRsrp')}</th><th>${T('dyn.colLength')}</th><th>${T('dyn.colCell')}</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>
@@ -836,7 +840,7 @@ window.showGapOnMap = function() {
     const y = mapEl.getBoundingClientRect().top + window.scrollY - 56;
     window.scrollTo({ top: y, behavior: 'smooth' });
   }
-  showToast('Coverage gap di-overlay di peta');
+  showToast(T('dyn.gapOverlayed'));
 };
 
 // 2. CELL CHURN / HANDOVER INSTABILITY PANEL
@@ -863,8 +867,8 @@ function buildCellChurnPanel() {
 
   if (!churnPts.length) {
     el.innerHTML = `<div class="info-card" style="text-align:center;padding:28px">
-      <div style="color:var(--green);font-family:var(--mono);font-size:15px;font-weight:600">SERVING CELL STABIL</div>
-      <div style="color:var(--text3);font-size:12px;margin-top:6px">Tidak ada area cell churn — handover terkontrol</div>
+      <div style="color:var(--green);font-family:var(--mono);font-size:15px;font-weight:600">${T('dyn.stableServingCellTitle')}</div>
+      <div style="color:var(--text3);font-size:12px;margin-top:6px">${T('dyn.noCellChurnSub')}</div>
     </div>`;
     return;
   }
@@ -878,31 +882,31 @@ function buildCellChurnPanel() {
 
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:14px">
-      ${extraCard('Titik Churn', `<span style="color:var(--orange)">${churnPts.length}</span>`, pct + '% dari total')}
-      ${extraCard('Window Deteksi', WIN + ' titik', 'Ukuran sliding window')}
-      ${extraCard('Max Unique Cells', Math.max(...churnPts.map(p => p.uniqueCount)), 'Dalam satu window')}
-      ${extraCard('Cell Terlibat', Object.keys(cellCount).length, 'Cell di area churn')}
+      ${extraCard(T('dyn.titikChurn'), `<span style="color:var(--orange)">${churnPts.length}</span>`, pct + T('dyn.pctOfTotalSuffix'))}
+      ${extraCard(T('dyn.windowDeteksi'), WIN + T('dyn.pointsSuffix'), T('dyn.slidingWindowSize'))}
+      ${extraCard(T('dyn.maxUniqueCells'), Math.max(...churnPts.map(p => p.uniqueCount)), T('dyn.inOneWindow'))}
+      ${extraCard(T('dyn.cellTerlibat'), Object.keys(cellCount).length, T('dyn.cellsInChurnArea'))}
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="danger-wrap">
         <div class="danger-hdr" style="display:flex;align-items:center;justify-content:space-between">
-          <span style="display:inline-flex;align-items:center;gap:4px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Cell Sering Muncul di Area Churn</span>
-          <button class="tbl-pg-btn" onclick="showChurnOnMap()" style="background:rgba(249,115,22,0.12);border-color:rgba(249,115,22,0.3);color:var(--orange)">Tampilkan di Peta →</button>
+          <span style="display:inline-flex;align-items:center;gap:4px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> ${T('dyn.frequentCellsInChurn')}</span>
+          <button class="tbl-pg-btn" onclick="showChurnOnMap()" style="background:rgba(249,115,22,0.12);border-color:rgba(249,115,22,0.3);color:var(--orange)">${T('dyn.showOnMap')}</button>
         </div>
         <div class="danger-scroll">
           <table class="rawan-table">
-            <thead><tr><th>#</th><th>Cell Name</th><th>Frekuensi</th><th>%</th></tr></thead>
+            <thead><tr><th>#</th><th>Cell Name</th><th>${T('dyn.colFrequency')}</th><th>%</th></tr></thead>
             <tbody>${cellRows}</tbody>
           </table>
         </div>
       </div>
       <div class="info-card" style="padding:14px">
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:10px">INTERPRETASI</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:10px">${T('dyn.interpretation')}</div>
         <div style="font-size:11px;color:var(--text2);line-height:1.8">
-          <div style="color:var(--orange);font-weight:600;margin-bottom:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Cell Churn Terdeteksi</div>
-          <p style="margin-bottom:6px">Ditemukan <b style="color:var(--orange)">${churnPts.length} titik</b> (${pct}%) di mana ≥3 serving cell berbeda dalam ${WIN} data point berurutan.</p>
-          <p style="margin-bottom:6px">Penyebab umum: pilot pollution (butuh konfirmasi dgn scanner/neighbor data), area border coverage normal, mobility tinggi, atau misconfig parameter A3 offset / TTT yang terlalu sensitif.</p>
-          <p style="color:var(--text3);font-size:10px">Cek silang dgn nilai RSRQ di area ini — kalau RSRQ rendah (&lt;−13 dB) sambil RSRP relatif baik, kemungkinan besar pilot pollution. Kalau RSRQ normal, kemungkinan besar HO parameter.</p>
+          <div style="color:var(--orange);font-weight:600;margin-bottom:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> ${T('dyn.cellChurnDetected')}</div>
+          <p style="margin-bottom:6px">${T('dyn.cellChurnP1', { n: churnPts.length, pct, win: WIN })}</p>
+          <p style="margin-bottom:6px">${T('dyn.cellChurnP2')}</p>
+          <p style="color:var(--text3);font-size:10px">${T('dyn.cellChurnP3')}</p>
         </div>
       </div>
     </div>`;
@@ -913,7 +917,7 @@ window.showChurnOnMap = function() {
   CakraMap.setAnalysisOverlay('churn', true);
   const mapEl = document.getElementById('peta');
   if (mapEl) window.scrollTo({ top: mapEl.getBoundingClientRect().top + window.scrollY - 56, behavior: 'smooth' });
-  showToast('Cell churn di-overlay di peta');
+  showToast(T('dyn.churnOverlayed'));
 };
 
 // 3. THROUGHPUT CORRELATION PANEL
@@ -923,7 +927,7 @@ function buildThroughputCorrelation() {
 
   const pts = DATA.filter(d => d.dl > 0 && d.rsrp);
   if (!pts.length) {
-    el.innerHTML = `<div class="info-card" style="text-align:center;padding:28px"><div style="color:var(--text3)">Tidak ada data throughput DL</div></div>`;
+    el.innerHTML = `<div class="info-card" style="text-align:center;padding:28px"><div style="color:var(--text3)">${T('dyn.noDlThroughputData')}</div></div>`;
     return;
   }
 
@@ -952,7 +956,7 @@ function buildThroughputCorrelation() {
     num += dr * dd; denR += dr * dr; denD += dd * dd;
   });
   const corr = (denR && denD) ? (num / Math.sqrt(denR * denD)).toFixed(3) : '—';
-  const corrStrength = Math.abs(corr) > 0.7 ? 'Kuat' : Math.abs(corr) > 0.4 ? 'Sedang' : 'Lemah';
+  const corrStrength = Math.abs(corr) > 0.7 ? T('dyn.corrStrong') : Math.abs(corr) > 0.4 ? T('dyn.corrMedium') : T('dyn.corrWeak');
 
   const binRows = bins.map(b => {
     if (!b.pts.length) return '';
@@ -972,26 +976,26 @@ function buildThroughputCorrelation() {
 
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:14px">
-      ${extraCard('Data Points', pts.length.toLocaleString(), 'Dengan DL throughput')}
-      ${extraCard('Avg DL', avgDl.toFixed(2) + ' Mbps', 'Seluruh rute')}
-      ${extraCard('Peak DL', maxDl.toFixed(2) + ' Mbps', 'Titik terbaik')}
-      ${extraCard('Korelasi RSRP↔DL', corr, corrStrength + ' (' + (corr > 0 ? 'positif' : 'negatif') + ')')}
+      ${extraCard(T('dyn.dataPoints'), pts.length.toLocaleString(), T('dyn.withDlThroughput'))}
+      ${extraCard(T('dyn.avgDl'), avgDl.toFixed(2) + ' Mbps', T('dyn.wholeRoute'))}
+      ${extraCard(T('dyn.peakDl'), maxDl.toFixed(2) + ' Mbps', T('dyn.bestPoint'))}
+      ${extraCard(T('dyn.corrRsrpDl'), corr, corrStrength + ' (' + (corr > 0 ? T('dyn.corrPositive') : T('dyn.corrNegative')) + ')')}
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="info-card" style="padding:14px">
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:10px">AVG DL PER KATEGORI RSRP</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:10px">${T('dyn.avgDlPerRsrpCategory')}</div>
         ${binRows}
       </div>
       <div class="info-card" style="padding:14px">
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:10px">INTERPRETASI</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:10px">${T('dyn.interpretation')}</div>
         <div style="font-size:11px;color:var(--text2);line-height:1.8">
-          <div style="margin-bottom:8px">Korelasi Pearson RSRP ↔ DL Throughput: <b style="color:var(--cyan)">${corr}</b> (${corrStrength})</div>
-          ${parseFloat(corr) < 0.4 ? '<p style="color:var(--yellow)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Korelasi lemah: throughput rendah tidak selalu disebabkan RF buruk. Kemungkinan bottleneck di core/transport/congestion.</p>' :
-            parseFloat(corr) > 0.7 ? '<p style="color:var(--green)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Korelasi kuat: perbaikan RSRP akan langsung meningkatkan throughput pengguna.</p>' :
-            '<p style="color:var(--text2)">Korelasi sedang: RF berkontribusi tapi bukan satu-satunya faktor penentu throughput.</p>'}
+          <div style="margin-bottom:8px">${T('dyn.pearsonCorrText', { corr, strength: corrStrength })}</div>
+          ${parseFloat(corr) < 0.4 ? `<p style="color:var(--yellow)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ${T('dyn.corrWeakWarning')}</p>` :
+            parseFloat(corr) > 0.7 ? `<p style="color:var(--green)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> ${T('dyn.corrStrongText')}</p>` :
+            `<p style="color:var(--text2)">${T('dyn.corrMediumText')}</p>`}
           <div style="margin-top:10px">
             <button class="tbl-pg-btn" onclick="showThroughputOnMap()" style="background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.3);color:var(--green)">
-              Tampilkan di Peta →
+              ${T('dyn.showOnMap')}
             </button>
           </div>
         </div>
@@ -1004,7 +1008,7 @@ window.showThroughputOnMap = function() {
   CakraMap.setAnalysisOverlay('throughput', true);
   const mapEl = document.getElementById('peta');
   if (mapEl) window.scrollTo({ top: mapEl.getBoundingClientRect().top + window.scrollY - 56, behavior: 'smooth' });
-  showToast('Tier throughput di-overlay di peta');
+  showToast(T('dyn.throughputOverlayed'));
 };
 
 // Toolbar handler — toggles RF overlay ring on/off (multi-aktif)
@@ -1054,21 +1058,21 @@ function buildSiteView() {
 
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:14px">
-      ${extraCard('Total Site/eNodeB', siteArr.length, 'Terdeteksi dari data')}
-      ${extraCard('Site Terbaik', siteArr.slice().sort((a,b)=>b.avgRsrp-a.avgRsrp)[0]?.node||'—', 'Avg RSRP tertinggi')}
-      ${extraCard('Site Terburuk', siteArr.slice().sort((a,b)=>a.avgRsrp-b.avgRsrp)[0]?.node||'—', 'Avg RSRP terendah')}
-      ${extraCard('Unique Cells', [...new Set(DATA.filter(d=>d.cellname).map(d=>d.cellname))].length, 'Total cell terdeteksi')}
+      ${extraCard(T('dyn.totalSiteEnodeb'), siteArr.length, T('dyn.detectedFromData'))}
+      ${extraCard(T('dyn.siteTerbaik'), siteArr.slice().sort((a,b)=>b.avgRsrp-a.avgRsrp)[0]?.node||'—', T('dyn.highestAvgRsrp'))}
+      ${extraCard(T('dyn.siteTerburuk'), siteArr.slice().sort((a,b)=>a.avgRsrp-b.avgRsrp)[0]?.node||'—', T('dyn.lowestAvgRsrp'))}
+      ${extraCard(T('dyn.uniqueCells'), [...new Set(DATA.filter(d=>d.cellname).map(d=>d.cellname))].length, T('dyn.totalCellsDetected'))}
     </div>
     <div class="danger-wrap">
-      <div class="danger-hdr"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9"/><path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5"/><circle cx="12" cy="9" r="2"/><path d="M16.2 4.8c2 2 2.26 5.11.8 7.47"/><path d="M19.1 1.9a10.75 10.75 0 0 1 0 15.2"/><line x1="12" y1="9" x2="12" y2="22"/></svg> KPI per Site / eNodeB</div>
+      <div class="danger-hdr"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9"/><path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5"/><circle cx="12" cy="9" r="2"/><path d="M16.2 4.8c2 2 2.26 5.11.8 7.47"/><path d="M19.1 1.9a10.75 10.75 0 0 1 0 15.2"/><line x1="12" y1="9" x2="12" y2="22"/></svg> ${T('dyn.kpiPerSite')}</div>
       <div class="danger-scroll">
         <table class="rawan-table">
           <thead><tr>
-            <th>#</th><th>Site / eNodeB</th><th>Cell(s)</th><th>Sektor</th>
-            <th style="text-align:right">Avg RSRP</th>
-            <th style="text-align:right">Avg DL</th>
-            <th style="text-align:right">Titik Rawan</th>
-            <th style="text-align:right">Data Pts</th>
+            <th>#</th><th>${T('dyn.colSiteEnodeb')}</th><th>${T('dyn.colCells')}</th><th>${T('dyn.colSektor')}</th>
+            <th style="text-align:right">${T('dyn.colAvgRsrp')}</th>
+            <th style="text-align:right">${T('dyn.colAvgDl')}</th>
+            <th style="text-align:right">${T('dyn.colTitikRawan')}</th>
+            <th style="text-align:right">${T('dyn.colDataPts')}</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
@@ -1086,11 +1090,11 @@ function buildPciConflictPanel() {
   const withPci = DATA.filter(d => d.pci !== null && d.pci !== undefined && !isNaN(d.pci));
   if (withPci.length === 0) {
     el.innerHTML = `<div class="info-card" style="padding:24px;text-align:center">
-      <div style="color:var(--text2);font-family:var(--mono);font-size:13px;margin-bottom:8px">PCI tidak terdeteksi di data</div>
+      <div style="color:var(--text2);font-family:var(--mono);font-size:13px;margin-bottom:8px">${T('dyn.pciNotDetected')}</div>
       <div style="color:var(--text3);font-size:11px;line-height:1.7">
-        Fitur ini butuh kolom <span style="font-family:var(--mono);color:var(--cyan)">PCI</span> atau <span style="font-family:var(--mono);color:var(--cyan)">Phys Cell ID</span> di file log.<br>
-        Di G-NetTrack Pro, aktifkan kolom PCI di Settings → Export Columns.<br>
-        Kalau pakai TEMS/NEMO, pastikan field PCI di-include di export.
+        ${T('dyn.pciNotDetectedHelp1')}<br>
+        ${T('dyn.pciNotDetectedHelp2')}<br>
+        ${T('dyn.pciNotDetectedHelp3')}
       </div>
     </div>`;
     return;
@@ -1110,8 +1114,8 @@ function buildPciConflictPanel() {
 
   if (cells.length < 2) {
     el.innerHTML = `<div class="info-card" style="padding:24px;text-align:center">
-      <div style="color:var(--text2);font-family:var(--mono);font-size:13px">Tidak cukup cell unik untuk analisis</div>
-      <div style="color:var(--text3);font-size:11px;margin-top:6px">Hanya ${cells.length} cell ditemukan dengan PCI valid</div>
+      <div style="color:var(--text2);font-family:var(--mono);font-size:13px">${T('dyn.notEnoughUniqueCells')}</div>
+      <div style="color:var(--text3);font-size:11px;margin-top:6px">${T('dyn.onlyXCellsFound', { n: cells.length })}</div>
     </div>`;
     return;
   }
@@ -1183,14 +1187,14 @@ function buildPciConflictPanel() {
 
   const conflictBlock = conflictList.length === 0
     ? `<div class="info-card" style="padding:20px;text-align:center;margin-top:12px">
-        <div style="color:var(--green);font-family:var(--mono);font-size:13px;font-weight:600">TIDAK ADA POTENSI MOD-3 CONFLICT</div>
-        <div style="color:var(--text3);font-size:11px;margin-top:6px">Cell yang berdekatan tidak share PCI mod 3</div>
+        <div style="color:var(--green);font-family:var(--mono);font-size:13px;font-weight:600">${T('dyn.noPciConflictTitle')}</div>
+        <div style="color:var(--text3);font-size:11px;margin-top:6px">${T('dyn.noPciConflictSub')}</div>
       </div>`
     : `<div class="danger-wrap" style="margin-top:12px">
         <div class="danger-hdr">
           <span style="display:inline-flex;align-items:center;gap:4px">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            Potensi PCI Mod-3 Conflict
+            ${T('dyn.pciConflictHeader')}
           </span>
         </div>
         <div class="danger-scroll">
@@ -1200,7 +1204,7 @@ function buildPciConflictPanel() {
               <th>Cell A</th><th>PCI A</th>
               <th>Cell B</th><th>PCI B</th>
               <th>Mod 3</th>
-              <th style="text-align:right">Co-observed (kali)</th>
+              <th style="text-align:right">${T('dyn.coObservedTimes')}</th>
             </tr></thead>
             <tbody>${conflictRows}</tbody>
           </table>
@@ -1209,25 +1213,25 @@ function buildPciConflictPanel() {
 
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:14px">
-      ${extraCard('Cell dengan PCI', cells.length, 'Min 5 observasi')}
-      ${extraCard('Unique PCI', [...new Set(cells.map(c=>c.pci))].length, 'Total PCI berbeda')}
-      ${extraCard('Coverage Sample', withPci.length.toLocaleString(), `${((withPci.length/DATA.length)*100).toFixed(1)}% dari data`)}
-      ${extraCard('Konflik Mod-3', conflictList.length, conflictList.length ? 'Pair perlu cek' : 'Bersih')}
+      ${extraCard(T('dyn.cellDenganPci'), cells.length, T('dyn.min5obs'))}
+      ${extraCard(T('dyn.uniquePci'), [...new Set(cells.map(c=>c.pci))].length, T('dyn.totalUniquePci'))}
+      ${extraCard(T('dyn.coverageSample'), withPci.length.toLocaleString(), `${((withPci.length/DATA.length)*100).toFixed(1)}${T('dyn.pctOfDataSuffix')}`)}
+      ${extraCard(T('dyn.konflikMod3'), conflictList.length, conflictList.length ? T('dyn.pairsNeedCheck') : T('dyn.clean'))}
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
       <div class="info-card" style="padding:14px">
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:10px">DISTRIBUSI PCI MOD 3</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:10px">${T('dyn.pciMod3Distribution')}</div>
         ${distRows}
         <div style="color:var(--text3);font-size:10px;margin-top:10px;line-height:1.6">
-          Idealnya tiap grup mod-3 tersebar ~33%. Distribusi yang tidak merata bisa indikasi planning yang kurang seimbang.
+          ${T('dyn.pciDistributionExplain')}
         </div>
       </div>
       <div class="info-card" style="padding:14px">
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:10px">INTERPRETASI</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:10px">${T('dyn.interpretation')}</div>
         <div style="font-size:11px;color:var(--text2);line-height:1.8">
-          <p style="margin-bottom:6px">PCI mod-3 conflict = dua cell dengan <em>PCI berbeda</em> tapi <em>PCI mod 3 sama</em> diamati berdekatan dalam rute drive test.</p>
-          <p style="margin-bottom:6px">Konsekuensi: keduanya transmit Primary Synchronization Sequence (PSS) yang sama. UE bisa salah-deteksi cell saat initial sync, dan PRACH preamble bisa collision.</p>
-          <p style="color:var(--text3);font-size:10px">Jangan otomatis assume "harus diganti" — heuristik ini cuma flag <em>kandidat</em>. Konfirmasi dengan tool planning resmi (Atoll/Asset/MapInfo Pro) yang punya neighbor list aktual.</p>
+          <p style="margin-bottom:6px">${T('dyn.pciInterpretP1')}</p>
+          <p style="margin-bottom:6px">${T('dyn.pciInterpretP2')}</p>
+          <p style="color:var(--text3);font-size:10px">${T('dyn.pciInterpretP3')}</p>
         </div>
       </div>
     </div>
@@ -1237,6 +1241,25 @@ function buildPciConflictPanel() {
 // INIT all new features after buildAll
 window._buildNewFeatures = function() {
   CakraMap.buildAnalysisLayers(DATA, { gapThreshold: -100, windowSize: 10 });
+  buildCoverageGapPanel();
+  buildCellChurnPanel();
+  buildThroughputCorrelation();
+  buildSiteView();
+  buildPciConflictPanel();
+};
+
+// Dipanggil oleh i18n.js tiap kali bahasa diganti — render ulang semua konten
+// dinamis (isi tabel, kartu KPI, badge, dsb) yang sebelumnya sudah di-generate
+// dalam bahasa lama, supaya ikut berubah tanpa perlu reload / re-upload data.
+window.CakraRebuildDynamic = function() {
+  if (!DATA.length) return;
+  buildInfo();
+  buildCell();
+  buildKPI();
+  if (EVENTS.length) buildEvents();
+  buildDistribution();
+  buildRawan();
+  if (typeof buildFieldTools === 'function') buildFieldTools();
   buildCoverageGapPanel();
   buildCellChurnPanel();
   buildThroughputCorrelation();

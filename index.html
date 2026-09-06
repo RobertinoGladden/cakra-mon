@@ -153,6 +153,20 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   .hero{padding:88px 18px 48px}
   .nav{padding:0 16px}
 }
+
+/* LANGUAGE SWITCH (ID/EN) */
+.lang-switch {
+  display: flex; align-items: center; gap: 4px; margin-left: 6px;
+  font-family: var(--mono); font-size: 10px; flex-shrink: 0;
+}
+.lang-sep { color: var(--border2); }
+.lang-btn {
+  background: none; border: none; color: var(--text3); cursor: pointer;
+  font-family: var(--mono); font-size: 10px; font-weight: 600; padding: 3px 4px;
+  letter-spacing: 0.04em;
+}
+.lang-btn:hover { color: var(--text); }
+.lang-btn.active { color: var(--cyan); }
 </style>
 <script>
 // Inline theme preset (prevents flash) — synced with cakra_theme key
@@ -171,9 +185,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   </div>
   <div class="splash-bar-wrap">
     <div class="splash-bar"><div class="splash-fill"></div></div>
-    <div class="splash-status" id="splashStatus">Memuat aplikasi...</div>
+    <div class="splash-status" id="splashStatus" data-i18n="home.splash.loading">Memuat aplikasi...</div>
   </div>
-  <div class="splash-copy">v2.0.1 &nbsp;·&nbsp; LTE &amp; 5G NR<br>© 2026 · Hak Cipta Dilindungi</div>
+  <div class="splash-copy">v2.0.1 &nbsp;·&nbsp; LTE &amp; 5G NR<br><span data-i18n="common.copyright">© 2026 · Hak Cipta Dilindungi</span></div>
 </div>
 
 <nav class="nav">
@@ -182,8 +196,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     <span class="nav-logo-text">CAKRA</span>
   </a>
   <div class="nav-right">
-    <span class="nav-logo-tag">Drive Test Intelligence</span>
-    <button class="theme-btn" id="themeBtn" title="Ganti tema" onclick="cycleTheme()"></button>
+    <span class="nav-logo-tag" data-i18n="common.tagline">Drive Test Intelligence</span>
+    <button class="theme-btn" id="themeBtn" title="Ganti tema" data-i18n-title="common.changeTheme" onclick="cycleTheme()"></button>
+    <div class="lang-switch" id="langSwitch" role="group" aria-label="Language">
+      <button class="lang-btn active" id="langBtnId" data-lang="id" onclick="CakraI18n.setLanguage('id')">ID</button>
+      <span class="lang-sep">|</span>
+      <button class="lang-btn" id="langBtnEn" data-lang="en" onclick="CakraI18n.setLanguage('en')">EN</button>
+    </div>
     <span class="nav-ver">v2.0.1</span>
   </div>
 </nav>
@@ -191,11 +210,11 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 <div class="hero">
   <div class="hero-tag">
     <span class="hero-tag-dot"></span>
-    RF Engineer Field Tool · LTE / 5G NR
+    <span data-i18n="home.heroTag">RF Engineer Field Tool · LTE / 5G NR</span>
   </div>
   <div class="hero-title">CAKRA</div>
-  <div class="hero-tagline">Sinyal terbaca. Jaringan terpetakan.</div>
-  <p class="hero-sub">
+  <div class="hero-tagline" data-i18n="home.heroTagline">Sinyal terbaca. Jaringan terpetakan.</div>
+  <p class="hero-sub" data-i18n="home.heroSub">
     Upload file dari tool drive test apapun — analisis parameter LTE & 5G NR, peta sinyal interaktif, deteksi titik rawan, dan AI analyst langsung di browser.
   </p>
 
@@ -205,32 +224,32 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     <span class="tool-badge supported">◈ NEMO Outdoor</span>
     <span class="tool-badge supported">◈ NEMO Handy</span>
     <span class="tool-badge supported">◈ SIGMON</span>
-    <span class="tool-badge" style="border-style:dashed">+ format baru segera</span>
+    <span class="tool-badge" style="border-style:dashed" data-i18n="home.moreFormatsSoon">+ format baru segera</span>
   </div>
 
   <div class="feature-pills">
     <span class="pill">RSRP / RSRQ / SNR</span>
     <span class="pill">5G NR-RSRP / SS-SINR</span>
-    <span class="pill">Peta Interaktif</span>
-    <span class="pill">Handover Events</span>
-    <span class="pill">Distribusi KPI</span>
-    <span class="pill">Titik Rawan</span>
-    <span class="pill">✦ AI Analyst</span>
-    <span class="pill">Offline (PWA)</span>
-    <a href="/predict" class="pill" style="text-decoration:none;border-color:rgba(74,222,128,0.3);color:var(--green,#4ade80);background:rgba(74,222,128,0.07)">◈ Virtual Drive Test</a>
+    <span class="pill" data-i18n="home.pill.map">Peta Interaktif</span>
+    <span class="pill" data-i18n="home.pill.handover">Handover Events</span>
+    <span class="pill" data-i18n="home.pill.kpiDist">Distribusi KPI</span>
+    <span class="pill" data-i18n="home.pill.weakPoints">Titik Rawan</span>
+    <span class="pill">✦ <span data-i18n="home.pill.aiAnalyst">AI Analyst</span></span>
+    <span class="pill" data-i18n="home.pill.offline">Offline (PWA)</span>
+    <a href="/predict" class="pill" style="text-decoration:none;border-color:rgba(74,222,128,0.3);color:var(--green,#4ade80);background:rgba(74,222,128,0.07)" data-i18n="home.pill.virtualDt">◈ Virtual Drive Test</a>
   </div>
 
   <div class="upload-zone">
-    <div class="upload-label">Upload File Drive Test</div>
+    <div class="upload-label" data-i18n="home.uploadLabel">Upload File Drive Test</div>
     <div class="upload-cols">
       <!-- LOG FILE -->
       <div class="upload-col">
-        <div class="upload-col-title">File Log Drive Test</div>
+        <div class="upload-col-title" data-i18n="home.logFile.title">File Log Drive Test</div>
         <div class="upload-col-sub">G-NetTrack .txt · TEMS .txt/.csv · NEMO .nmf/.csv · SIGMON .csv</div>
         <div class="drop-area" id="txtDrop" onclick="document.getElementById('txtInput').click()">
           <div class="drop-icon">⬆</div>
-          <div class="drop-label">Drop file di sini</div>
-          <div class="drop-sub">atau klik untuk pilih · multi-file OK</div>
+          <div class="drop-label" data-i18n="home.dropHere">Drop file di sini</div>
+          <div class="drop-sub" data-i18n="home.orClickMulti">atau klik untuk pilih · multi-file OK</div>
           <div class="drop-file-tags">
             <span class="tag">.TXT</span>
             <span class="tag">.CSV</span>
@@ -246,12 +265,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
       <!-- KML -->
       <div class="upload-col">
-        <div class="upload-col-title">Events KML <span style="font-weight:300;color:var(--text3)">(opsional)</span></div>
-        <div class="upload-col-sub">File .kml events — multi-file OK untuk banyak sesi/rute</div>
+        <div class="upload-col-title"><span data-i18n="home.eventsKml.title">Events KML</span> <span style="font-weight:300;color:var(--text3)" data-i18n="home.optional">(opsional)</span></div>
+        <div class="upload-col-sub" data-i18n="home.eventsKml.sub">File .kml events — multi-file OK untuk banyak sesi/rute</div>
         <div class="drop-area" id="kmlDrop" onclick="document.getElementById('kmlInput').click()">
           <div class="drop-icon">◉</div>
-          <div class="drop-label">Drop file .KML</div>
-          <div class="drop-sub">atau klik untuk pilih · multi-file OK</div>
+          <div class="drop-label" data-i18n="home.dropKml">Drop file .KML</div>
+          <div class="drop-sub" data-i18n="home.orClickMulti">atau klik untuk pilih · multi-file OK</div>
           <div class="drop-file-tags">
             <span class="tag">.KML</span>
             <span class="tag">HANDOVER</span>
@@ -267,42 +286,46 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
     <div class="analyze-wrap">
       <button class="analyze-btn" id="analyzeBtn" onclick="startAnalyze()" disabled>
-        <span>Mulai Analisis</span>
+        <span data-i18n="home.startAnalysis">Mulai Analisis</span>
         <span>→</span>
       </button>
-      <div class="analyze-note" id="analyzeNote">Pilih file log dulu</div>
+      <div class="analyze-note" id="analyzeNote" data-i18n="home.chooseLogFirst">Pilih file log dulu</div>
     </div>
   </div>
 </div>
 
 <footer class="footer">
-  <div class="footer-text">CAKRA — Drive Test Intelligence · LTE & 5G NR</div>
+  <div class="footer-text" data-i18n="common.footerText">CAKRA — Drive Test Intelligence · LTE & 5G NR</div>
   <div class="footer-links">
-    <a href="/docs" class="footer-link" data-route>Panduan Penggunaan</a>
-    <a href="/about" class="footer-link" data-route>Tentang Cakra</a>
-    <a href="/predict" class="footer-link" data-route>Virtual Drive Test</a>
+    <a href="/docs" class="footer-link" data-route data-i18n="common.footer.guide">Panduan Penggunaan</a>
+    <a href="/about" class="footer-link" data-route data-i18n="common.footer.about">Tentang Cakra</a>
+    <a href="/predict" class="footer-link" data-route data-i18n="common.footer.predict">Virtual Drive Test</a>
   </div>
 </footer>
 
 <div class="progress-overlay" id="progressOverlay">
   <div class="progress-ring"></div>
-  <div class="progress-text" id="progressText">Memproses data...</div>
+  <div class="progress-text" id="progressText" data-i18n="home.processing">Memproses data...</div>
   <div class="progress-sub" id="progressSub"></div>
 </div>
 
 <!-- PWA Install Banner -->
 <div class="pwa-banner" id="pwaBanner">
   <div class="pwa-banner-text">
-    <div class="pwa-banner-title">Install Cakra</div>
-    <div class="pwa-banner-sub">Gunakan offline · akses lebih cepat</div>
+    <div class="pwa-banner-title" data-i18n="common.pwa.title">Install Cakra</div>
+    <div class="pwa-banner-sub" data-i18n="common.pwa.sub">Gunakan offline · akses lebih cepat</div>
   </div>
-  <button class="pwa-install-btn" id="pwaInstallBtn">Install</button>
+  <button class="pwa-install-btn" id="pwaInstallBtn" data-i18n="common.pwa.install">Install</button>
   <button class="pwa-dismiss" onclick="dismissPWA()">✕</button>
 </div>
 
+<script src="js/i18n.js"></script>
 <script src="js/route.js"></script>
 <script src="js/parser.js"></script>
 <script>
+// Shorthand ke CakraI18n.t()
+const T = (key, params) => (window.CakraI18n ? window.CakraI18n.t(key, params) : key);
+
 // ── THEME ──
 const THEMES = ['dark','light','system'];
 let themeIdx = 0;
@@ -414,8 +437,11 @@ function removeKml(i) { kmlFiles.splice(i,1); renderKmlList(); }
 function updateBtn() {
   const btn = document.getElementById('analyzeBtn'), note = document.getElementById('analyzeNote');
   btn.disabled = txtFiles.length === 0;
-  note.textContent = txtFiles.length ? `${txtFiles.length} file siap · klik untuk analisis` : 'Pilih file log dulu';
+  note.textContent = txtFiles.length ? T('home.filesReady', { n: txtFiles.length }) : T('home.chooseLogFirst');
 }
+
+// Re-render dynamic bits when language is switched
+window.CakraRebuildDynamic = function() { updateBtn(); };
 
 
 
@@ -431,17 +457,17 @@ async function startAnalyze() {
     let allRows = [];
     for (let i = 0; i < txtFiles.length; i++) {
       const f = txtFiles[i];
-      ptxt.textContent = `Membaca file ${i+1}/${txtFiles.length}...`;
+      ptxt.textContent = T('home.readingFile', { i: i+1, n: txtFiles.length });
       psub.textContent = f.name;
       const text = await f.text();
-      ptxt.textContent = `Parsing ${f.name}...`;
+      ptxt.textContent = T('home.parsingFile', { name: f.name });
       const rows = CakraParser.parseTxt(text);
       allRows = allRows.concat(rows);
     }
-    if (!allRows.length) throw new Error('Tidak ada data valid. Pastikan format file benar.');
+    if (!allRows.length) throw new Error(T('home.noValidData'));
 
-    ptxt.textContent = 'Menyimpan data...';
-    psub.textContent = `${allRows.length.toLocaleString()} data point · siap`;
+    ptxt.textContent = T('home.savingData');
+    psub.textContent = `${allRows.length.toLocaleString()} ${T('home.dataPointsReady')}`;
     await new Promise(r => setTimeout(r, 30));
 
     try {
@@ -459,7 +485,7 @@ async function startAnalyze() {
     if (kmlFiles.length) {
       let allEvents = [];
       for (let i = 0; i < kmlFiles.length; i++) {
-        ptxt.textContent = `Memproses KML ${i+1}/${kmlFiles.length}...`;
+        ptxt.textContent = T('home.processingKml', { i: i+1, n: kmlFiles.length });
         psub.textContent = kmlFiles[i].name;
         const kmlText = await kmlFiles[i].text();
         await new Promise(resolve => setTimeout(resolve, 30));
@@ -469,12 +495,12 @@ async function startAnalyze() {
       try {
         sessionStorage.setItem('cakra_events', JSON.stringify(allEvents));
       } catch(e) { sessionStorage.removeItem('cakra_events'); }
-      psub.textContent = `${allEvents.length} events dari ${kmlFiles.length} file KML`;
+      psub.textContent = T('home.eventsFromKmlFiles', { n: allEvents.length, files: kmlFiles.length });
     } else {
       sessionStorage.removeItem('cakra_events');
     }
 
-    ptxt.textContent = 'Membuka dashboard...';
+    ptxt.textContent = T('home.openingDashboard');
     psub.textContent = '';
     setTimeout(() => { if (window.CakraNav) CakraNav.go('/dashboard'); else window.location.href = '/dashboard'; }, 200);
   } catch(err) {
@@ -507,7 +533,7 @@ setTimeout(() => {
 
 document.getElementById('pwaInstallBtn').onclick = async () => {
   if (!pwaPrompt) {
-    alert('PWA installation tidak didukung di browser ini. Gunakan Chrome, Edge, atau browser PWA-compatible lainnya.');
+    alert(T('home.pwaNotSupported'));
     return;
   }
   pwaPrompt.prompt();
@@ -535,12 +561,12 @@ window.resetPWA = () => {
 (function() {
   const splash = document.getElementById('cakraSplash');
   const status = document.getElementById('splashStatus');
-  const msgs = ['Memuat aplikasi...','Menyiapkan parser...','Siap!'];
+  const msgs = ['home.splash.loading','home.splash.preparing','home.splash.ready'];
   let i = 0;
-  const tick = setInterval(() => { if (++i < msgs.length) status.textContent = msgs[i]; }, 400);
+  const tick = setInterval(() => { if (++i < msgs.length) status.textContent = T(msgs[i]); }, 400);
   window.addEventListener('load', () => {
     clearInterval(tick);
-    status.textContent = 'Siap!';
+    status.textContent = T('home.splash.ready');
     setTimeout(() => splash.classList.add('hide'), 300);
     setTimeout(() => splash.remove(), 750);
   });

@@ -117,6 +117,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
 .back-btn{font-family:var(--mono);font-size:11px;color:var(--cyan);text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-bottom:18px}
 .back-btn:hover{color:var(--cyan-hi)}
+
+/* LANGUAGE SWITCH (ID/EN) */
+.lang-switch{display:flex;align-items:center;gap:4px;margin-left:4px;font-family:var(--mono);font-size:10px;flex-shrink:0}
+.lang-sep{color:var(--border2)}
+.lang-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:600;padding:3px 4px;letter-spacing:0.04em}
+.lang-btn:hover{color:var(--text)}
+.lang-btn.active{color:var(--cyan)}
 </style>
 </head>
 <body>
@@ -132,31 +139,36 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   <button class="theme-btn" id="themeBtn" onclick="cycleTheme()">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
   </button>
+  <div class="lang-switch" id="langSwitch" role="group" aria-label="Language" style="margin-left:0">
+    <button class="lang-btn active" id="langBtnId" data-lang="id" onclick="CakraI18n.setLanguage('id')">ID</button>
+    <span class="lang-sep">|</span>
+    <button class="lang-btn" id="langBtnEn" data-lang="en" onclick="CakraI18n.setLanguage('en')">EN</button>
+  </div>
 </nav>
 
 <div class="container">
   <div class="header">
-    <div class="title">Bandingkan Sesi</div>
-    <div class="subtitle">Upload banyak file sekaligus untuk perbandingan multi-sesi</div>
+    <div class="title" data-i18n="compare.title">Bandingkan Sesi</div>
+    <div class="subtitle" data-i18n="compare.subtitle">Upload banyak file sekaligus untuk perbandingan multi-sesi</div>
   </div>
 
   <div class="panel-grid">
     <!-- KIRI: Sesi Aktif -->
     <div class="card">
       <div class="card-header">
-        <div class="badge b0">Sesi 1</div>
-        <div class="card-label">Sesi Aktif</div>
+        <div class="badge b0" data-i18n="compare.session1">Sesi 1</div>
+        <div class="card-label" data-i18n="compare.activeSession">Sesi Aktif</div>
       </div>
       <div id="s1Info" class="s1-placeholder">
         <span class="spin" style="font-size:18px">⟳</span>
-        <span>Memuat data...</span>
+        <span data-i18n="compare.loadingData">Memuat data...</span>
       </div>
     </div>
 
     <!-- KANAN: Upload multi file -->
     <div class="card">
       <div class="card-header">
-        <div class="card-label">Sesi Pembanding</div>
+        <div class="card-label" data-i18n="compare.comparisonSessions">Sesi Pembanding</div>
         <span id="countBadge" class="badge b0">0 file</span>
       </div>
 
@@ -168,13 +180,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
         <div class="upload-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         </div>
-        <div style="font-size:12px;font-weight:500">Pilih atau drop banyak file</div>
-        <div style="font-size:10.5px;color:var(--text3)">Bisa upload beberapa .txt/.csv sekaligus</div>
+        <div style="font-size:12px;font-weight:500" data-i18n="compare.pickOrDrop">Pilih atau drop banyak file</div>
+        <div style="font-size:10.5px;color:var(--text3)" data-i18n="compare.multiFileHint">Bisa upload beberapa .txt/.csv sekaligus</div>
         <input type="file" id="fileInput" accept=".txt,.csv" multiple style="display:none" onchange="handleFileSelect(event)">
       </div>
 
       <div class="sess-list" id="sessList">
-        <div class="sess-empty" id="sessEmpty">Belum ada file diupload</div>
+        <div class="sess-empty" id="sessEmpty" data-i18n="compare.noFileYet">Belum ada file diupload</div>
       </div>
     </div>
   </div>
@@ -183,20 +195,20 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   <div class="actions">
     <button class="btn btn-primary" id="compareBtn" onclick="runComparison()" disabled>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-      Jalankan Perbandingan
+      <span data-i18n="compare.runComparison">Jalankan Perbandingan</span>
     </button>
-    <button class="btn btn-secondary" onclick="clearAll()">Hapus Semua File</button>
-    <button class="btn btn-secondary" onclick="location.href='dashboard.html'">Kembali</button>
+    <button class="btn btn-secondary" onclick="clearAll()" data-i18n="compare.clearAllFiles">Hapus Semua File</button>
+    <button class="btn btn-secondary" onclick="location.href='dashboard.html'" data-i18n="predict.back">← Kembali</button>
   </div>
 
   <!-- RESULTS -->
   <div id="results" style="display:none">
     <div class="result-section">
-      <div class="sect-title">Perbandingan KPI</div>
+      <div class="sect-title" data-i18n="compare.kpiComparison">Perbandingan KPI</div>
       <div class="tbl-wrap"><table class="cmp-table"><thead id="kpiHead"></thead><tbody id="kpiBody"></tbody></table></div>
     </div>
     <div class="result-section">
-      <div class="sect-title">Distribusi Sinyal RSRP</div>
+      <div class="sect-title" data-i18n="compare.rsrpDist">Distribusi Sinyal RSRP</div>
       <div class="tbl-wrap"><table class="cmp-table"><thead id="distHead"></thead><tbody id="distBody"></tbody></table></div>
     </div>
     <div class="result-section">
@@ -206,8 +218,26 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
+<script src="js/i18n.js"></script>
 <script src="js/parser.js"></script>
 <script>
+// Shorthand ke CakraI18n.t()
+const T = (key, params) => (window.CakraI18n ? window.CakraI18n.t(key, params) : key);
+
+// Map metric "key" (internal, stable ID used for matching) → i18n label key
+const METRIC_LABEL = {
+  'Data Points': 'compare.metric.dataPoints',
+  'Avg RSRP': 'compare.metric.avgRsrp',
+  'Min RSRP': 'compare.metric.minRsrp',
+  'Max RSRP': 'compare.metric.maxRsrp',
+  'Avg RSRQ': 'compare.metric.avgRsrq',
+  'Avg SINR': 'compare.metric.avgSinr',
+  'Avg Speed': 'compare.metric.avgSpeed',
+  'Avg DL': 'compare.metric.avgDl',
+  'Avg UL': 'compare.metric.avgUl',
+};
+function mLabel(key) { return T(METRIC_LABEL[key] || key); }
+
 // ─── STATE ───
 var S1 = null;           // current session data
 var EXTRAS = [];         // [{name, data}]
@@ -266,11 +296,11 @@ function getDist(data){
 function loadS1(){
   try{
     var raw=sessionStorage.getItem('cakra_data');
-    if(!raw){setS1Err('Tidak ada sesi aktif');return}
+    if(!raw){setS1Err(T('compare.noActiveSession'));return}
     S1=JSON.parse(raw);
-    if(!S1||!S1.length){setS1Err('Data kosong');return}
-    renderS1(sessionStorage.getItem('cakra_filename')||'Sesi Aktif');
-  }catch(e){setS1Err('Error loading session')}
+    if(!S1||!S1.length){setS1Err(T('compare.emptyData'));return}
+    renderS1(sessionStorage.getItem('cakra_filename')||T('compare.session1'));
+  }catch(e){setS1Err(T('compare.errorLoadingSession'))}
 }
 function setS1Err(msg){document.getElementById('s1Info').innerHTML='<span style="color:var(--red);font-size:12px">'+msg+'</span>'}
 function renderS1(fname){
@@ -280,7 +310,7 @@ function renderS1(fname){
   var preview=['Data Points','Avg RSRP','Min RSRP','Max RSRP','Avg Speed'];
   preview.forEach(function(k){
     var item=m.find(function(x){return x.key===k});
-    if(item)h+='<div class="stat-row"><span class="stat-label">'+k+'</span><span class="stat-value">'+item.disp+'</span></div>';
+    if(item)h+='<div class="stat-row"><span class="stat-label">'+mLabel(k)+'</span><span class="stat-value">'+item.disp+'</span></div>';
   });
   document.getElementById('s1Info').innerHTML=h;
 }
@@ -364,7 +394,7 @@ function groupAndAddSessions(fileResults) {
     try {
       var rows = CakraParser.parseTxt(mainFile.content);
       if (!rows.length) {
-        errors.push(mainFile.name + ' (tidak ada data valid)');
+        errors.push(mainFile.name + T('compare.noValidDataSuffix'));
         return;
       }
       // Use the plain filename (or the main file used) as display name
@@ -380,7 +410,7 @@ function groupAndAddSessions(fileResults) {
   updateUI();
 
   if (errors.length) {
-    alert('Gagal baca ' + errors.length + ' file:\n' + errors.join('\n'));
+    alert(T('compare.failedToRead', { n: errors.length }) + '\n' + errors.join('\n'));
   }
 }
 function removeSession(i){
@@ -399,9 +429,9 @@ function clearAll(){
 function renderList(){
   var list=document.getElementById('sessList');
   var empty=document.getElementById('sessEmpty');
-  document.getElementById('countBadge').textContent=EXTRAS.length+' sesi';
+  document.getElementById('countBadge').textContent=EXTRAS.length+' '+T('compare.sessionsAbbrev');
   list.querySelectorAll('.sess-item').forEach(function(el){el.remove()});
-  if(!EXTRAS.length){empty.style.display='block';return}
+  if(!EXTRAS.length){empty.style.display='block';empty.textContent=T('compare.noFileYet');return}
   empty.style.display='none';
   EXTRAS.forEach(function(sess,i){
     var ci=(i+1)%COLORS.length;
@@ -411,10 +441,10 @@ function renderList(){
     var dl=m.find(function(x){return x.key==='Avg DL'});
     var item=document.createElement('div');
     item.className='sess-item';
-    item.innerHTML='<span class="badge b'+ci+'">Sesi '+(i+2)+'</span>'
+    item.innerHTML='<span class="badge b'+ci+'">'+T('compare.sessionN', { n: i+2 })+'</span>'
       +'<div class="sess-item-info"><div class="sess-item-name" title="'+sess.name+'">'+sess.name+'</div>'
       +'<div class="sess-item-meta">'+(pts?pts.disp:'?')+' pts · RSRP '+(avgRsrp?avgRsrp.disp:'N/A')+' · DL '+(dl?dl.disp:'N/A')+'</div></div>'
-      +'<button class="sess-remove" onclick="removeSession('+i+')" title="Hapus">'
+      +'<button class="sess-remove" onclick="removeSession('+i+')" title="'+T('compare.delete')+'">'
       +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
       +'</button>';
     list.appendChild(item);
@@ -427,13 +457,13 @@ function updateUI(){
 
 // ─── COMPARISON ───
 function allSessions(){
-  return [{name:sessionStorage.getItem('cakra_filename')||'Sesi Aktif',data:S1}].concat(EXTRAS);
+  return [{name:sessionStorage.getItem('cakra_filename')||T('compare.activeSession'),data:S1}].concat(EXTRAS);
 }
 
 function makeHead(sessions){
   return sessions.map(function(s,i){
     var short=s.name.length>20?s.name.slice(0,18)+'…':s.name;
-    return '<th class="th'+i+'" title="'+s.name+'">Sesi '+(i+1)+'<br><span style="font-size:9px;font-weight:400;opacity:0.65">'+short+'</span></th>';
+    return '<th class="th'+i+'" title="'+s.name+'">'+T('compare.sessionN', { n: i+1 })+'<br><span style="font-size:9px;font-weight:400;opacity:0.65">'+short+'</span></th>';
   }).join('');
 }
 
@@ -444,11 +474,11 @@ function runComparison(){
   // KPI
   var allM=sessions.map(function(s){return getMetrics(s.data)});
   var ref=allM[0];
-  document.getElementById('kpiHead').innerHTML='<tr><th style="min-width:110px">Metrik</th>'+makeHead(sessions)+'<th>Δ vs Sesi 1</th></tr>';
+  document.getElementById('kpiHead').innerHTML='<tr><th style="min-width:110px">'+T('compare.metricHeader')+'</th>'+makeHead(sessions)+'<th>Δ vs '+T('compare.sessionN',{n:1})+'</th></tr>';
   var kbody='';
   ref.forEach(function(refItem){
     var k=refItem.key;
-    var row='<td class="col-metric">'+k+'</td>';
+    var row='<td class="col-metric">'+mLabel(k)+'</td>';
     allM.forEach(function(m,i){
       var item=m.find(function(x){return x.key===k});
       row+='<td class="td'+i+'">'+(item?item.disp:'N/A')+'</td>';
@@ -469,7 +499,7 @@ function runComparison(){
 
   // DIST
   var allD=sessions.map(function(s){return getDist(s.data)});
-  document.getElementById('distHead').innerHTML='<tr><th style="min-width:130px">Range</th>'+makeHead(sessions)+'</tr>';
+  document.getElementById('distHead').innerHTML='<tr><th style="min-width:130px">'+T('compare.rangeHeader')+'</th>'+makeHead(sessions)+'</tr>';
   var dbody='';
   Object.keys(allD[0].ranges).forEach(function(range){
     var row='<td class="col-metric">'+range+'</td>';
@@ -491,7 +521,7 @@ function runComparison(){
   var allCells={};
   allCM.forEach(function(m){Object.keys(m).forEach(function(c){allCells[c]=(allCells[c]||0)+m[c]})});
   var top=Object.keys(allCells).sort(function(a,b){return allCells[b]-allCells[a]}).slice(0,10);
-  if(!top.length){document.getElementById('cellWrap').innerHTML='<p style="color:var(--text3);font-size:12px;padding:8px">Tidak ada data cell.</p>';}
+  if(!top.length){document.getElementById('cellWrap').innerHTML='<p style="color:var(--text3);font-size:12px;padding:8px">'+T('compare.noCellData')+'</p>';}
   else{
     var ch='<table class="cmp-table"><thead><tr><th style="min-width:140px">Cell Name</th>'+makeHead(sessions)+'</tr></thead><tbody>';
     top.forEach(function(cell){
@@ -511,8 +541,24 @@ document.addEventListener('DOMContentLoaded',function(){
   initTheme();
   loadS1();
   updateUI();
+  document.getElementById('countBadge').textContent='0 '+T('compare.file');
 });
+
+// Re-render dynamic text when language is switched
+window.CakraRebuildDynamic = function() {
+  renderList();
+  if (S1 && document.getElementById('s1Info') && !document.getElementById('s1Info').querySelector('.spin')) {
+    renderS1(sessionStorage.getItem('cakra_filename')||T('compare.session1'));
+  }
+  if (EXTRAS.length===0) {
+    var empty = document.getElementById('sessEmpty');
+    if (empty) empty.textContent = T('compare.noFileYet');
+  }
+  var countBadge = document.getElementById('countBadge');
+  if (countBadge) countBadge.textContent = EXTRAS.length + ' ' + T('compare.file');
+  if (document.getElementById('results').style.display !== 'none' && S1 && EXTRAS.length) runComparison();
+};
 </script>
-<footer style="text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10px;color:var(--text3);border-top:1px solid var(--border);margin-top:40px;letter-spacing:0.06em">CAKRA v2.0.1 — Drive Test Intelligence &nbsp;·&nbsp; © 2026 · Hak Cipta Dilindungi</footer>
+<footer style="text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10px;color:var(--text3);border-top:1px solid var(--border);margin-top:40px;letter-spacing:0.06em"><span data-i18n="compare.footer">CAKRA v2.0.1 — Drive Test Intelligence</span> &nbsp;·&nbsp; <span data-i18n="common.copyright">© 2026 · Hak Cipta Dilindungi</span></footer>
 </body>
 </html>

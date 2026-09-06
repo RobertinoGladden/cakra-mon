@@ -1,21 +1,17 @@
 // predict.js — Virtual Drive Test controller (multi-step wizard, multi-site) — Cakra v2.2
-// Menghubungkan propagation.js (model RF) + buildings.js (data OSM) ke peta Leaflet,
-// mendukung banyak site sekaligus (best-server / handover), lalu menyimulasikan
-// "virtual drive" sepanjang rute dan memvalidasi vs data nyata.
+// Menghubungkan propagation.js (model RF) + buildings.js (data OSM) ke peta MapLibre GL JS
+// native (3D, tanpa Leaflet), mendukung banyak site sekaligus (best-server / handover),
+// lalu menyimulasikan "virtual drive" sepanjang rute dan memvalidasi vs data nyata.
 // © 2026 — dikembangkan sebagai ekstensi Cakra Drive Test Intelligence.
 
 'use strict';
 
 window.CakraVDT = (() => {
+  const T = (key, params) => (window.CakraI18n ? window.CakraI18n.t(key, params) : key);
   let map = null;
-  let buildingsLayer = null;
-  let realDataLayer = null;
   let buildingsCache = null;      // { key, radius, list }
   let lastResult = null;          // hasil prediksi grid (multi-site, best-server)
   let lastRoute = null;           // hasil simulasi rute
-  let routeLayer = null;          // polyline rute
-  let routeSampleLayer = null;    // marker hasil simulasi
-  let handoverLayer = null;       // marker titik handover
   let drawMode = false;
   let routePts = [];
   let routeChartObj = null;
@@ -125,7 +121,7 @@ window.CakraVDT = (() => {
   // SITE MANAGEMENT (Step 1)
   // ─────────────────────────────────────────────
   function addSite(lat, lon) {
-    if (sites.length >= MAX_SITES) { alert('Maksimum ' + MAX_SITES + ' site untuk simulasi multi-site/handover.'); return; }
+    if (sites.length >= MAX_SITES) { alert(T('predict.maxSites', { n: MAX_SITES })); return; }
     if (activeSiteId) syncFormToActiveSite();
     let baseLat = lat, baseLon = lon;
     if (baseLat === undefined) {
@@ -142,14 +138,15 @@ window.CakraVDT = (() => {
   }
 
   function removeSite(id) {
-    if (sites.length <= 1) { alert('Minimal harus ada 1 site.'); return; }
+    if (sites.length <= 1) { alert(T('predict.minOneSite')); return; }
     const site = siteById(id);
     if (!site) return;
-    if (site.marker) map.removeLayer(site.marker);
-    if (site.sectorLayer) map.removeLayer(site.sectorLayer);
+    if (site.marker) site.marker.remove();
+    if (site.tooltip) site.tooltip.remove();
     sites = sites.filter(s => s.id !== id);
     if (activeSiteId === id) selectSite(sites[0].id); else renderSiteList();
     buildingsCache = null;
+    renderAllSectors();
   }
 
   function selectSite(id) {
@@ -160,7 +157,7 @@ window.CakraVDT = (() => {
     loadSiteToForm(site);
     renderSiteList();
     highlightActiveMarker();
-    if (map) map.panTo([site.lat, site.lon]);
+    if (map) map.panTo([site.lon, site.lat]);
     updateSectorPreview();
   }
 
@@ -174,37 +171,52 @@ window.CakraVDT = (() => {
           <span class="site-chip-name">${escapeHtml(s.name)}</span>
           <span class="site-chip-sub">${s.lat.toFixed(4)}, ${s.lon.toFixed(4)} · ${BAND_PRESETS[s.freqMHz] ? BAND_PRESETS[s.freqMHz].label : s.freqMHz + ' MHz'}</span>
         </span>
-        <button class="site-chip-del" title="Hapus site" onclick="event.stopPropagation();CakraVDT.removeSite('${s.id}')">✕</button>
+        <button class="site-chip-del" title="${T('predict.deleteSite')}" onclick="event.stopPropagation();CakraVDT.removeSite('${s.id}')">✕</button>
       </div>`).join('');
-    const countEl = $('siteCount'); if (countEl) countEl.textContent = sites.length + ' / ' + MAX_SITES + ' site';
+    const countEl = $('siteCount'); if (countEl) countEl.textContent = sites.length + ' / ' + MAX_SITES + ' ' + T('predict.site');
   }
 
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   // ─────────────────────────────────────────────
-  // MAP
+  // MAP (native MapLibre GL JS — full 3D, no Leaflet)
   // ─────────────────────────────────────────────
+  const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty'; // vector style w/ building height data
+  const DEFAULT_PITCH = 55, DEFAULT_BEARING = -17;
+  let hoverPopup = null; // shared hover popup for layer-based features
+
   function initMap(defaultLat, defaultLon) {
     if (map) return;
-    map = L.map('predictMap', { zoomControl: true, attributionControl: true }).setView([defaultLat, defaultLon], 15);
-    // Basemap: MapLibre GL vector tiles dari OpenFreeMap (via plugin maplibre-gl-leaflet)
-    // — gratis, tanpa API key, mengganti CARTO yg sekarang mewajibkan key.
-    L.maplibreGL({ style: 'https://tiles.openfreemap.org/styles/dark' }).addTo(map);
+    map = new maplibregl.Map({
+      container: 'predictMap',
+      style: MAP_STYLE,
+      center: [defaultLon, defaultLat],
+      zoom: 15.5,
+      pitch: DEFAULT_PITCH,
+      bearing: DEFAULT_BEARING,
+      antialias: true,
+      attributionControl: true,
+    });
+    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
+    hoverPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: 'cakra-map-popup', offset: 10 });
 
-    ['predictPane', 'buildingPane', 'routePane', 'sitePane'].forEach((pane, i) => {
-      if (!map.getPane(pane)) { map.createPane(pane); map.getPane(pane).style.zIndex = 350 + i * 30; }
+    map.on('load', () => {
+      setup3DBuildingContext();
+      setupEmptySources();
+      wireHoverTooltips();
     });
 
     map.on('click', (e) => {
-      if (drawMode) { addRoutePoint(e.latlng); return; }
+      const lat = e.lngLat.lat, lon = e.lngLat.lng;
+      if (drawMode) { addRoutePoint({ lat, lng: lon }); return; }
       if ($('addSiteMode') && $('addSiteMode').checked) {
-        addSite(e.latlng.lat, e.latlng.lng);
+        addSite(lat, lon);
         return;
       }
       if (!$('clickToPlace').checked) return;
       const site = siteById(activeSiteId);
       if (!site) return;
-      site.lat = e.latlng.lat; site.lon = e.latlng.lng;
+      site.lat = lat; site.lon = lon;
       $('siteLat').value = site.lat.toFixed(6);
       $('siteLon').value = site.lon.toFixed(6);
       redrawSiteMapObjects(site);
@@ -213,59 +225,206 @@ window.CakraVDT = (() => {
     });
   }
 
-  function createSiteMapObjects(site) {
-    const color = siteColor(site);
-    const icon = L.divIcon({
-      className: 'site-marker-icon', html: `<div class="site-marker-dot" style="background:${color}"></div>`,
-      iconSize: [16, 16], iconAnchor: [8, 8],
+  // Toggle between a tilted 3D perspective and a top-down (pitch=0) view,
+  // e.g. for precise site/route placement vs a real-world 3D preview.
+  function setMapView(mode) {
+    if (!map) return;
+    const btnTilt = $('viewTiltBtn'), btnTop = $('viewTopBtn');
+    if (mode === 'top') {
+      map.easeTo({ pitch: 0, bearing: 0, duration: 500 });
+      if (btnTop) btnTop.classList.add('active');
+      if (btnTilt) btnTilt.classList.remove('active');
+    } else {
+      map.easeTo({ pitch: DEFAULT_PITCH, bearing: DEFAULT_BEARING, duration: 500 });
+      if (btnTilt) btnTilt.classList.add('active');
+      if (btnTop) btnTop.classList.remove('active');
+    }
+  }
+
+  // Native 3D building extrusion from the vector style's own OSM building
+  // layer — gives the whole scene real-world context (skyline, relative
+  // antenna height vs surrounding buildings) even before a prediction runs.
+  function setup3DBuildingContext() {
+    if (map.getLayer('cakra-context-buildings-3d')) return;
+    const layers = map.getStyle().layers;
+    let labelLayerId;
+    for (const l of layers) {
+      if (l.type === 'symbol' && l.layout && l.layout['text-field']) { labelLayerId = l.id; break; }
+    }
+    try {
+      map.addLayer({
+        id: 'cakra-context-buildings-3d',
+        source: 'openmaptiles', 'source-layer': 'building',
+        type: 'fill-extrusion',
+        minzoom: 13,
+        paint: {
+          'fill-extrusion-color': '#2a2f38',
+          'fill-extrusion-height': ['coalesce', ['get', 'render_height'], ['get', 'height'], 6],
+          'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], ['get', 'min_height'], 0],
+          'fill-extrusion-opacity': 0.55,
+        },
+      }, labelLayerId);
+    } catch (e) { console.warn('3D building context layer unavailable in this style:', e); }
+  }
+
+  function addOrUpdateSource(id, data) {
+    if (map.getSource(id)) { map.getSource(id).setData(data); return; }
+    map.addSource(id, { type: 'geojson', data });
+  }
+  const emptyFC = () => ({ type: 'FeatureCollection', features: [] });
+
+  // Pre-create every GeoJSON source/layer once (empty) so later updates are
+  // just setData() calls — avoids add/remove churn and layer-order bugs.
+  function setupEmptySources() {
+    addOrUpdateSource('cakra-sectors', emptyFC());
+    if (!map.getLayer('cakra-sectors-fill')) {
+      map.addLayer({
+        id: 'cakra-sectors-fill', type: 'fill-extrusion', source: 'cakra-sectors',
+        paint: {
+          'fill-extrusion-color': ['get', 'color'],
+          'fill-extrusion-height': 4,
+          'fill-extrusion-opacity': ['case', ['get', 'active'], 0.16, 0.06],
+        },
+      });
+      map.addLayer({
+        id: 'cakra-sectors-outline', type: 'line', source: 'cakra-sectors',
+        paint: { 'line-color': ['get', 'color'], 'line-width': ['case', ['get', 'active'], 2, 1], 'line-dasharray': [4, 3] },
+      });
+    }
+
+    addOrUpdateSource('cakra-obstruction-buildings', emptyFC());
+    if (!map.getLayer('cakra-obstruction-fill')) {
+      map.addLayer({
+        id: 'cakra-obstruction-fill', type: 'fill-extrusion', source: 'cakra-obstruction-buildings',
+        paint: {
+          'fill-extrusion-color': ['case', ['get', 'blocking'], '#f87171', '#334155'],
+          'fill-extrusion-height': ['get', 'heightM'],
+          'fill-extrusion-opacity': ['case', ['get', 'blocking'], 0.55, 0.35],
+        },
+      });
+    }
+
+    addOrUpdateSource('cakra-route-line', { type: 'Feature', geometry: { type: 'LineString', coordinates: [] }, properties: {} });
+    if (!map.getLayer('cakra-route-line-layer')) {
+      map.addLayer({
+        id: 'cakra-route-line-layer', type: 'line', source: 'cakra-route-line',
+        paint: { 'line-color': '#ffffff', 'line-width': 3, 'line-opacity': 0.9, 'line-dasharray': [2, 1.3] },
+      });
+    }
+
+    addOrUpdateSource('cakra-route-draft-points', emptyFC());
+    if (!map.getLayer('cakra-route-draft-points-layer')) {
+      map.addLayer({
+        id: 'cakra-route-draft-points-layer', type: 'circle', source: 'cakra-route-draft-points',
+        paint: { 'circle-radius': 4, 'circle-color': '#ffffff', 'circle-stroke-color': '#0a0a0b', 'circle-stroke-width': 1 },
+      });
+    }
+
+    addOrUpdateSource('cakra-route-samples', emptyFC());
+    if (!map.getLayer('cakra-route-samples-layer')) {
+      map.addLayer({
+        id: 'cakra-route-samples-layer', type: 'circle', source: 'cakra-route-samples',
+        paint: {
+          'circle-radius': ['case', ['get', 'weak'], 5, 4],
+          'circle-color': ['get', 'fillColor'],
+          'circle-opacity': 0.95,
+          'circle-stroke-color': ['get', 'borderColor'],
+          'circle-stroke-width': 2,
+        },
+      });
+    }
+  }
+
+  // Hover tooltips for GeoJSON-layer-based features (buildings, route samples).
+  // Marker-based features (sites, handovers) get their own tooltip wiring
+  // where they are created, since they are real DOM elements.
+  function wireHoverTooltips() {
+    const tipLayers = [
+      { id: 'cakra-obstruction-fill', html: p => `${p.blocking ? '⚠ ' + T('predict.blocksLos') + ' · ' : ''}${T('predict.building')} · ~${Math.round(p.heightM)}m` },
+      { id: 'cakra-route-samples-layer', html: p => `${Math.round(p.dist)} m · RSRP ${Number(p.rsrp).toFixed(1)} dBm · ${p.siteName || '?'}` },
+    ];
+    tipLayers.forEach(({ id, html }) => {
+      map.on('mousemove', id, (e) => {
+        if (!e.features.length) return;
+        map.getCanvas().style.cursor = 'pointer';
+        hoverPopup.setLngLat(e.lngLat).setHTML(html(e.features[0].properties)).addTo(map);
+      });
+      map.on('mouseleave', id, () => {
+        map.getCanvas().style.cursor = '';
+        hoverPopup.remove();
+      });
     });
-    site.marker = L.marker([site.lat, site.lon], { draggable: true, icon, pane: 'sitePane' }).addTo(map);
-    site.marker.bindTooltip(site.name, { permanent: false, direction: 'top' });
+  }
+
+  function createSiteMapObjects(site) {
+    const el = document.createElement('div');
+    el.className = 'site-marker-icon';
+    el.innerHTML = `<div class="site-marker-dot" style="background:${siteColor(site)}"></div>`;
+    site.markerEl = el;
+    site.marker = new maplibregl.Marker({ element: el, draggable: true, anchor: 'center' })
+      .setLngLat([site.lon, site.lat])
+      .addTo(map);
+
+    site.tooltip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 12 }).setText(site.name);
+    el.addEventListener('mouseenter', () => site.tooltip.setLngLat(site.marker.getLngLat()).addTo(map));
+    el.addEventListener('mouseleave', () => site.tooltip.remove());
+
     site.marker.on('dragend', () => {
-      const p = site.marker.getLatLng();
+      const p = site.marker.getLngLat();
       site.lat = p.lat; site.lon = p.lng;
       if (site.id === activeSiteId) { $('siteLat').value = site.lat.toFixed(6); $('siteLon').value = site.lon.toFixed(6); }
       buildingsCache = null;
       redrawSiteMapObjects(site);
       renderSiteList();
     });
-    site.marker.on('click', () => selectSite(site.id));
+    el.addEventListener('click', (e) => { e.stopPropagation(); selectSite(site.id); });
     redrawSiteMapObjects(site);
   }
 
   function redrawSiteMapObjects(site) {
     if (!map || !site.marker) return;
-    site.marker.setLatLng([site.lat, site.lon]);
-    site.marker.setTooltipContent(site.name);
-    if (site.sectorLayer) map.removeLayer(site.sectorLayer);
-    const color = siteColor(site);
-    const R = Math.min(parseFloat($('radius') ? $('radius').value : 500) || 500, 1500) * 0.55;
-    const half = site.beamwidthH / 2, steps = 24;
-    const proj = CakraPropagation.makeLocalProjection(site.lat, site.lon);
-    const pts = [[site.lat, site.lon]];
-    for (let i = 0; i <= steps; i++) {
-      const az = site.azimuth - half + (2 * half) * (i / steps);
-      const rad = CakraPropagation.toRad(az);
-      pts.push(proj.toLatLon(Math.sin(rad) * R, Math.cos(rad) * R));
-    }
-    site.sectorLayer = L.polygon(pts, {
-      pane: 'predictPane', color, weight: site.id === activeSiteId ? 2 : 1,
-      fillColor: color, fillOpacity: site.id === activeSiteId ? 0.12 : 0.05, dashArray: '4 3',
-    }).addTo(map);
+    site.marker.setLngLat([site.lon, site.lat]);
+    if (site.tooltip) site.tooltip.setText(site.name);
+    renderAllSectors();
+  }
+
+  // All site sector cones are kept in a single GeoJSON source (one feature
+  // per site) so a drag/edit only needs one setData() call, not N layers.
+  function renderAllSectors() {
+    if (!map || !map.getSource('cakra-sectors')) return;
+    const R_cap = Math.min(parseFloat($('radius') ? $('radius').value : 500) || 500, 1500) * 0.55;
+    const features = sites.map(site => {
+      const color = siteColor(site);
+      const half = site.beamwidthH / 2, steps = 24;
+      const proj = CakraPropagation.makeLocalProjection(site.lat, site.lon);
+      const ring = [[site.lon, site.lat]];
+      for (let i = 0; i <= steps; i++) {
+        const az = site.azimuth - half + (2 * half) * (i / steps);
+        const rad = CakraPropagation.toRad(az);
+        const [la, lo] = proj.toLatLon(Math.sin(rad) * R_cap, Math.cos(rad) * R_cap);
+        ring.push([lo, la]);
+      }
+      ring.push([site.lon, site.lat]);
+      return {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [ring] },
+        properties: { color, active: site.id === activeSiteId },
+      };
+    });
+    addOrUpdateSource('cakra-sectors', { type: 'FeatureCollection', features });
   }
 
   function highlightActiveMarker() {
     sites.forEach(s => {
-      if (!s.marker) return;
-      const el = s.marker.getElement();
-      if (el) el.style.outline = s.id === activeSiteId ? '2px solid #fff' : 'none';
-      redrawSiteMapObjects(s);
+      if (!s.markerEl) return;
+      s.markerEl.style.outline = s.id === activeSiteId ? '2px solid #fff' : 'none';
+      s.markerEl.style.borderRadius = '50%';
     });
+    renderAllSectors();
   }
 
   function updateSectorPreview() {
-    const site = siteById(activeSiteId);
-    if (site) redrawSiteMapObjects(site);
+    renderAllSectors();
   }
 
   // ─────────────────────────────────────────────
@@ -369,24 +528,24 @@ window.CakraVDT = (() => {
   async function runPrediction() {
     const f = readSharedForm();
     if (activeSiteId) syncFormToActiveSite();
-    if (!sites.length) { showStatus('Tambahkan minimal 1 site terlebih dulu.', true); return; }
+    if (!sites.length) { showStatus(T('predict.addAtLeastOneSite'), true); return; }
 
     setRunning(true);
-    showStatus('Menyiapkan grid prediksi…');
+    showStatus(T('predict.preparingGrid'));
 
     try {
       let buildings = [];
       if (f.useBuildings) {
-        showStatus('Mengambil data bangunan dari OpenStreetMap…');
+        showStatus(T('predict.fetchingBuildings'));
         try { buildings = await ensureBuildings(f.radiusM); }
         catch (e) {
           console.warn('Overpass gagal, lanjut tanpa data bangunan:', e);
-          showStatus('Gagal ambil data bangunan (offline/timeout) — prediksi lanjut tanpa obstruksi', true);
+          showStatus(T('predict.buildingsFetchFailed'), true);
           await sleep(1000);
         }
       }
 
-      showStatus(`Menghitung prediksi ${sites.length} site (${buildings.length} bangunan)…`);
+      showStatus(T('predict.calculatingPrediction', { n: sites.length, b: buildings.length }));
       await sleep(10);
 
       const { points, nx, ny, cell, proj, minX, minY } = buildUnionGrid(f.radiusM, f.cellSizeM);
@@ -430,26 +589,25 @@ window.CakraVDT = (() => {
       const toStep4 = $('toStep4');
       if (toStep4) toStep4.disabled = false;
 
-      showStatus(`Selesai — ${countValid} titik, ${sites.length} site, ${buildings.length} bangunan${f.useBuildings ? '' : ' (dimatikan)'}`);
+      showStatus(T('predict.done', { n: countValid, sites: sites.length, b: buildings.length, off: f.useBuildings ? '' : T('predict.buildingsOff') }));
     } catch (err) {
       console.error(err);
-      showStatus('Gagal menjalankan prediksi: ' + err.message, true);
+      showStatus(T('predict.predictionFailed', { msg: err.message }), true);
     } finally {
       setRunning(false);
     }
   }
 
   function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
-  function setRunning(state){ const b = $('runPredictBtn'); if (b){ b.disabled = state; b.textContent = state ? 'Menghitung…' : 'Jalankan Prediksi →'; } }
+  function setRunning(state){ const b = $('runPredictBtn'); if (b){ b.disabled = state; b.textContent = state ? T('predict.calculating') : T('predict.s3.run'); } }
   function showStatus(msg, isWarn){
     const el = $('predictStatus'); if (!el) return;
     el.textContent = msg; el.style.color = isWarn ? 'var(--amber,#fbbf24)' : 'var(--text2,#94aabf)';
   }
 
-  let heatOverlayRef = null;
+  let heatSourceId = 'cakra-prediction-heatmap';
   function renderHeatmap(res) {
     const { nx, ny, cell, proj, minX, minY, results } = res;
-    if (heatOverlayRef) { map.removeLayer(heatOverlayRef); heatOverlayRef = null; }
     const canvas = document.createElement('canvas');
     canvas.width = nx; canvas.height = ny;
     const ctx = canvas.getContext('2d');
@@ -466,43 +624,44 @@ window.CakraVDT = (() => {
       }
     }
     ctx.putImageData(img, 0, 0);
-    const sw = proj.toLatLon(minX, minY);
-    const ne = proj.toLatLon(minX + nx * cell, minY + ny * cell);
-    heatOverlayRef = L.imageOverlay(canvas.toDataURL(), [[sw[0], sw[1]], [ne[0], ne[1]]], {
-      opacity: 1, interactive: false, pane: 'predictPane',
-    }).addTo(map);
+    // MapLibre ImageSource corners: top-left, top-right, bottom-right, bottom-left (lng,lat)
+    const [swLat, swLon] = proj.toLatLon(minX, minY);
+    const [neLat, neLon] = proj.toLatLon(minX + nx * cell, minY + ny * cell);
+    const coords = [[swLon, neLat], [neLon, neLat], [neLon, swLat], [swLon, swLat]];
+    const dataUrl = canvas.toDataURL();
+    if (map.getSource(heatSourceId)) {
+      map.getSource(heatSourceId).updateImage({ url: dataUrl, coordinates: coords });
+    } else {
+      map.addSource(heatSourceId, { type: 'image', url: dataUrl, coordinates: coords });
+      map.addLayer({ id: 'cakra-prediction-heatmap-layer', type: 'raster', source: heatSourceId, paint: { 'raster-opacity': 1 } },
+        map.getLayer('cakra-obstruction-fill') ? 'cakra-obstruction-fill' : undefined);
+    }
   }
 
   function renderBuildings(buildingsXY, res) {
-    if (buildingsLayer) { map.removeLayer(buildingsLayer); buildingsLayer = null; }
-    if (!buildingsXY.length) return;
+    if (!buildingsXY.length) { addOrUpdateSource('cakra-obstruction-buildings', emptyFC()); return; }
     const blockingIds = new Set();
     res.results.forEach(r => { if (r && r.buildingId != null) blockingIds.add(r.buildingId); });
-    buildingsLayer = L.layerGroup();
-    buildingsXY.forEach(b => {
-      const isBlocking = blockingIds.has(b.id);
-      const latlngs = b.xy.map(([x, y]) => res.proj.toLatLon(x, y));
-      L.polygon(latlngs, {
-        pane: 'buildingPane',
-        color: isBlocking ? '#f87171' : '#94aabf',
-        weight: isBlocking ? 1.5 : 1,
-        opacity: isBlocking ? 0.8 : 0.45,
-        fillColor: isBlocking ? '#f87171' : '#334155',
-        fillOpacity: isBlocking ? 0.35 : 0.5,
-      }).bindTooltip(`${isBlocking ? '⚠ Menghalangi LOS · ' : ''}Bangunan · tinggi ~${b.heightM.toFixed(0)}m`, { sticky: true }).addTo(buildingsLayer);
+    const features = buildingsXY.map(b => {
+      const ring = b.xy.map(([x, y]) => { const [la, lo] = res.proj.toLatLon(x, y); return [lo, la]; });
+      return {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [ring] },
+        properties: { blocking: blockingIds.has(b.id), heightM: b.heightM },
+      };
     });
-    buildingsLayer.addTo(map);
+    addOrUpdateSource('cakra-obstruction-buildings', { type: 'FeatureCollection', features });
   }
 
   function renderStats(s) {
     const el = $('predictStatsPanel'); if (!el) return;
     el.style.display = 'grid';
     el.innerHTML = `
-      ${statCard('Avg RSRP Terbaik', isNaN(s.avgRsrp) ? '—' : s.avgRsrp.toFixed(1) + ' dBm', s.avgRsrp >= -90 ? 'good' : (s.avgRsrp >= -100 ? 'warn' : 'bad'))}
-      ${statCard('Coverage (≥ threshold)', s.coveragePct.toFixed(1) + '%', s.coveragePct >= 90 ? 'good' : (s.coveragePct >= 70 ? 'warn' : 'bad'))}
-      ${statCard('% Titik LOS', s.losPct.toFixed(1) + '%')}
-      ${statCard('Bangunan', s.buildingCount.toLocaleString())}
-      ${statCard('Titik Grid', s.gridPoints.toLocaleString())}
+      ${statCard(T('predict.avgBestRsrp'), isNaN(s.avgRsrp) ? '—' : s.avgRsrp.toFixed(1) + ' dBm', s.avgRsrp >= -90 ? 'good' : (s.avgRsrp >= -100 ? 'warn' : 'bad'))}
+      ${statCard(T('predict.coverageAboveThreshold'), s.coveragePct.toFixed(1) + '%', s.coveragePct >= 90 ? 'good' : (s.coveragePct >= 70 ? 'warn' : 'bad'))}
+      ${statCard(T('predict.pctLosPoints'), s.losPct.toFixed(1) + '%')}
+      ${statCard(T('predict.buildings'), s.buildingCount.toLocaleString())}
+      ${statCard(T('predict.gridPoints'), s.gridPoints.toLocaleString())}
     `;
   }
 
@@ -528,11 +687,11 @@ window.CakraVDT = (() => {
     drawMode = !drawMode;
     const b = $('drawRouteBtn'), f = $('finishRouteBtn'), hint = $('mapHint');
     if (drawMode) {
-      b.textContent = '✕ Batalkan Gambar'; b.classList.add('secondary');
-      f.disabled = false; hint.classList.add('show'); hint.textContent = 'Klik di peta untuk tambah titik rute';
+      b.textContent = T('predict.cancelDraw'); b.classList.add('secondary');
+      f.disabled = false; hint.classList.add('show'); hint.textContent = T('predict.map.clickToAddPoint');
       $('clickToPlace').checked = false;
     } else {
-      b.textContent = '✎ Gambar Rute'; b.classList.remove('secondary');
+      b.textContent = T('predict.s4.drawRoute'); b.classList.remove('secondary');
       f.disabled = routePts.length < 2; hint.classList.remove('show');
     }
   }
@@ -542,23 +701,24 @@ window.CakraVDT = (() => {
     redrawRoute();
     updateRouteInfo();
     const sim = $('simRouteBtn'); if (sim) sim.disabled = routePts.length < 2;
-    const hint = $('mapHint'); if (hint) hint.textContent = `Titik ${routePts.length} ditambah — klik lagi atau "Selesai"`;
+    const hint = $('mapHint'); if (hint) hint.textContent = T('predict.pointAdded', { n: routePts.length });
   }
 
   function finishDraw() {
-    if (routePts.length < 2) { alert('Buat minimal 2 titik untuk membentuk rute.'); return; }
+    if (routePts.length < 2) { alert(T('predict.needTwoPoints')); return; }
     drawMode = false;
     const b = $('drawRouteBtn'), f = $('finishRouteBtn'), hint = $('mapHint');
-    b.textContent = '✎ Gambar Rute'; b.classList.remove('secondary');
+    b.textContent = T('predict.s4.drawRoute'); b.classList.remove('secondary');
     f.disabled = true; hint.classList.remove('show');
     updateRouteInfo();
   }
 
   function clearRoute() {
     routePts = [];
-    if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
-    if (routeSampleLayer) { map.removeLayer(routeSampleLayer); routeSampleLayer = null; }
-    if (handoverLayer) { map.removeLayer(handoverLayer); handoverLayer = null; }
+    addOrUpdateSource('cakra-route-line', { type: 'Feature', geometry: { type: 'LineString', coordinates: [] }, properties: {} });
+    addOrUpdateSource('cakra-route-draft-points', emptyFC());
+    addOrUpdateSource('cakra-route-samples', emptyFC());
+    clearHandoverMarkers();
     const sim = $('simRouteBtn'); if (sim) sim.disabled = true;
     const to5 = $('toStep5'); if (to5) to5.disabled = true;
     const wrap = $('routeStatsWrap'); if (wrap) wrap.style.display = 'none';
@@ -567,14 +727,13 @@ window.CakraVDT = (() => {
   }
 
   function redrawRoute() {
-    if (routeLayer) map.removeLayer(routeLayer);
-    if (routePts.length < 2) {
-      if (routePts.length === 1) {
-        routeLayer = L.circleMarker(routePts[0], { pane: 'routePane', radius: 4, color: '#fff', weight: 1, fillColor: '#fff', fillOpacity: 1 }).addTo(map);
-      } else routeLayer = null;
-      return;
-    }
-    routeLayer = L.polyline(routePts, { pane: 'routePane', color: '#ffffff', weight: 3, opacity: 0.9, dashArray: '6 4' }).addTo(map);
+    if (!map || !map.getSource('cakra-route-line')) return;
+    const coords = routePts.map(([lat, lon]) => [lon, lat]);
+    addOrUpdateSource('cakra-route-line', { type: 'Feature', geometry: { type: 'LineString', coordinates: coords }, properties: {} });
+    addOrUpdateSource('cakra-route-draft-points', {
+      type: 'FeatureCollection',
+      features: routePts.map(([lat, lon]) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [lon, lat] }, properties: {} })),
+    });
   }
 
   function routeLengthM() {
@@ -585,9 +744,9 @@ window.CakraVDT = (() => {
 
   function updateRouteInfo() {
     const el = $('routeInfo'); if (!el) return;
-    if (!routePts.length) { el.textContent = 'Rute: belum digambar'; return; }
+    if (!routePts.length) { el.textContent = T('predict.s4.routeNotDrawn'); return; }
     const L = routeLengthM();
-    el.textContent = `Rute: ${routePts.length} titik · ${L.toFixed(0)} m` + (L > 1000 ? ` (${(L/1000).toFixed(2)} km)` : '');
+    el.textContent = T('predict.routeInfo', { n: routePts.length, m: L.toFixed(0) }) + (L > 1000 ? ` (${(L/1000).toFixed(2)} km)` : '');
   }
 
   // Estimasi RSRQ & SINR nyata: interferensi = jumlah daya linear site lain + noise floor
@@ -621,17 +780,17 @@ window.CakraVDT = (() => {
   // VIRTUAL DRIVE SIMULATION — multi-site best-server + handover (Step 4)
   // ─────────────────────────────────────────────
   async function simulateRoute() {
-    if (routePts.length < 2) { alert('Gambar rute dulu di peta.'); return; }
+    if (routePts.length < 2) { alert(T('predict.drawRouteFirst')); return; }
     if (activeSiteId) syncFormToActiveSite();
-    if (!sites.length) { alert('Tambahkan minimal 1 site.'); return; }
+    if (!sites.length) { alert(T('predict.addAtLeastOneSiteShort')); return; }
     const f = readSharedForm();
     const simStatus = $('simStatus');
-    if (simStatus) simStatus.textContent = 'Menyiapkan simulasi…';
+    if (simStatus) simStatus.textContent = T('predict.preparingSim');
 
     let buildings = [];
     if (f.useBuildings) {
       try { buildings = await ensureBuildings(f.radiusM); }
-      catch (e) { if (simStatus) simStatus.textContent = 'Gagal ambil data bangunan — lanjut tanpa obstruksi'; }
+      catch (e) { if (simStatus) simStatus.textContent = T('predict.buildingsFetchFailedShort'); }
     }
     const centLat = sites.reduce((a, s) => a + s.lat, 0) / sites.length;
     const centLon = sites.reduce((a, s) => a + s.lon, 0) / sites.length;
@@ -717,47 +876,57 @@ window.CakraVDT = (() => {
     renderRouteStats(samples, totalL, durationS, f.thresholdDbm, handovers);
 
     const to5 = $('toStep5'); if (to5) to5.disabled = false;
-    if (simStatus) simStatus.textContent = `Selesai — ${samples.length} sampel · ${totalL.toFixed(0)} m · ${(durationS/60).toFixed(1)} menit · ${handovers.length} handover`;
+    if (simStatus) simStatus.textContent = T('predict.simDone', { n: samples.length, m: totalL.toFixed(0), min: (durationS/60).toFixed(1), ho: handovers.length });
     const wrap = $('routeStatsWrap'); if (wrap) wrap.style.display = 'block';
     const cc = $('chartCard'); if (cc) cc.style.display = 'block';
   }
 
   function renderRouteMarkers(samples) {
-    if (routeSampleLayer) map.removeLayer(routeSampleLayer);
-    routeSampleLayer = L.layerGroup();
     const stride = Math.max(1, Math.floor(samples.length / 250));
+    const features = [];
     samples.forEach((s, i) => {
       if (i % stride !== 0 && i !== samples.length - 1) return;
       const weak = s.rsrp < lastRoute.threshold;
       const site = siteById(s.siteId);
       const borderColor = site ? siteColor(site) : '#fff';
-      L.circleMarker([s.lat, s.lon], {
-        pane: 'routePane', radius: weak ? 4 : 3, color: borderColor, weight: 2,
-        fillColor: rgb(RSRP_COLOR(s.rsrp)), fillOpacity: 0.95,
-      }).bindTooltip(`${s.dist.toFixed(0)} m · RSRP ${s.rsrp.toFixed(1)} dBm · ${site ? site.name : '?'}`, { sticky: true }).addTo(routeSampleLayer);
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [s.lon, s.lat] },
+        properties: {
+          weak, dist: s.dist, rsrp: s.rsrp, siteName: site ? site.name : '?',
+          fillColor: rgb(RSRP_COLOR(s.rsrp)), borderColor,
+        },
+      });
     });
-    routeSampleLayer.addTo(map);
-    if (routePts.length) map.fitBounds(L.polyline(routePts).getBounds().pad(0.2));
+    addOrUpdateSource('cakra-route-samples', { type: 'FeatureCollection', features });
+    if (routePts.length) {
+      const lons = routePts.map(p => p[1]), lats = routePts.map(p => p[0]);
+      map.fitBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]], { padding: 60, duration: 600 });
+    }
   }
 
+  // Handover markers use real DOM elements (like sites) so we get a crisp
+  // "⇄" glyph + hover tooltip without needing a symbol/glyph sprite.
+  let handoverMarkers = [];
+  function clearHandoverMarkers() {
+    handoverMarkers.forEach(m => { m.marker.remove(); m.popup.remove(); });
+    handoverMarkers = [];
+  }
   function renderHandoverMarkers(handovers) {
-    if (handoverLayer) map.removeLayer(handoverLayer);
-    handoverLayer = L.layerGroup();
+    clearHandoverMarkers();
     handovers.forEach(h => {
       const fromSite = siteById(h.fromId), toSite = siteById(h.toId);
-      L.marker([h.lat, h.lon], {
-        pane: 'routePane',
-        icon: L.divIcon({
-          className: 'ho-marker-icon',
-          html: `<div class="ho-marker ${h.pingPong ? 'pingpong' : ''}">⇄</div>`,
-          iconSize: [20, 20], iconAnchor: [10, 10],
-        }),
-      }).bindTooltip(
-        `Handover ${h.dist.toFixed(0)} m: ${fromSite ? fromSite.name : '?'} → ${toSite ? toSite.name : '?'}` + (h.pingPong ? ' ⚠ ping-pong' : ''),
-        { sticky: true }
-      ).addTo(handoverLayer);
+      const el = document.createElement('div');
+      el.className = 'ho-marker-icon';
+      el.innerHTML = `<div class="ho-marker ${h.pingPong ? 'pingpong' : ''}">⇄</div>`;
+      const marker = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([h.lon, h.lat]).addTo(map);
+      const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 12 }).setText(
+        T('predict.handoverTooltip', { m: h.dist.toFixed(0), from: fromSite ? fromSite.name : '?', to: toSite ? toSite.name : '?' }) + (h.pingPong ? ' ⚠ ping-pong' : '')
+      );
+      el.addEventListener('mouseenter', () => popup.setLngLat([h.lon, h.lat]).addTo(map));
+      el.addEventListener('mouseleave', () => popup.remove());
+      handoverMarkers.push({ marker, popup });
     });
-    handoverLayer.addTo(map);
   }
 
   function renderRouteChart(samples, threshold) {
@@ -782,13 +951,13 @@ window.CakraVDT = (() => {
         responsive: true, maintainAspectRatio: false, animation: false,
         interaction: { mode: 'index', intersect: false },
         scales: {
-          x: { title: { display: true, text: 'Jarak (km)', color: '#8e8e97' }, ticks: { color: '#8e8e97', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+          x: { title: { display: true, text: T('predict.chart.distance'), color: '#8e8e97' }, ticks: { color: '#8e8e97', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
           y: { position: 'left', title: { display: true, text: 'RSRP', color: '#06b6d4' }, ticks: { color: '#8e8e97', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' }, suggestedMin: -125, suggestedMax: -50 },
           y2: { position: 'right', title: { display: true, text: 'RSRQ / SINR', color: '#a78bfa' }, ticks: { color: '#8e8e97', font: { size: 9 } }, grid: { drawOnChartArea: false }, suggestedMin: -25, suggestedMax: 40 },
         },
         plugins: {
           legend: { labels: { color: '#ececee', font: { size: 10, family: 'IBM Plex Mono' } } },
-          tooltip: { callbacks: { title: items => 'Jarak ' + (items[0].parsed.x).toFixed(3) + ' km' } },
+          tooltip: { callbacks: { title: items => T('predict.chart.distanceTooltip', { km: (items[0].parsed.x).toFixed(3) }) } },
         },
       },
     });
@@ -809,14 +978,14 @@ window.CakraVDT = (() => {
     const cov = valid ? (samples.filter(s => s.rsrp >= threshold).length / valid * 100) : 0;
     const pingPongCount = handovers.filter(h => h.pingPong).length;
     el.innerHTML = `
-      ${statCard('Jarak Rute', totalL > 1000 ? (totalL/1000).toFixed(2)+' km' : totalL.toFixed(0)+' m')}
-      ${statCard('Durasi', (durationS/60).toFixed(1)+' mnt')}
-      ${statCard('Avg RSRP', isNaN(avg) ? '—' : avg.toFixed(1)+' dBm', avg >= -90 ? 'good' : (avg >= -100 ? 'warn' : 'bad'))}
-      ${statCard('Coverage Rute', cov.toFixed(1)+'%', cov >= 90 ? 'good' : (cov >= 70 ? 'warn' : 'bad'))}
-      ${statCard('Handover', handovers.length.toString(), handovers.length ? 'warn' : 'good')}
-      ${statCard('Ping-pong', pingPongCount.toString(), pingPongCount ? 'bad' : 'good')}
-      ${statCard('Titik Rawan', weakSegs.length.toString(), weakSegs.length ? 'bad' : 'good')}
-      ${statCard('Sampel', valid.toLocaleString())}
+      ${statCard(T('predict.routeDistance'), totalL > 1000 ? (totalL/1000).toFixed(2)+' km' : totalL.toFixed(0)+' m')}
+      ${statCard(T('predict.duration'), (durationS/60).toFixed(1)+' '+T('predict.minAbbrev'))}
+      ${statCard(T('predict.avgRsrp'), isNaN(avg) ? '—' : avg.toFixed(1)+' dBm', avg >= -90 ? 'good' : (avg >= -100 ? 'warn' : 'bad'))}
+      ${statCard(T('predict.routeCoverage'), cov.toFixed(1)+'%', cov >= 90 ? 'good' : (cov >= 70 ? 'warn' : 'bad'))}
+      ${statCard(T('predict.handover'), handovers.length.toString(), handovers.length ? 'warn' : 'good')}
+      ${statCard(T('predict.pingPong'), pingPongCount.toString(), pingPongCount ? 'bad' : 'good')}
+      ${statCard(T('predict.weakPoints'), weakSegs.length.toString(), weakSegs.length ? 'bad' : 'good')}
+      ${statCard(T('predict.samples'), valid.toLocaleString())}
     `;
     const wl = $('routeWeakList');
     if (wl) {
@@ -832,12 +1001,12 @@ window.CakraVDT = (() => {
       weakSegs.forEach(w => {
         const len = (w.end - w.start);
         parts.push(`<div class="route-item">
-          <span class="badge" style="background:var(--red-dim);color:var(--red)">RAWAN</span>
+          <span class="badge" style="background:var(--red-dim);color:var(--red)">${T('predict.weakBadge')}</span>
           <span class="rd">${w.start.toFixed(0)}–${w.end.toFixed(0)} m · ${len.toFixed(0)} m</span>
           <span class="rv">min ${w.min.toFixed(0)} dBm</span>
         </div>`);
       });
-      wl.innerHTML = parts.length ? parts.join('') : `<div style="font-size:11px;color:var(--text2)">Tidak ada titik rawan atau handover — rute seluruhnya stabil di satu site.</div>`;
+      wl.innerHTML = parts.length ? parts.join('') : `<div style="font-size:11px;color:var(--text2)">${T('predict.noWeakOrHandover')}</div>`;
     }
   }
 
@@ -859,7 +1028,7 @@ window.CakraVDT = (() => {
   function buildReport() {
     const wrap = $('reportWrap'); if (!wrap) return;
     if (!lastRoute) {
-      wrap.innerHTML = `<div class="info-note">Jalankan prediksi (Step 3) & simulasi rute (Step 4) terlebih dulu untuk menghasilkan laporan.</div>`;
+      wrap.innerHTML = `<div class="info-note">${T('predict.runFirst')}</div>`;
       return;
     }
     const f = lastRoute.form;
@@ -871,26 +1040,26 @@ window.CakraVDT = (() => {
     const siteLines = sites.map((s, i) =>
       `  ${i+1}. ${s.name} — ${s.lat.toFixed(6)}, ${s.lon.toFixed(6)} — Az ${s.azimuth}° · ${s.gainMaxDbi}dBi · ${BAND_PRESETS[s.freqMHz] ? BAND_PRESETS[s.freqMHz].label : s.freqMHz+' MHz'}`
     ).join('\n');
-    wrap.innerHTML = `<div class="report-box">SKENARIO VIRTUAL DRIVE TEST
-Nama       : ${f.name || '(tanpa nama)'}
-Operator   : ${f.op || '-'}
-Jumlah Site: ${sites.length}
+    wrap.innerHTML = `<div class="report-box">${T('predict.report.scenarioTitle')}
+${T('predict.report.name')}       : ${f.name || T('predict.report.noName')}
+${T('predict.report.operator')}   : ${f.op || '-'}
+${T('predict.report.siteCount')}: ${sites.length}
 ${siteLines}
 
-RUTE
-Jarak      : ${(lastRoute.totalL/1000).toFixed(2)} km
-Kecepatan  : ${lastRoute.speedKmh} km/jam
-Durasi     : ${(lastRoute.durationS/60).toFixed(1)} menit
+${T('predict.report.route')}
+${T('predict.report.distance')}      : ${(lastRoute.totalL/1000).toFixed(2)} km
+${T('predict.report.speed')}  : ${lastRoute.speedKmh} km/jam
+${T('predict.report.duration')}     : ${(lastRoute.durationS/60).toFixed(1)} ${T('predict.minAbbrev')}
 
-HASIL PREDIKSI
-Avg RSRP   : ${avg.toFixed(1)} dBm
-Avg SINR   : ${avgSinr.toFixed(1)} dB
-Coverage   : ${cov.toFixed(1)} % (≥ ${lastRoute.threshold} dBm)
-Handover   : ${lastRoute.handovers.length} kali (${pingPongCount} ping-pong)
-Titik rawan: ${samples.filter(s=>s.rsrp<lastRoute.threshold).length} sampel
+${T('predict.report.predictionResult')}
+${T('predict.report.avgRsrp')}   : ${avg.toFixed(1)} dBm
+${T('predict.report.avgSinr')}   : ${avgSinr.toFixed(1)} dB
+${T('predict.report.coverage')}   : ${cov.toFixed(1)} % (≥ ${lastRoute.threshold} dBm)
+${T('predict.report.handover')}   : ${lastRoute.handovers.length} ${T('predict.report.times')} (${pingPongCount} ping-pong)
+${T('predict.report.weakPoints')}: ${samples.filter(s=>s.rsrp<lastRoute.threshold).length} ${T('predict.report.samples')}
 
-PARAMETER MOBILITY (3GPP TS 36.331)
-Hysteresis      : ${lastRoute.hoParams.hysteresisDb} dB
+${T('predict.report.mobilityParams')}
+${T('predict.report.hysteresis')}      : ${lastRoute.hoParams.hysteresisDb} dB
 A3-Offset       : ${lastRoute.hoParams.a3OffsetDb} dB
 Time-to-Trigger : ${lastRoute.hoParams.ttTms} ms
 Filter Coeff. k : ${lastRoute.hoParams.filterK}</div>`;
@@ -899,7 +1068,7 @@ Filter Coeff. k : ${lastRoute.hoParams.filterK}</div>`;
     const vp = $('validationPanel');
     if (!real.length) {
       vp.className = 'info-note';
-      vp.innerHTML = 'Belum ada data drive test asli di sesi ini. Upload file log di <a href="/" data-route style="color:var(--cyan)">halaman utama</a> untuk membandingkan.';
+      vp.innerHTML = T('predict.s5.noRealData') + ' <a href="/" data-route style="color:var(--cyan)">' + T('predict.s5.mainPage') + '</a> ' + T('predict.s5.toCompare');
       return;
     }
     const errs = [];
@@ -913,7 +1082,7 @@ Filter Coeff. k : ${lastRoute.hoParams.filterK}</div>`;
     });
     if (!errs.length) {
       vp.className = 'info-note';
-      vp.innerHTML = `Tidak ada titik data asli dalam radius pencarian sepanjang rute ini. Coba gambar rute yang menimpa area drive test asli.`;
+      vp.innerHTML = `${T('predict.noRealDataInRadius')}`;
       return;
     }
     const mae = errs.reduce((a, b) => a + Math.abs(b), 0) / errs.length;
@@ -922,12 +1091,12 @@ Filter Coeff. k : ${lastRoute.hoParams.filterK}</div>`;
     vp.className = 'card';
     vp.style.padding = '14px';
     vp.innerHTML = `<div class="stats-grid">
-      ${statCard('Titik Cocok', errs.length.toLocaleString())}
+      ${statCard(T('predict.matchedPoints'), errs.length.toLocaleString())}
       ${statCard('MAE', mae.toFixed(2)+' dB', mae < 6 ? 'good' : (mae < 10 ? 'warn' : 'bad'))}
       ${statCard('RMSE', rmse.toFixed(2)+' dB', rmse < 6 ? 'good' : (rmse < 10 ? 'warn' : 'bad'))}
-      ${statCard('Bias (pred−meas)', (bias>=0?'+':'')+bias.toFixed(2)+' dB', Math.abs(bias)<5?'good':'warn')}
+      ${statCard(T('predict.biasLabel'), (bias>=0?'+':'')+bias.toFixed(2)+' dB', Math.abs(bias)<5?'good':'warn')}
     </div>
-    <div style="font-size:10.5px;color:var(--text2);margin-top:10px">Bias negatif = prediksi underestimasi (terlalu optimis). Semakin kecil MAE/RMSE, semakin akurat model terhadap kondisi lapangan.</div>`;
+    <div style="font-size:10.5px;color:var(--text2);margin-top:10px">${T('predict.biasExplain')}</div>`;
     lastRoute.validation = { mae, rmse, bias, matched: errs.length };
   }
 
@@ -935,7 +1104,7 @@ Filter Coeff. k : ${lastRoute.hoParams.filterK}</div>`;
   // EXPORT
   // ─────────────────────────────────────────────
   function exportCSV() {
-    if (!lastRoute) { alert('Jalankan simulasi rute dulu.'); return; }
+    if (!lastRoute) { alert(T('predict.runSimFirst')); return; }
     const f = lastRoute.form;
     const rows = [['idx','distance_m','time_s','lat','lon','rsrp_dbm','rsrq_db','sinr_db','speed_kmh','serving_site','status']];
     lastRoute.samples.forEach((s, i) => {
@@ -951,19 +1120,19 @@ Filter Coeff. k : ${lastRoute.hoParams.filterK}</div>`;
     a.download = (f.name || 'cakra_virtual_drive').replace(/\s+/g, '_') + '.csv';
     a.click();
     URL.revokeObjectURL(a.href);
-    const es = $('exportStatus'); if (es) es.textContent = 'CSV virtual drive test diunduh.';
+    const es = $('exportStatus'); if (es) es.textContent = T('predict.csvDownloaded');
   }
 
   function exportPNG() {
-    if (!routeChartObj) { alert('Jalankan simulasi rute dulu.'); return; }
+    if (!routeChartObj) { alert(T('predict.runSimFirst')); return; }
     const url = routeChartObj.toBase64Image();
     const a = document.createElement('a');
     a.href = url; a.download = 'cakra_virtual_drive_chart.png'; a.click();
-    const es = $('exportStatus'); if (es) es.textContent = 'Gambar chart diunduh.';
+    const es = $('exportStatus'); if (es) es.textContent = T('predict.chartDownloaded');
   }
 
   function openInDashboard() {
-    if (!lastRoute) { alert('Jalankan simulasi rute dulu.'); return; }
+    if (!lastRoute) { alert(T('predict.runSimFirst')); return; }
     const f = lastRoute.form;
     const rows = lastRoute.samples.map((s, i) => {
       const site = siteById(s.siteId);
@@ -986,7 +1155,7 @@ Filter Coeff. k : ${lastRoute.hoParams.filterK}</div>`;
       sessionStorage.setItem('cakra_tool', 'Cakra Virtual Drive Test');
       sessionStorage.setItem('cakra_virtual', '1');
     } catch (e) {
-      alert('Data terlalu besar untuk sessionStorage. Coba kurangi panjang rute atau resolusi sampling.');
+      alert(T('predict.dataTooBig'));
       return;
     }
     if (window.CakraNav) CakraNav.go('/dashboard'); else window.location.href = '/dashboard';
@@ -1005,7 +1174,7 @@ Filter Coeff. k : ${lastRoute.hoParams.filterK}</div>`;
     site.lat = lat; site.lon = lon;
     $('siteLat').value = lat.toFixed(6);
     $('siteLon').value = lon.toFixed(6);
-    map.panTo([lat, lon]);
+    map.panTo([lon, lat]);
     redrawSiteMapObjects(site);
     buildingsCache = null;
   }
@@ -1053,7 +1222,7 @@ Filter Coeff. k : ${lastRoute.hoParams.filterK}</div>`;
       const m = pc.value.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
       if (m) {
         const s = siteById(activeSiteId);
-        if (s) { s.lat = +m[1]; s.lon = +m[2]; $('siteLat').value = m[1]; $('siteLon').value = m[2]; map.panTo([+m[1], +m[2]]); redrawSiteMapObjects(s); buildingsCache = null; }
+        if (s) { s.lat = +m[1]; s.lon = +m[2]; $('siteLat').value = m[1]; $('siteLon').value = m[2]; map.panTo([+m[2], +m[1]]); redrawSiteMapObjects(s); buildingsCache = null; }
       }
     });
 
@@ -1065,12 +1234,12 @@ Filter Coeff. k : ${lastRoute.hoParams.filterK}</div>`;
     $('siteLat') && $('siteLat').addEventListener('change', () => {
       const s = siteById(activeSiteId); if (!s) return;
       s.lat = parseFloat($('siteLat').value); s.lon = parseFloat($('siteLon').value);
-      map.panTo([s.lat, s.lon]); redrawSiteMapObjects(s); buildingsCache = null;
+      map.panTo([s.lon, s.lat]); redrawSiteMapObjects(s); buildingsCache = null;
     });
     $('siteLon') && $('siteLon').addEventListener('change', () => {
       const s = siteById(activeSiteId); if (!s) return;
       s.lat = parseFloat($('siteLat').value); s.lon = parseFloat($('siteLon').value);
-      map.panTo([s.lat, s.lon]); redrawSiteMapObjects(s); buildingsCache = null;
+      map.panTo([s.lon, s.lat]); redrawSiteMapObjects(s); buildingsCache = null;
     });
 
     $('runPredictBtn') && $('runPredictBtn').addEventListener('click', runPrediction);
@@ -1082,19 +1251,45 @@ Filter Coeff. k : ${lastRoute.hoParams.filterK}</div>`;
     return `<div class="stat-card"><div class="stat-label">${label}</div><div class="stat-value ${cls || ''}">${value}</div></div>`;
   }
 
-  // Data mentah utk modul visualisasi 3D (map3d.js) — dipanggil saat tombol
-  // "Peta 3D" ditekan. Dikirim sebagai referensi objek (bukan clone/JSON),
-  // termasuk `proj` (fungsi toLatLon) dari lastResult supaya grid meter→lat/lon
-  // tidak perlu dihitung ulang.
+  // Snapshot state mentah (sites, hasil prediksi, hasil simulasi rute) — tersedia
+  // sebagai API publik untuk kebutuhan lain (mis. debugging/testing) meski modal
+  // peta 3D terpisah (map3d.js) sudah tidak dipakai lagi sejak peta utama native 3D.
   function getSceneData() {
     return { sites, lastResult, lastRoute, routePts: routePts.slice() };
   }
 
+  function refreshDynamicUI() {
+    renderSiteList();
+    if (lastResult) {
+      const stats = {
+        avgRsrp: lastResult.results.filter(Boolean).reduce((a,r)=>a+r.rsrp,0) / (lastResult.results.filter(Boolean).length||1),
+        losPct: (lastResult.results.filter(r=>r&&r.los).length / (lastResult.results.filter(Boolean).length||1)) * 100,
+        coveragePct: (lastResult.results.filter(r=>r&&r.rsrp>=lastResult.form.thresholdDbm).length / (lastResult.results.filter(Boolean).length||1)) * 100,
+        buildingCount: lastResult.buildings.length,
+        gridPoints: lastResult.results.filter(Boolean).length,
+      };
+      renderStats(stats);
+    }
+    if (lastRoute) {
+      renderRouteStats(lastRoute.samples, lastRoute.totalL, lastRoute.durationS, lastRoute.threshold, lastRoute.handovers);
+      renderRouteChart(lastRoute.samples, lastRoute.threshold);
+    }
+    if (currentStep === 5) buildReport();
+    updateRouteInfo();
+  }
+
   return {
     init, goto, useRealCentroid, runPrediction, toggleDraw, finishDraw, clearRoute, simulateRoute,
-    exportCSV, exportPNG, openInDashboard, addSite, removeSite, selectSite, getSceneData,
+    exportCSV, exportPNG, openInDashboard, addSite, removeSite, selectSite, getSceneData, refreshDynamicUI,
   };
 })();
+
+// Re-render dynamic panels when language is switched, so already-generated
+// content (site list, stats, report, chart labels) updates without re-running
+// the simulation.
+window.CakraRebuildDynamic = function() {
+  if (window.CakraVDT && typeof CakraVDT.refreshDynamicUI === 'function') CakraVDT.refreshDynamicUI();
+};
 
 document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('predictMap')) CakraVDT.init();

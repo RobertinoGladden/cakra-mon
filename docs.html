@@ -205,6 +205,13 @@ p.doc-p strong{color:var(--text);font-weight:600}
   .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:140}
   .sidebar-overlay.show{display:block}
 }
+
+/* LANGUAGE SWITCH (ID/EN) */
+.lang-switch{display:flex;align-items:center;gap:4px;margin-left:4px;font-family:var(--mono);font-size:10px;flex-shrink:0}
+.lang-sep{color:var(--border2)}
+.lang-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:600;padding:3px 4px;letter-spacing:0.04em}
+.lang-btn:hover{color:var(--text)}
+.lang-btn.active{color:var(--cyan)}
 </style>
 <script>
 // Inline theme preset (prevents flash) — synced with cakra_theme key
@@ -221,11 +228,16 @@ p.doc-p strong{color:var(--text);font-weight:600}
     <span class="topnav-text">CAKRA</span>
   </a>
   <span class="topnav-sep">/</span>
-  <span class="topnav-section">Dokumentasi</span>
+  <span class="topnav-section" data-i18n="common.docsNav">Dokumentasi</span>
   <div class="topnav-right">
-    <a href="/about" data-route class="topnav-btn">Tentang Cakra</a>
-    <a href="/" data-route class="topnav-btn topnav-cta">Buka Aplikasi →</a>
-    <button class="theme-toggle" id="themeToggle" onclick="cycleTheme()" title="Ganti tema"></button>
+    <a href="/about" data-route class="topnav-btn" data-i18n="common.footer.about">Tentang Cakra</a>
+    <a href="/" data-route class="topnav-btn topnav-cta" data-i18n="common.openApp">Buka Aplikasi →</a>
+    <div class="lang-switch" id="langSwitch" role="group" aria-label="Language">
+      <button class="lang-btn active" id="langBtnId" data-lang="id" onclick="CakraI18n.setLanguage('id')">ID</button>
+      <span class="lang-sep">|</span>
+      <button class="lang-btn" id="langBtnEn" data-lang="en" onclick="CakraI18n.setLanguage('en')">EN</button>
+    </div>
+    <button class="theme-toggle" id="themeToggle" onclick="cycleTheme()" title="Ganti tema" data-i18n-title="common.changeTheme"></button>
   </div>
 </nav>
 
@@ -235,37 +247,37 @@ p.doc-p strong{color:var(--text);font-weight:600}
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-group">
-      <div class="sidebar-group-label">Mulai</div>
-      <a class="sidebar-item active" href="#pengenalan"><span class="sidebar-item-icon">◈</span> Pengenalan</a>
-      <a class="sidebar-item" href="#cara-mulai"><span class="sidebar-item-icon">▶</span> Cara Mulai</a>
-      <a class="sidebar-item" href="#persyaratan"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span> Persyaratan</a>
+      <div class="sidebar-group-label" data-i18n="docs.nav.start">Mulai</div>
+      <a class="sidebar-item active" href="#pengenalan"><span class="sidebar-item-icon">◈</span> <span data-i18n="docs.nav.intro">Pengenalan</span></a>
+      <a class="sidebar-item" href="#cara-mulai"><span class="sidebar-item-icon">▶</span> <span data-i18n="docs.nav.gettingStarted">Cara Mulai</span></a>
+      <a class="sidebar-item" href="#persyaratan"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span> <span data-i18n="docs.nav.requirements">Persyaratan</span></a>
     </div>
 
     <div class="sidebar-group">
-      <div class="sidebar-group-label">Upload File</div>
-      <a class="sidebar-item" href="#upload-log"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span> File Log Drive Test</a>
-      <a class="sidebar-item" href="#upload-kml"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span> File KML Events</a>
-      <a class="sidebar-item" href="#format-didukung"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span> Format Didukung</a>
+      <div class="sidebar-group-label" data-i18n="docs.nav.uploadGroup">Upload File</div>
+      <a class="sidebar-item" href="#upload-log"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span> <span data-i18n="docs.nav.logFile">File Log Drive Test</span></a>
+      <a class="sidebar-item" href="#upload-kml"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span> <span data-i18n="docs.nav.kmlFile">File KML Events</span></a>
+      <a class="sidebar-item" href="#format-didukung"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span> <span data-i18n="docs.nav.supportedFormats">Format Didukung</span></a>
     </div>
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">Dashboard</div>
-      <a class="sidebar-item" href="#grafik"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span> Grafik Interaktif</a>
-      <a class="sidebar-item" href="#peta"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span> Peta Sinyal</a>
-      <a class="sidebar-item" href="#distribusi"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="1" y="13" width="4" height="11" rx="1"/><rect x="9" y="8" width="4" height="16" rx="1"/><rect x="17" y="3" width="4" height="21" rx="1"/></svg></span> Distribusi KPI</a>
-      <a class="sidebar-item" href="#events"><span class="sidebar-item-icon">⇄</span> Events Handover</a>
-      <a class="sidebar-item" href="#titik-rawan"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Titik Rawan</a>
+      <a class="sidebar-item" href="#grafik"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span> <span data-i18n="docs.nav.charts">Grafik Interaktif</span></a>
+      <a class="sidebar-item" href="#peta"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span> <span data-i18n="docs.nav.map">Peta Sinyal</span></a>
+      <a class="sidebar-item" href="#distribusi"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="1" y="13" width="4" height="11" rx="1"/><rect x="9" y="8" width="4" height="16" rx="1"/><rect x="17" y="3" width="4" height="21" rx="1"/></svg></span> <span data-i18n="docs.nav.distribution">Distribusi KPI</span></a>
+      <a class="sidebar-item" href="#events"><span class="sidebar-item-icon">⇄</span> <span data-i18n="docs.nav.events">Events Handover</span></a>
+      <a class="sidebar-item" href="#titik-rawan"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> <span data-i18n="docs.nav.weakPoints">Titik Rawan</span></a>
     </div>
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">AI Analyst</div>
-      <a class="sidebar-item" href="#ai-setup"><span class="sidebar-item-icon">✦</span> Setup AI <span class="sidebar-badge">NEW</span></a>
-      <a class="sidebar-item" href="#ai-analisis"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M12 11V5"/><circle cx="12" cy="4" r="1"/><line x1="8" y1="15" x2="8" y2="15"/><line x1="16" y1="15" x2="16" y2="15"/><line x1="9" y1="19" x2="15" y2="19"/></svg></span> Mode Analisis</a>
+      <a class="sidebar-item" href="#ai-setup"><span class="sidebar-item-icon">✦</span> <span data-i18n="docs.nav.aiSetup">Setup AI</span> <span class="sidebar-badge">NEW</span></a>
+      <a class="sidebar-item" href="#ai-analisis"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M12 11V5"/><circle cx="12" cy="4" r="1"/><line x1="8" y1="15" x2="8" y2="15"/><line x1="16" y1="15" x2="16" y2="15"/><line x1="9" y1="19" x2="15" y2="19"/></svg></span> <span data-i18n="docs.nav.aiMode">Mode Analisis</span></a>
     </div>
 
     <div class="sidebar-group">
-      <div class="sidebar-group-label">Analisis RF Lanjutan</div>
-      <a class="sidebar-item" href="#rf-overview"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span> Ringkasan Fitur</a>
+      <div class="sidebar-group-label" data-i18n="docs.nav.advancedGroup">Analisis RF Lanjutan</div>
+      <a class="sidebar-item" href="#rf-overview"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span> <span data-i18n="docs.nav.rfOverview">Ringkasan Fitur</span></a>
       <a class="sidebar-item" href="#coverage-gap"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/><line x1="2" y1="2" x2="22" y2="22"/></svg></span> Coverage Gap</a>
       <a class="sidebar-item" href="#cell-churn"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span> Cell Churn</a>
       <a class="sidebar-item" href="#throughput-corr"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span> Throughput Correlation</a>
@@ -274,10 +286,10 @@ p.doc-p strong{color:var(--text);font-weight:600}
     </div>
 
     <div class="sidebar-group">
-      <div class="sidebar-group-label">Referensi</div>
-      <a class="sidebar-item" href="#standar-kpi"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16l6-6m0 0l3 3m-3-3l3-3m3 9l6-6-6-6-6 6"/></svg></span> Standar KPI</a>
-      <a class="sidebar-item" href="#export"><span class="sidebar-item-icon">⬇</span> Export Data</a>
-      <a class="sidebar-item" href="#pwa"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span> Instalasi PWA</a>
+      <div class="sidebar-group-label" data-i18n="docs.nav.referenceGroup">Referensi</div>
+      <a class="sidebar-item" href="#standar-kpi"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16l6-6m0 0l3 3m-3-3l3-3m3 9l6-6-6-6-6 6"/></svg></span> <span data-i18n="docs.nav.kpiStandard">Standar KPI</span></a>
+      <a class="sidebar-item" href="#export"><span class="sidebar-item-icon">⬇</span> <span data-i18n="docs.nav.exportData">Export Data</span></a>
+      <a class="sidebar-item" href="#pwa"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span> <span data-i18n="docs.nav.pwaInstall">Instalasi PWA</span></a>
       <a class="sidebar-item" href="#faq"><span class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> FAQ</a>
     </div>
   </aside>
@@ -287,13 +299,13 @@ p.doc-p strong{color:var(--text);font-weight:600}
     <div class="breadcrumb">
       <a href="/" data-route>Cakra</a>
       <span class="breadcrumb-sep">/</span>
-      <span>Dokumentasi</span>
+      <span data-i18n="common.docsNav">Dokumentasi</span>
     </div>
 
     <div class="page-header">
-      <div class="page-tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Dokumentasi Resmi</div>
-      <h1 class="page-title">Panduan Penggunaan</h1>
-      <p class="page-desc">Dokumentasi lengkap untuk menggunakan Cakra — dari upload file drive test hingga analisis AI. Dirancang untuk RF Engineer dan Network Analyst.</p>
+      <div class="page-tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> <span data-i18n="docs.officialDocs">Dokumentasi Resmi</span></div>
+      <h1 class="page-title" data-i18n="docs.pageTitle">Panduan Penggunaan</h1>
+      <p class="page-desc" data-i18n="docs.pageDesc">Dokumentasi lengkap untuk menggunakan Cakra — dari upload file drive test hingga analisis AI. Dirancang untuk RF Engineer dan Network Analyst.</p>
       <div class="tag-row" style="margin-top:14px">
         <span class="tag tag-cyan">v2.0.1</span>
         <span class="tag tag-green">LTE</span>
@@ -308,205 +320,205 @@ p.doc-p strong{color:var(--text);font-weight:600}
     <!-- PENGENALAN -->
     <section class="doc-section" id="pengenalan">
       <span class="section-anchor"></span>
-      <h2 class="section-title">Pengenalan</h2>
-      <p class="section-subtitle">Apa itu Cakra dan untuk siapa?</p>
+      <h2 class="section-title" data-i18n="docs.intro.title">Pengenalan</h2>
+      <p class="section-subtitle" data-i18n="docs.intro.subtitle">Apa itu Cakra dan untuk siapa?</p>
 
-      <p class="doc-p">
+      <p class="doc-p" data-i18n-html="docs.intro.p1">
         <strong>Cakra</strong> adalah platform analisis drive test berbasis web yang berjalan sepenuhnya di browser — tanpa instalasi, tanpa backend server. Cakra mengolah file log dari berbagai tool drive test standar industri dan menyajikan hasil analisis berupa grafik interaktif, peta sinyal, distribusi KPI, dan deteksi titik rawan secara instan.
       </p>
 
       <div class="feature-grid">
         <div class="feat-card">
           <div class="feat-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9"/><path d="M7.8 13.2a4.5 4.5 0 0 1 0-6.4"/><circle cx="12" cy="10" r="2"/><line x1="12" y1="12" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/><path d="M16.2 13.2a4.5 4.5 0 0 0 0-6.4"/><path d="M19.1 16.1c3.9-3.9 3.9-10.3 0-14.2"/></svg></div>
-          <div class="feat-title">Multi-Tool Support</div>
-          <div class="feat-desc">G-NetTrack Pro, TEMS, NEMO, SIGMON didukung dalam satu platform.</div>
+          <div class="feat-title" data-i18n="docs.intro.feat1.title">Multi-Tool Support</div>
+          <div class="feat-desc" data-i18n="docs.intro.feat1.desc">G-NetTrack Pro, TEMS, NEMO, SIGMON didukung dalam satu platform.</div>
         </div>
         <div class="feat-card">
           <div class="feat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-          <div class="feat-title">100% Lokal</div>
-          <div class="feat-desc">Data tidak pernah meninggalkan browser Anda. Privasi terjamin.</div>
+          <div class="feat-title" data-i18n="docs.intro.feat2.title">100% Lokal</div>
+          <div class="feat-desc" data-i18n="docs.intro.feat2.desc">Data tidak pernah meninggalkan browser Anda. Privasi terjamin.</div>
         </div>
         <div class="feat-card">
           <div class="feat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-          <div class="feat-title">Tanpa Instalasi</div>
-          <div class="feat-desc">Buka browser, upload file, analisis selesai. Semudah itu.</div>
+          <div class="feat-title" data-i18n="docs.intro.feat3.title">Tanpa Instalasi</div>
+          <div class="feat-desc" data-i18n="docs.intro.feat3.desc">Buka browser, upload file, analisis selesai. Semudah itu.</div>
         </div>
         <div class="feat-card">
           <div class="feat-icon">✦</div>
           <div class="feat-title">AI Analyst</div>
-          <div class="feat-desc">Analisis otomatis dan chat berbasis Llama 3.3 70B (via Groq) untuk insight mendalam.</div>
+          <div class="feat-desc" data-i18n="docs.intro.feat4.desc">Analisis otomatis dan chat berbasis Llama 3.3 70B (via Groq) untuk insight mendalam.</div>
         </div>
         <div class="feat-card">
           <div class="feat-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></div>
-          <div class="feat-title">Peta Interaktif</div>
-          <div class="feat-desc">Visualisasi spasial RSRP/RSRQ/SNR dengan overlay events handover.</div>
+          <div class="feat-title" data-i18n="docs.intro.feat5.title">Peta Interaktif</div>
+          <div class="feat-desc" data-i18n="docs.intro.feat5.desc">Visualisasi spasial RSRP/RSRQ/SNR dengan overlay events handover.</div>
         </div>
         <div class="feat-card">
           <div class="feat-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
-          <div class="feat-title">PWA Offline</div>
-          <div class="feat-desc">Install sebagai aplikasi, gunakan tanpa koneksi internet.</div>
+          <div class="feat-title" data-i18n="docs.intro.feat6.title">PWA Offline</div>
+          <div class="feat-desc" data-i18n="docs.intro.feat6.desc">Install sebagai aplikasi, gunakan tanpa koneksi internet.</div>
         </div>
       </div>
     </section>
 
     <!-- CARA MULAI -->
     <section class="doc-section" id="cara-mulai">
-      <h2 class="section-title">Cara Mulai</h2>
-      <p class="section-subtitle">Dari nol ke dashboard dalam 3 langkah</p>
+      <h2 class="section-title" data-i18n="docs.nav.gettingStarted">Cara Mulai</h2>
+      <p class="section-subtitle" data-i18n="docs.start.subtitle">Dari nol ke dashboard dalam 3 langkah</p>
 
       <div class="steps">
         <div class="step">
           <div class="step-num">1</div>
           <div class="step-body">
-            <div class="step-title">Siapkan File Drive Test</div>
-            <div class="step-desc">Export file log dari tool drive test Anda. G-NetTrack Pro: menu <strong>Session → Export TXT</strong>. TEMS/NEMO: export ke format CSV atau TXT standar. File KML events bersifat opsional namun direkomendasikan untuk analisis handover.</div>
+            <div class="step-title" data-i18n="docs.start.step1.title">Siapkan File Drive Test</div>
+            <div class="step-desc" data-i18n-html="docs.start.step1.desc">Export file log dari tool drive test Anda. G-NetTrack Pro: menu <strong>Session → Export TXT</strong>. TEMS/NEMO: export ke format CSV atau TXT standar. File KML events bersifat opsional namun direkomendasikan untuk analisis handover.</div>
           </div>
         </div>
         <div class="step">
           <div class="step-num">2</div>
           <div class="step-body">
-            <div class="step-title">Upload ke Cakra</div>
-            <div class="step-desc">Buka <a href="/" data-route style="color:var(--cyan)">halaman utama Cakra</a>. Drag & drop file log ke zona upload kiri, atau klik untuk pilih file. Untuk KML, gunakan zona upload kanan. Cakra mendukung <strong>multi-file sekaligus</strong> — upload beberapa rute sekaligus!</div>
+            <div class="step-title" data-i18n="docs.start.step2.title">Upload ke Cakra</div>
+            <div class="step-desc" data-i18n-html="docs.start.step2.desc">Buka <a href="/" data-route style="color:var(--cyan)">halaman utama Cakra</a>. Drag & drop file log ke zona upload kiri, atau klik untuk pilih file. Untuk KML, gunakan zona upload kanan. Cakra mendukung <strong>multi-file sekaligus</strong> — upload beberapa rute sekaligus!</div>
           </div>
         </div>
         <div class="step">
           <div class="step-num">3</div>
           <div class="step-body">
-            <div class="step-title">Analisis Dashboard</div>
-            <div class="step-desc">Klik <strong>Mulai Analisis</strong>. Cakra akan memproses data dan membuka dashboard dengan grafik, peta, distribusi KPI, dan deteksi titik rawan secara otomatis. Gunakan fitur AI Analyst untuk insight yang lebih mendalam.</div>
+            <div class="step-title" data-i18n="docs.start.step3.title">Analisis Dashboard</div>
+            <div class="step-desc" data-i18n-html="docs.start.step3.desc">Klik <strong>Mulai Analisis</strong>. Cakra akan memproses data dan membuka dashboard dengan grafik, peta, distribusi KPI, dan deteksi titik rawan secara otomatis. Gunakan fitur AI Analyst untuk insight yang lebih mendalam.</div>
           </div>
         </div>
       </div>
 
       <div class="callout callout-tip">
-        <div class="callout-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg> Tips Performa</div>
-        Untuk file yang sangat besar (&gt;50.000 baris), Cakra otomatis melakukan <em>thinning</em> untuk menjaga performa rendering. Data mentah tetap lengkap untuk kalkulasi statistik.
+        <div class="callout-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg> <span data-i18n="docs.start.tip.title">Tips Performa</span></div>
+        <span data-i18n-html="docs.start.tip.body">Untuk file yang sangat besar (&gt;50.000 baris), Cakra otomatis melakukan <em>thinning</em> untuk menjaga performa rendering. Data mentah tetap lengkap untuk kalkulasi statistik.</span>
       </div>
     </section>
 
     <!-- PERSYARATAN -->
     <section class="doc-section" id="persyaratan">
-      <h2 class="section-title">Persyaratan</h2>
-      <p class="section-subtitle">Yang dibutuhkan untuk menjalankan Cakra</p>
+      <h2 class="section-title" data-i18n="docs.nav.requirements">Persyaratan</h2>
+      <p class="section-subtitle" data-i18n="docs.reqs.subtitle">Yang dibutuhkan untuk menjalankan Cakra</p>
 
-      <h3 class="subsection-title">Browser yang Didukung</h3>
+      <h3 class="subsection-title" data-i18n="docs.reqs.browserTitle">Browser yang Didukung</h3>
       <table class="param-table">
-        <thead><tr><th>Browser</th><th>Versi Minimum</th><th>Status</th></tr></thead>
+        <thead><tr><th>Browser</th><th data-i18n="docs.reqs.minVersion">Versi Minimum</th><th>Status</th></tr></thead>
         <tbody>
-          <tr><td>Chrome / Chromium</td><td>90+</td><td><span class="param-range-good">✓ Direkomendasikan</span></td></tr>
-          <tr><td>Firefox</td><td>88+</td><td><span class="param-range-good">✓ Didukung</span></td></tr>
-          <tr><td>Edge</td><td>90+</td><td><span class="param-range-good">✓ Didukung</span></td></tr>
-          <tr><td>Safari</td><td>14+</td><td><span class="param-range-ok">~ Sebagian</span></td></tr>
-          <tr><td>Internet Explorer</td><td>—</td><td><span class="param-range-bad">✗ Tidak didukung</span></td></tr>
+          <tr><td>Chrome / Chromium</td><td>90+</td><td><span class="param-range-good">✓ <span data-i18n="docs.reqs.recommended">Direkomendasikan</span></span></td></tr>
+          <tr><td>Firefox</td><td>88+</td><td><span class="param-range-good">✓ <span data-i18n="docs.reqs.supported">Didukung</span></span></td></tr>
+          <tr><td>Edge</td><td>90+</td><td><span class="param-range-good">✓ <span data-i18n="docs.reqs.supported">Didukung</span></span></td></tr>
+          <tr><td>Safari</td><td>14+</td><td><span class="param-range-ok">~ <span data-i18n="docs.reqs.partial">Sebagian</span></span></td></tr>
+          <tr><td>Internet Explorer</td><td>—</td><td><span class="param-range-bad">✗ <span data-i18n="docs.reqs.notSupported">Tidak didukung</span></span></td></tr>
         </tbody>
       </table>
 
       <div class="callout callout-info">
-        <div class="callout-title">ℹ Info</div>
-        Untuk fitur AI Analyst, diperlukan koneksi internet untuk komunikasi dengan Groq API. Seluruh fitur lainnya berjalan sepenuhnya offline setelah halaman dimuat.
+        <div class="callout-title">ℹ <span data-i18n="docs.info">Info</span></div>
+        <span data-i18n="docs.reqs.aiNote">Untuk fitur AI Analyst, diperlukan koneksi internet untuk komunikasi dengan Groq API. Seluruh fitur lainnya berjalan sepenuhnya offline setelah halaman dimuat.</span>
       </div>
     </section>
 
     <!-- UPLOAD LOG -->
     <section class="doc-section" id="upload-log">
-      <h2 class="section-title">File Log Drive Test</h2>
-      <p class="section-subtitle">Upload dan manajemen file log dari berbagai tool</p>
+      <h2 class="section-title" data-i18n="docs.nav.logFile">File Log Drive Test</h2>
+      <p class="section-subtitle" data-i18n="docs.uploadLog.subtitle">Upload dan manajemen file log dari berbagai tool</p>
 
-      <p class="doc-p">
+      <p class="doc-p" data-i18n-html="docs.uploadLog.p1">
         Zona upload kiri di halaman utama menerima file log dari semua tool drive test yang didukung. Anda bisa upload <strong>banyak file sekaligus</strong> — misalnya untuk menggabungkan data dari beberapa sesi pengambilan data di rute berbeda.
       </p>
 
-      <h3 class="subsection-title">Cara Upload Multi-File</h3>
+      <h3 class="subsection-title" data-i18n="docs.uploadLog.multiTitle">Cara Upload Multi-File</h3>
       <div class="steps">
         <div class="step">
           <div class="step-num">1</div>
           <div class="step-body">
-            <div class="step-title">Drag & Drop Sekaligus</div>
-            <div class="step-desc">Pilih beberapa file sekaligus di file manager, lalu drag ke zona upload. Semua file akan diproses dan digabungkan otomatis.</div>
+            <div class="step-title" data-i18n="docs.uploadLog.step1.title">Drag & Drop Sekaligus</div>
+            <div class="step-desc" data-i18n="docs.uploadLog.step1.desc">Pilih beberapa file sekaligus di file manager, lalu drag ke zona upload. Semua file akan diproses dan digabungkan otomatis.</div>
           </div>
         </div>
         <div class="step">
           <div class="step-num">2</div>
           <div class="step-body">
-            <div class="step-title">Pilih via Dialog</div>
-            <div class="step-desc">Klik zona upload, tahan <span class="inline-code">Ctrl</span> (atau <span class="inline-code">⌘</span> di Mac) lalu klik beberapa file di dialog untuk multi-seleksi.</div>
+            <div class="step-title" data-i18n="docs.uploadLog.step2.title">Pilih via Dialog</div>
+            <div class="step-desc" data-i18n-html="docs.uploadLog.step2.desc">Klik zona upload, tahan <span class="inline-code">Ctrl</span> (atau <span class="inline-code">⌘</span> di Mac) lalu klik beberapa file di dialog untuk multi-seleksi.</div>
           </div>
         </div>
         <div class="step">
           <div class="step-num">3</div>
           <div class="step-body">
-            <div class="step-title">Tambah Bertahap</div>
-            <div class="step-desc">Klik zona upload berulang kali untuk menambah file satu per satu. Setiap file ditambahkan ke daftar tanpa menghapus yang sudah ada.</div>
+            <div class="step-title" data-i18n="docs.uploadLog.step3.title">Tambah Bertahap</div>
+            <div class="step-desc" data-i18n="docs.uploadLog.step3.desc">Klik zona upload berulang kali untuk menambah file satu per satu. Setiap file ditambahkan ke daftar tanpa menghapus yang sudah ada.</div>
           </div>
         </div>
       </div>
 
       <div class="callout callout-warn">
-        <div class="callout-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Perhatian</div>
-        Saat menggabungkan file dari beberapa sesi, pastikan semua file berasal dari tool yang sama (atau format yang kompatibel) untuk hasil analisis yang akurat.
+        <div class="callout-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <span data-i18n="docs.attention">Perhatian</span></div>
+        <span data-i18n="docs.uploadLog.warnBody">Saat menggabungkan file dari beberapa sesi, pastikan semua file berasal dari tool yang sama (atau format yang kompatibel) untuk hasil analisis yang akurat.</span>
       </div>
     </section>
 
     <!-- UPLOAD KML -->
     <section class="doc-section" id="upload-kml">
-      <h2 class="section-title">File KML Events</h2>
-      <p class="section-subtitle">Upload banyak file KML untuk analisis events lengkap</p>
+      <h2 class="section-title" data-i18n="docs.nav.kmlFile">File KML Events</h2>
+      <p class="section-subtitle" data-i18n="docs.uploadKml.subtitle">Upload banyak file KML untuk analisis events lengkap</p>
 
-      <p class="doc-p">
+      <p class="doc-p" data-i18n-html="docs.uploadKml.p1">
         File KML berisi data events seperti Handover dan Cell Reselection. Cakra mendukung <strong>upload banyak file KML sekaligus</strong> — sangat berguna saat pengukuran lapangan dilakukan di beberapa segmen rute atau oleh beberapa perangkat berbeda.
       </p>
 
-      <h3 class="subsection-title">Data yang Diambil dari KML</h3>
+      <h3 class="subsection-title" data-i18n="docs.uploadKml.dataTitle">Data yang Diambil dari KML</h3>
       <table class="param-table">
-        <thead><tr><th>Field</th><th>Deskripsi</th></tr></thead>
+        <thead><tr><th>Field</th><th data-i18n="docs.description">Deskripsi</th></tr></thead>
         <tbody>
-          <tr><td>From Cell / To Cell</td><td>Identitas sel asal dan tujuan handover</td></tr>
-          <tr><td>RSRP / RSRQ</td><td>Kualitas sinyal saat event terjadi</td></tr>
+          <tr><td>From Cell / To Cell</td><td data-i18n="docs.uploadKml.field.fromTo">Identitas sel asal dan tujuan handover</td></tr>
+          <tr><td>RSRP / RSRQ</td><td data-i18n="docs.uploadKml.field.rsrpRsrq">Kualitas sinyal saat event terjadi</td></tr>
           <tr><td>SNR</td><td>Signal-to-noise ratio</td></tr>
-          <tr><td>eNB ID</td><td>Identitas base station</td></tr>
-          <tr><td>DL / UL Bitrate</td><td>Throughput downlink dan uplink saat event</td></tr>
-          <tr><td>Speed</td><td>Kecepatan kendaraan saat event</td></tr>
-          <tr><td>Koordinat GPS</td><td>Lokasi event untuk overlay peta</td></tr>
+          <tr><td>eNB ID</td><td data-i18n="docs.uploadKml.field.enbId">Identitas base station</td></tr>
+          <tr><td>DL / UL Bitrate</td><td data-i18n="docs.uploadKml.field.dlUl">Throughput downlink dan uplink saat event</td></tr>
+          <tr><td>Speed</td><td data-i18n="docs.uploadKml.field.speed">Kecepatan kendaraan saat event</td></tr>
+          <tr><td data-i18n="docs.uploadKml.field.gpsLabel">Koordinat GPS</td><td data-i18n="docs.uploadKml.field.gps">Lokasi event untuk overlay peta</td></tr>
         </tbody>
       </table>
 
       <div class="callout callout-tip">
-        <div class="callout-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg> Cara Export KML dari G-NetTrack Pro</div>
-        Buka G-NetTrack Pro → Sessions → pilih sesi → Export → pilih format <strong>KML</strong> → pastikan checkbox "Include Events" dicentang.
+        <div class="callout-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg> <span data-i18n="docs.uploadKml.exportTitle">Cara Export KML dari G-NetTrack Pro</span></div>
+        <span data-i18n-html="docs.uploadKml.exportBody">Buka G-NetTrack Pro → Sessions → pilih sesi → Export → pilih format <strong>KML</strong> → pastikan checkbox "Include Events" dicentang.</span>
       </div>
     </section>
 
     <!-- FORMAT DIDUKUNG -->
     <section class="doc-section" id="format-didukung">
-      <h2 class="section-title">Format yang Didukung</h2>
-      <p class="section-subtitle">Semua tool drive test utama dalam satu platform</p>
+      <h2 class="section-title" data-i18n="docs.formats.title">Format yang Didukung</h2>
+      <p class="section-subtitle" data-i18n="docs.formats.subtitle">Semua tool drive test utama dalam satu platform</p>
 
       <table class="param-table">
-        <thead><tr><th>Tool</th><th>Ekstensi File</th><th>Kolom Utama</th><th>Status</th></tr></thead>
+        <thead><tr><th>Tool</th><th data-i18n="docs.formats.fileExt">Ekstensi File</th><th data-i18n="docs.formats.mainColumns">Kolom Utama</th><th>Status</th></tr></thead>
         <tbody>
           <tr>
             <td>G-NetTrack Pro</td>
             <td><span class="inline-code">.txt</span></td>
             <td>Timestamp, Lon, Lat, Level (RSRP), Qual, SNR, DL/UL bitrate</td>
-            <td><span class="param-range-good">✓ Penuh</span></td>
+            <td><span class="param-range-good">✓ <span data-i18n="docs.full">Penuh</span></span></td>
           </tr>
           <tr>
             <td>TEMS Investigation</td>
             <td><span class="inline-code">.txt</span> <span class="inline-code">.csv</span></td>
             <td>Time, Longitude, Latitude, RSRP, RSRQ, SINR, Throughput</td>
-            <td><span class="param-range-good">✓ Penuh</span></td>
+            <td><span class="param-range-good">✓ <span data-i18n="docs.full">Penuh</span></span></td>
           </tr>
           <tr>
             <td>NEMO Outdoor / Handy</td>
             <td><span class="inline-code">.nmf</span> <span class="inline-code">.csv</span></td>
             <td>Timestamp, Long, Lat, RSRP, RSRQ, SINR, DL Tput, UL Tput</td>
-            <td><span class="param-range-good">✓ Penuh</span></td>
+            <td><span class="param-range-good">✓ <span data-i18n="docs.full">Penuh</span></span></td>
           </tr>
           <tr>
             <td>SIGMON</td>
             <td><span class="inline-code">.csv</span></td>
             <td>Time, Longitude, Latitude, RSRP, RSRQ, SNR, Speed</td>
-            <td><span class="param-range-good">✓ Penuh</span></td>
+            <td><span class="param-range-good">✓ <span data-i18n="docs.full">Penuh</span></span></td>
           </tr>
           <tr>
             <td>KML Events</td>
@@ -520,100 +532,100 @@ p.doc-p strong{color:var(--text);font-weight:600}
 
     <!-- GRAFIK -->
     <section class="doc-section" id="grafik">
-      <h2 class="section-title">Grafik Interaktif</h2>
-      <p class="section-subtitle">Visualisasi time-series parameter RF</p>
+      <h2 class="section-title" data-i18n="docs.nav.charts">Grafik Interaktif</h2>
+      <p class="section-subtitle" data-i18n="docs.charts.subtitle">Visualisasi time-series parameter RF</p>
 
-      <p class="doc-p">Dashboard menampilkan grafik interaktif berbasis <strong>Chart.js</strong> untuk semua parameter utama. Setiap grafik dilengkapi kontrol interaktif untuk zoom, pan, dan export.</p>
+      <p class="doc-p" data-i18n-html="docs.charts.p1">Dashboard menampilkan grafik interaktif berbasis <strong>Chart.js</strong> untuk semua parameter utama. Setiap grafik dilengkapi kontrol interaktif untuk zoom, pan, dan export.</p>
 
       <table class="param-table">
-        <thead><tr><th>Grafik</th><th>Parameter</th><th>Keterangan</th></tr></thead>
+        <thead><tr><th data-i18n="docs.charts.colChart">Grafik</th><th>Parameter</th><th data-i18n="docs.charts.colNotes">Keterangan</th></tr></thead>
         <tbody>
-          <tr><td>RSRP Timeline</td><td>Reference Signal Received Power</td><td>Kekuatan sinyal downlink LTE (dBm)</td></tr>
-          <tr><td>RSRQ Timeline</td><td>Reference Signal Received Quality</td><td>Kualitas sinyal, pengaruh interferensi (dB)</td></tr>
-          <tr><td>SNR Timeline</td><td>Signal-to-Noise Ratio</td><td>Rasio sinyal terhadap noise (dB)</td></tr>
-          <tr><td>Throughput DL</td><td>Downlink Bitrate</td><td>Kecepatan unduh (kbps/Mbps)</td></tr>
-          <tr><td>Throughput UL</td><td>Uplink Bitrate</td><td>Kecepatan unggah (kbps/Mbps)</td></tr>
+          <tr><td>RSRP Timeline</td><td>Reference Signal Received Power</td><td data-i18n="docs.charts.rsrpNote">Kekuatan sinyal downlink LTE (dBm)</td></tr>
+          <tr><td>RSRQ Timeline</td><td>Reference Signal Received Quality</td><td data-i18n="docs.charts.rsrqNote">Kualitas sinyal, pengaruh interferensi (dB)</td></tr>
+          <tr><td>SNR Timeline</td><td>Signal-to-Noise Ratio</td><td data-i18n="docs.charts.snrNote">Rasio sinyal terhadap noise (dB)</td></tr>
+          <tr><td>Throughput DL</td><td>Downlink Bitrate</td><td data-i18n="docs.charts.dlNote">Kecepatan unduh (kbps/Mbps)</td></tr>
+          <tr><td>Throughput UL</td><td>Uplink Bitrate</td><td data-i18n="docs.charts.ulNote">Kecepatan unggah (kbps/Mbps)</td></tr>
         </tbody>
       </table>
 
-      <h3 class="subsection-title">Kontrol Grafik</h3>
-      <p class="doc-p">Scroll mouse untuk zoom in/out pada sumbu waktu. Klik dan drag untuk pan. Klik tombol <strong>Export PNG</strong> di pojok kanan atas setiap grafik untuk download sebagai gambar resolusi tinggi.</p>
+      <h3 class="subsection-title" data-i18n="docs.charts.controlsTitle">Kontrol Grafik</h3>
+      <p class="doc-p" data-i18n-html="docs.charts.controlsBody">Scroll mouse untuk zoom in/out pada sumbu waktu. Klik dan drag untuk pan. Klik tombol <strong>Export PNG</strong> di pojok kanan atas setiap grafik untuk download sebagai gambar resolusi tinggi.</p>
     </section>
 
     <!-- PETA -->
     <section class="doc-section" id="peta">
-      <h2 class="section-title">Peta Sinyal</h2>
-      <p class="section-subtitle">Visualisasi spasial coverage dan events</p>
+      <h2 class="section-title" data-i18n="docs.nav.map">Peta Sinyal</h2>
+      <p class="section-subtitle" data-i18n="docs.map.subtitle">Visualisasi spasial coverage dan events</p>
 
-      <p class="doc-p">Peta interaktif berbasis <strong>Leaflet.js</strong> menampilkan distribusi spasial parameter sinyal sepanjang rute drive test. Setiap titik data dirender dengan warna berdasarkan nilai parameter.</p>
+      <p class="doc-p" data-i18n-html="docs.map.p1">Peta interaktif berbasis <strong>Leaflet.js</strong> menampilkan distribusi spasial parameter sinyal sepanjang rute drive test. Setiap titik data dirender dengan warna berdasarkan nilai parameter.</p>
 
-      <h3 class="subsection-title">Layer Peta</h3>
+      <h3 class="subsection-title" data-i18n="docs.map.layersTitle">Layer Peta</h3>
       <div class="feature-grid">
         <div class="feat-card">
           <div class="feat-icon" style="color:var(--green)">●</div>
           <div class="feat-title">Layer RSRP</div>
-          <div class="feat-desc">Visualisasi kekuatan sinyal. Hijau = kuat, merah = lemah.</div>
+          <div class="feat-desc" data-i18n="docs.map.rsrpLayer">Visualisasi kekuatan sinyal. Hijau = kuat, merah = lemah.</div>
         </div>
         <div class="feat-card">
           <div class="feat-icon" style="color:var(--cyan)">●</div>
           <div class="feat-title">Layer RSRQ</div>
-          <div class="feat-desc">Visualisasi kualitas sinyal termasuk interferensi.</div>
+          <div class="feat-desc" data-i18n="docs.map.rsrqLayer">Visualisasi kualitas sinyal termasuk interferensi.</div>
         </div>
         <div class="feat-card">
           <div class="feat-icon" style="color:var(--purple)">●</div>
           <div class="feat-title">Layer SNR</div>
-          <div class="feat-desc">Rasio sinyal terhadap noise per titik GPS.</div>
+          <div class="feat-desc" data-i18n="docs.map.snrLayer">Rasio sinyal terhadap noise per titik GPS.</div>
         </div>
         <div class="feat-card">
           <div class="feat-icon" style="color:var(--red)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-          <div class="feat-title">Layer Rawan</div>
-          <div class="feat-desc">Titik yang berada di bawah threshold KPI minimum.</div>
+          <div class="feat-title" data-i18n="docs.nav.weakPoints">Layer Rawan</div>
+          <div class="feat-desc" data-i18n="docs.map.rawanLayer">Titik yang berada di bawah threshold KPI minimum.</div>
         </div>
       </div>
     </section>
 
     <!-- DISTRIBUSI -->
     <section class="doc-section" id="distribusi">
-      <h2 class="section-title">Distribusi KPI</h2>
-      <p class="section-subtitle">Persentase distribusi per kategori kualitas</p>
+      <h2 class="section-title" data-i18n="docs.nav.distribution">Distribusi KPI</h2>
+      <p class="section-subtitle" data-i18n="docs.dist.subtitle">Persentase distribusi per kategori kualitas</p>
 
-      <p class="doc-p">Grafik distribusi menampilkan persentase data yang masuk ke setiap kategori kualitas (Sangat Baik / Baik / Normal / Buruk / Sangat Buruk) untuk RSRP, RSRQ, dan SNR. Berguna untuk laporan dan benchmark performa jaringan.</p>
+      <p class="doc-p" data-i18n="docs.dist.p1">Grafik distribusi menampilkan persentase data yang masuk ke setiap kategori kualitas (Sangat Baik / Baik / Normal / Buruk / Sangat Buruk) untuk RSRP, RSRQ, dan SNR. Berguna untuk laporan dan benchmark performa jaringan.</p>
 
       <div class="callout callout-info">
-        <div class="callout-title">ℹ Cara Membaca Distribusi</div>
-        Target umum operator: RSRP &gt;-90 dBm minimal 85% data, RSRQ &gt;-10 dB minimal 80% data. Gunakan distribusi ini untuk menentukan area prioritas optimasi.
+        <div class="callout-title">ℹ <span data-i18n="docs.dist.howToReadTitle">Cara Membaca Distribusi</span></div>
+        <span data-i18n="docs.dist.howToReadBody">Target umum operator: RSRP &gt;-90 dBm minimal 85% data, RSRQ &gt;-10 dB minimal 80% data. Gunakan distribusi ini untuk menentukan area prioritas optimasi.</span>
       </div>
     </section>
 
     <!-- EVENTS -->
     <section class="doc-section" id="events">
-      <h2 class="section-title">Events Handover</h2>
-      <p class="section-subtitle">Analisis stabilitas handover dan cell reselection</p>
+      <h2 class="section-title" data-i18n="docs.nav.events">Events Handover</h2>
+      <p class="section-subtitle" data-i18n="docs.events.subtitle">Analisis stabilitas handover dan cell reselection</p>
 
-      <p class="doc-p">Section Events menampilkan tabel lengkap semua Handover dan Cell Reselection yang terdeteksi dari file KML. Setiap event ditampilkan dengan detail parameter RF saat event terjadi.</p>
+      <p class="doc-p" data-i18n="docs.events.p1">Section Events menampilkan tabel lengkap semua Handover dan Cell Reselection yang terdeteksi dari file KML. Setiap event ditampilkan dengan detail parameter RF saat event terjadi.</p>
 
       <table class="param-table">
-        <thead><tr><th>Kolom</th><th>Deskripsi</th></tr></thead>
+        <thead><tr><th data-i18n="docs.events.colColumn">Kolom</th><th data-i18n="docs.description">Deskripsi</th></tr></thead>
         <tbody>
-          <tr><td>Timestamp</td><td>Waktu kejadian event</td></tr>
+          <tr><td>Timestamp</td><td data-i18n="docs.events.timestamp">Waktu kejadian event</td></tr>
           <tr><td>Type</td><td>HANDOVER atau CELL_RESELECTION</td></tr>
-          <tr><td>From → To</td><td>Nama sel asal dan tujuan</td></tr>
-          <tr><td>RSRP / RSRQ</td><td>Kualitas sinyal saat event</td></tr>
-          <tr><td>DL / UL</td><td>Throughput aktif saat event</td></tr>
-          <tr><td>Speed</td><td>Kecepatan kendaraan (km/h)</td></tr>
+          <tr><td>From → To</td><td data-i18n="docs.events.fromTo">Nama sel asal dan tujuan</td></tr>
+          <tr><td>RSRP / RSRQ</td><td data-i18n="docs.events.rsrpRsrq">Kualitas sinyal saat event</td></tr>
+          <tr><td>DL / UL</td><td data-i18n="docs.events.dlUl">Throughput aktif saat event</td></tr>
+          <tr><td>Speed</td><td data-i18n="docs.events.speed">Kecepatan kendaraan (km/h)</td></tr>
         </tbody>
       </table>
     </section>
 
     <!-- TITIK RAWAN -->
     <section class="doc-section" id="titik-rawan">
-      <h2 class="section-title">Titik Rawan</h2>
-      <p class="section-subtitle">Deteksi otomatis area bermasalah</p>
+      <h2 class="section-title" data-i18n="docs.nav.weakPoints">Titik Rawan</h2>
+      <p class="section-subtitle" data-i18n="docs.rawan.subtitle">Deteksi otomatis area bermasalah</p>
 
-      <p class="doc-p">Cakra secara otomatis mengidentifikasi titik-titik di mana nilai RSRP, RSRQ, atau SNR berada di bawah threshold minimum. Titik-titik ini ditandai pada peta dan ditabulasi dalam tabel terpisah untuk memudahkan tindak lanjut.</p>
+      <p class="doc-p" data-i18n="docs.rawan.p1">Cakra secara otomatis mengidentifikasi titik-titik di mana nilai RSRP, RSRQ, atau SNR berada di bawah threshold minimum. Titik-titik ini ditandai pada peta dan ditabulasi dalam tabel terpisah untuk memudahkan tindak lanjut.</p>
 
       <table class="param-table">
-        <thead><tr><th>Parameter</th><th>Threshold Rawan</th></tr></thead>
+        <thead><tr><th>Parameter</th><th data-i18n="docs.rawan.thresholdCol">Threshold Rawan</th></tr></thead>
         <tbody>
           <tr><td>RSRP</td><td><span class="param-range-bad">&lt; −110 dBm</span></td></tr>
           <tr><td>RSRQ</td><td><span class="param-range-bad">&lt; −19 dB</span></td></tr>
@@ -624,34 +636,34 @@ p.doc-p strong{color:var(--text);font-weight:600}
 
     <!-- AI SETUP -->
     <section class="doc-section" id="ai-setup">
-      <h2 class="section-title">Setup AI Analyst</h2>
-      <p class="section-subtitle">AI siap pakai — tidak perlu konfigurasi apapun</p>
+      <h2 class="section-title" data-i18n="docs.aiSetup.title">Setup AI Analyst</h2>
+      <p class="section-subtitle" data-i18n="docs.aiSetup.subtitle">AI siap pakai — tidak perlu konfigurasi apapun</p>
 
       <div class="callout callout-info">
-        <div class="callout-title">ℹ Tentang AI Analyst</div>
-        Fitur AI Analyst menggunakan <strong>Groq LLM</strong> untuk menganalisis data drive test Anda secara otomatis dan menjawab pertanyaan teknis via chat. AI berjalan sepenuhnya di sisi server — tidak perlu API key, tidak perlu konfigurasi.
+        <div class="callout-title">ℹ <span data-i18n="docs.aiSetup.aboutTitle">Tentang AI Analyst</span></div>
+        <span data-i18n-html="docs.aiSetup.aboutBody">Fitur AI Analyst menggunakan <strong>Groq LLM</strong> untuk menganalisis data drive test Anda secara otomatis dan menjawab pertanyaan teknis via chat. AI berjalan sepenuhnya di sisi server — tidak perlu API key, tidak perlu konfigurasi.</span>
       </div>
 
       <div class="steps">
         <div class="step">
           <div class="step-num">1</div>
           <div class="step-body">
-            <div class="step-title">Upload &amp; Analisis Data</div>
-            <div class="step-desc">Upload file log drive test seperti biasa, lalu klik <strong>Mulai Analisis</strong>. Dashboard akan memproses data Anda secara lokal di browser.</div>
+            <div class="step-title" data-i18n="docs.aiSetup.step1.title">Upload &amp; Analisis Data</div>
+            <div class="step-desc" data-i18n-html="docs.aiSetup.step1.desc">Upload file log drive test seperti biasa, lalu klik <strong>Mulai Analisis</strong>. Dashboard akan memproses data Anda secara lokal di browser.</div>
           </div>
         </div>
         <div class="step">
           <div class="step-num">2</div>
           <div class="step-body">
-            <div class="step-title">Buka Panel AI Analyst</div>
-            <div class="step-desc">Di dashboard, scroll ke section <strong>AI Analyst</strong> atau klik menu navigasi kiri. Panel chat langsung siap digunakan — tidak ada form key yang perlu diisi.</div>
+            <div class="step-title" data-i18n="docs.aiSetup.step2.title">Buka Panel AI Analyst</div>
+            <div class="step-desc" data-i18n-html="docs.aiSetup.step2.desc">Di dashboard, scroll ke section <strong>AI Analyst</strong> atau klik menu navigasi kiri. Panel chat langsung siap digunakan — tidak ada form key yang perlu diisi.</div>
           </div>
         </div>
         <div class="step">
           <div class="step-num">3</div>
           <div class="step-body">
-            <div class="step-title">Pilih Mode Analisis</div>
-            <div class="step-desc">Gunakan tombol <strong>Analisis Cepat</strong> untuk laporan otomatis, atau ketik pertanyaan sendiri di kolom chat untuk analisis spesifik.</div>
+            <div class="step-title" data-i18n="docs.aiSetup.step3.title">Pilih Mode Analisis</div>
+            <div class="step-desc" data-i18n-html="docs.aiSetup.step3.desc">Gunakan tombol <strong>Analisis Cepat</strong> untuk laporan otomatis, atau ketik pertanyaan sendiri di kolom chat untuk analisis spesifik.</div>
           </div>
         </div>
       </div>
@@ -659,28 +671,28 @@ p.doc-p strong{color:var(--text);font-weight:600}
 
     <!-- AI ANALISIS -->
     <section class="doc-section" id="ai-analisis">
-      <h2 class="section-title">Mode Analisis AI</h2>
-      <p class="section-subtitle">Daftar mode analisis cepat yang tersedia</p>
+      <h2 class="section-title" data-i18n="docs.aiModes.title">Mode Analisis AI</h2>
+      <p class="section-subtitle" data-i18n="docs.aiModes.subtitle">Daftar mode analisis cepat yang tersedia</p>
 
       <table class="param-table">
         <thead><tr><th>Mode</th><th>Output</th></tr></thead>
         <tbody>
-          <tr><td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> Laporan Lengkap</td><td>Analisis komprehensif semua parameter dengan rekomendasi</td></tr>
-          <tr><td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg> Evaluasi KPI</td><td>Perbandingan RSRP, RSRQ, SNR terhadap standar 3GPP</td></tr>
-          <tr><td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> Analisis Coverage</td><td>Distribusi spasial sinyal dan identifikasi area blank spot</td></tr>
-          <tr><td>⇄ Analisis Handover</td><td>Pola, frekuensi, dan kualitas handover</td></tr>
-          <tr><td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg> Throughput</td><td>Performa DL/UL dan korelasi dengan kondisi RF</td></tr>
-          <tr><td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Rekomendasi</td><td>Saran teknis optimasi jaringan berdasarkan data</td></tr>
+          <tr><td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> <span data-i18n="docs.aiModes.full">Laporan Lengkap</span></td><td data-i18n="docs.aiModes.fullDesc">Analisis komprehensif semua parameter dengan rekomendasi</td></tr>
+          <tr><td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg> <span data-i18n="docs.aiModes.kpi">Evaluasi KPI</span></td><td data-i18n="docs.aiModes.kpiDesc">Perbandingan RSRP, RSRQ, SNR terhadap standar 3GPP</td></tr>
+          <tr><td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> <span data-i18n="docs.aiModes.coverage">Analisis Coverage</span></td><td data-i18n="docs.aiModes.coverageDesc">Distribusi spasial sinyal dan identifikasi area blank spot</td></tr>
+          <tr><td>⇄ <span data-i18n="docs.aiModes.ho">Analisis Handover</span></td><td data-i18n="docs.aiModes.hoDesc">Pola, frekuensi, dan kualitas handover</td></tr>
+          <tr><td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg> Throughput</td><td data-i18n="docs.aiModes.throughputDesc">Performa DL/UL dan korelasi dengan kondisi RF</td></tr>
+          <tr><td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> <span data-i18n="docs.aiModes.recommendations">Rekomendasi</span></td><td data-i18n="docs.aiModes.recommendationsDesc">Saran teknis optimasi jaringan berdasarkan data</td></tr>
         </tbody>
       </table>
     </section>
 
     <!-- RF OVERVIEW -->
     <section class="doc-section" id="rf-overview">
-      <h2 class="section-title">Analisis RF Lanjutan — Ringkasan</h2>
-      <p class="section-subtitle">Empat fitur analisis yang tidak tersedia di tools drive test berbayar manapun secara terintegrasi</p>
+      <h2 class="section-title" data-i18n="docs.rfOverview.title">Analisis RF Lanjutan — Ringkasan</h2>
+      <p class="section-subtitle" data-i18n="docs.rfOverview.subtitle">Empat fitur analisis yang tidak tersedia di tools drive test berbayar manapun secara terintegrasi</p>
 
-      <p class="doc-p">
+      <p class="doc-p" data-i18n-html="docs.rfOverview.p1">
         Cakra menyediakan empat modul analisis RF lanjutan yang dihitung langsung dari data log drive test, tanpa membutuhkan software GIS tambahan. Keempat modul ini dirancang untuk menjawab pertanyaan teknis yang paling sering dihadapi <strong>RF Optimization Engineer (RNO)</strong> saat menginterpretasikan hasil drive test.
       </p>
 
@@ -688,124 +700,124 @@ p.doc-p strong{color:var(--text);font-weight:600}
         <div class="feat-card" style="border-left:3px solid #f87171">
           <div class="feat-icon" style="color:#f87171"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/><line x1="2" y1="2" x2="22" y2="22"/></svg></div>
           <div class="feat-title">Coverage Gap Detection</div>
-          <div class="feat-desc">Segmentasi otomatis area blank spot berdasarkan RSRP threshold yang dapat dikonfigurasi.</div>
+          <div class="feat-desc" data-i18n="docs.rfOverview.gapDesc">Segmentasi otomatis area blank spot berdasarkan RSRP threshold yang dapat dikonfigurasi.</div>
         </div>
         <div class="feat-card" style="border-left:3px solid #f97316">
           <div class="feat-icon" style="color:#f97316"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
           <div class="feat-title">Cell Churn Detection</div>
-          <div class="feat-desc">Deteksi area instabilitas serving cell dengan sliding window analysis. Bisa indikasi pilot pollution, mobility, atau misconfig HO.</div>
+          <div class="feat-desc" data-i18n="docs.rfOverview.churnDesc">Deteksi area instabilitas serving cell dengan sliding window analysis. Bisa indikasi pilot pollution, mobility, atau misconfig HO.</div>
         </div>
         <div class="feat-card" style="border-left:3px solid #22c55e">
           <div class="feat-icon" style="color:#22c55e"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
           <div class="feat-title">Throughput Correlation</div>
-          <div class="feat-desc">Korelasi Pearson antara kuat sinyal (RSRP) dan throughput DL untuk identifikasi bottleneck.</div>
+          <div class="feat-desc" data-i18n="docs.rfOverview.corrDesc">Korelasi Pearson antara kuat sinyal (RSRP) dan throughput DL untuk identifikasi bottleneck.</div>
         </div>
         <div class="feat-card" style="border-left:3px solid #38bdf8">
           <div class="feat-icon" style="color:#38bdf8"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9"/><path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5"/><circle cx="12" cy="9" r="2"/><path d="M16.2 4.8c2 2 2.26 5.11.8 7.47"/><path d="M19.1 1.9a10.75 10.75 0 0 1 0 15.2"/><line x1="12" y1="9" x2="12" y2="22"/></svg></div>
           <div class="feat-title">Site-based View</div>
-          <div class="feat-desc">Agregasi KPI per eNodeB/site untuk identifikasi site bermasalah secara cepat.</div>
+          <div class="feat-desc" data-i18n="docs.rfOverview.siteDesc">Agregasi KPI per eNodeB/site untuk identifikasi site bermasalah secara cepat.</div>
         </div>
         <div class="feat-card" style="border-left:3px solid #a78bfa">
           <div class="feat-icon" style="color:#a78bfa"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6"/><path d="M12 17v6"/><path d="M4.22 4.22l4.24 4.24"/><path d="M15.54 15.54l4.24 4.24"/><path d="M1 12h6"/><path d="M17 12h6"/></svg></div>
           <div class="feat-title">PCI Mod-3 Conflict</div>
-          <div class="feat-desc">Deteksi potensi PSS collision antar sel berdasarkan PCI mod-3 + spatial proximity di drive route.</div>
+          <div class="feat-desc" data-i18n="docs.rfOverview.pciDesc">Deteksi potensi PSS collision antar sel berdasarkan PCI mod-3 + spatial proximity di drive route.</div>
         </div>
       </div>
 
       <div class="callout callout-info">
-        <div class="callout-title">Referensi Standar</div>
-        Definisi parameter (RSRP, RSRQ, SS-SINR, dst) dan rentang nilai validnya merujuk pada <strong>3GPP TS 36.133 / 36.214</strong> (LTE) dan <strong>3GPP TS 38.215 / 38.133</strong> (5G NR). <em>Threshold kategorisasi</em> "good/fair/poor" yang dipakai di Cakra adalah konvensi umum operator industri (selaras dengan vendor optimization manual seperti Ericsson, Huawei, Nokia) — 3GPP sendiri tidak menetapkan label kualitatif untuk nilai RSRP/RSRQ, hanya rentang valid pengukurannya. Algoritma deteksi (Coverage Gap, Cell Churn, dst) adalah heuristik engineering — bukan algoritma yang distandarisasi.
+        <div class="callout-title" data-i18n="docs.rfOverview.standardRefTitle">Referensi Standar</div>
+        <span data-i18n-html="docs.rfOverview.standardRefBody">Definisi parameter (RSRP, RSRQ, SS-SINR, dst) dan rentang nilai validnya merujuk pada <strong>3GPP TS 36.133 / 36.214</strong> (LTE) dan <strong>3GPP TS 38.215 / 38.133</strong> (5G NR). <em>Threshold kategorisasi</em> "good/fair/poor" yang dipakai di Cakra adalah konvensi umum operator industri (selaras dengan vendor optimization manual seperti Ericsson, Huawei, Nokia) — 3GPP sendiri tidak menetapkan label kualitatif untuk nilai RSRP/RSRQ, hanya rentang valid pengukurannya. Algoritma deteksi (Coverage Gap, Cell Churn, dst) adalah heuristik engineering — bukan algoritma yang distandarisasi.</span>
       </div>
     </section>
 
     <!-- COVERAGE GAP -->
     <section class="doc-section" id="coverage-gap">
       <h2 class="section-title">Coverage Gap Detection</h2>
-      <p class="section-subtitle">Deteksi dan pemetaan area blank spot secara otomatis</p>
+      <p class="section-subtitle" data-i18n="docs.gap.subtitle">Deteksi dan pemetaan area blank spot secara otomatis</p>
 
-      <h3 class="subsection-title">Dasar Teori</h3>
-      <p class="doc-p">
+      <h3 class="subsection-title" data-i18n="docs.theory">Dasar Teori</h3>
+      <p class="doc-p" data-i18n-html="docs.gap.p1">
         Dalam jaringan LTE, kekuatan sinyal referensi yang diterima UE (User Equipment) diukur sebagai <strong>RSRP (Reference Signal Received Power)</strong>. RSRP mengukur daya rata-rata sumber daya elemen (resource element) yang membawa sinyal referensi sel dalam band LTE. Nilai RSRP sangat bergantung pada jarak UE dari antena, penghalang fisik (gedung, bukit), dan konfigurasi antena (tinggi, tilt, azimuth).
       </p>
-      <p class="doc-p">
+      <p class="doc-p" data-i18n-html="docs.gap.p2">
         Ketika RSRP turun di bawah nilai minimum operasional, UE tidak lagi dapat mempertahankan koneksi yang stabil. Area ini disebut <strong>coverage gap</strong> atau blank spot. Dalam konteks drive test, coverage gap teridentifikasi sebagai segmen rute di mana RSRP secara konsisten berada di bawah threshold yang ditentukan.
       </p>
 
       <div class="callout callout-info">
-        <div class="callout-title">Catatan Threshold RLF</div>
-        Tidak ada nilai RSRP tunggal yang resmi sebagai ambang Radio Link Failure (RLF) di 3GPP. RLF di 3GPP TS 36.331 didefinisikan via mekanisme <strong>N310/N311</strong>: yaitu N310 indikasi out-of-sync berturut-turut dari fisik layer, dengan kriteria out-of-sync biasanya mengacu pada <strong>Q<sub>out</sub> ≈ −8 dB SINR</strong> (BLER ~10% pada PDCCH). RSRP rendah (−110 sampai −120 dBm) memang sangat berkorelasi dengan RLF dalam praktik karena umumnya disertai SINR yang turun, tapi RSRP bukan kriteria langsung. Threshold default Coverage Gap di Cakra (−100 dBm) mengikuti praktik operator KPI premium, bukan ambang RLF.
+        <div class="callout-title" data-i18n="docs.gap.rlfTitle">Catatan Threshold RLF</div>
+        <span data-i18n-html="docs.gap.rlfBody">Tidak ada nilai RSRP tunggal yang resmi sebagai ambang Radio Link Failure (RLF) di 3GPP. RLF di 3GPP TS 36.331 didefinisikan via mekanisme <strong>N310/N311</strong>: yaitu N310 indikasi out-of-sync berturut-turut dari fisik layer, dengan kriteria out-of-sync biasanya mengacu pada <strong>Q<sub>out</sub> ≈ −8 dB SINR</strong> (BLER ~10% pada PDCCH). RSRP rendah (−110 sampai −120 dBm) memang sangat berkorelasi dengan RLF dalam praktik karena umumnya disertai SINR yang turun, tapi RSRP bukan kriteria langsung. Threshold default Coverage Gap di Cakra (−100 dBm) mengikuti praktik operator KPI premium, bukan ambang RLF.</span>
       </div>
 
-      <h3 class="subsection-title">Cara Kerja Algoritma</h3>
+      <h3 class="subsection-title" data-i18n="docs.howAlgoWorks">Cara Kerja Algoritma</h3>
       <div class="steps">
         <div class="step">
           <div class="step-num">1</div>
           <div class="step-body">
-            <div class="step-title">Ambil data GPS valid</div>
-            <div class="step-desc">Cakra memfilter semua data point yang memiliki koordinat GPS valid (latitude dan longitude bukan null). Data point tanpa GPS dikecualikan dari analisis spasial.</div>
+            <div class="step-title" data-i18n="docs.gap.step1.title">Ambil data GPS valid</div>
+            <div class="step-desc" data-i18n="docs.gap.step1.desc">Cakra memfilter semua data point yang memiliki koordinat GPS valid (latitude dan longitude bukan null). Data point tanpa GPS dikecualikan dari analisis spasial.</div>
           </div>
         </div>
         <div class="step">
           <div class="step-num">2</div>
           <div class="step-body">
-            <div class="step-title">Bandingkan RSRP tiap titik terhadap threshold</div>
-            <div class="step-desc">Setiap data point dibandingkan dengan threshold yang dipilih (default −100 dBm). Titik dengan RSRP ≤ threshold ditandai sebagai "buruk". Threshold dapat dikonfigurasi dari −90 hingga −110 dBm.</div>
+            <div class="step-title" data-i18n="docs.gap.step2.title">Bandingkan RSRP tiap titik terhadap threshold</div>
+            <div class="step-desc" data-i18n="docs.gap.step2.desc">Setiap data point dibandingkan dengan threshold yang dipilih (default −100 dBm). Titik dengan RSRP ≤ threshold ditandai sebagai "buruk". Threshold dapat dikonfigurasi dari −90 hingga −110 dBm.</div>
           </div>
         </div>
         <div class="step">
           <div class="step-num">3</div>
           <div class="step-body">
-            <div class="step-title">Segmentasi berurutan</div>
-            <div class="step-desc">Titik-titik "buruk" yang berurutan (consecutive) dikelompokkan menjadi satu segmen gap. Segmen baru dimulai ketika ada titik "baik" di antara dua cluster titik buruk. Segmen dengan panjang ≥ 2 titik dianggap signifikan.</div>
+            <div class="step-title" data-i18n="docs.gap.step3.title">Segmentasi berurutan</div>
+            <div class="step-desc" data-i18n="docs.gap.step3.desc">Titik-titik "buruk" yang berurutan (consecutive) dikelompokkan menjadi satu segmen gap. Segmen baru dimulai ketika ada titik "baik" di antara dua cluster titik buruk. Segmen dengan panjang ≥ 2 titik dianggap signifikan.</div>
           </div>
         </div>
         <div class="step">
           <div class="step-num">4</div>
           <div class="step-body">
-            <div class="step-title">Visualisasi polyline di peta</div>
-            <div class="step-desc">Setiap segmen gap digambar sebagai polyline merah tebal di peta Leaflet, dengan popup yang menampilkan rata-rata RSRP, nilai minimum, panjang segmen, dan nama sel yang serving.</div>
+            <div class="step-title" data-i18n="docs.gap.step4.title">Visualisasi polyline di peta</div>
+            <div class="step-desc" data-i18n="docs.gap.step4.desc">Setiap segmen gap digambar sebagai polyline merah tebal di peta Leaflet, dengan popup yang menampilkan rata-rata RSRP, nilai minimum, panjang segmen, dan nama sel yang serving.</div>
           </div>
         </div>
         <div class="step">
           <div class="step-num">5</div>
           <div class="step-body">
-            <div class="step-title">Tabulasi dan statistik</div>
-            <div class="step-desc">Panel Coverage Gap menampilkan tabel semua segmen dengan statistik agregat: jumlah gap, total titik, panjang rata-rata, dan segmen terpanjang.</div>
+            <div class="step-title" data-i18n="docs.gap.step5.title">Tabulasi dan statistik</div>
+            <div class="step-desc" data-i18n="docs.gap.step5.desc">Panel Coverage Gap menampilkan tabel semua segmen dengan statistik agregat: jumlah gap, total titik, panjang rata-rata, dan segmen terpanjang.</div>
           </div>
         </div>
       </div>
 
-      <h3 class="subsection-title">Threshold yang Tersedia</h3>
+      <h3 class="subsection-title" data-i18n="docs.gap.availThresholdTitle">Threshold yang Tersedia</h3>
       <table class="param-table">
-        <thead><tr><th>Threshold</th><th>Konteks Penggunaan</th><th>Interpretasi</th></tr></thead>
+        <thead><tr><th>Threshold</th><th data-i18n="docs.gap.usageContext">Konteks Penggunaan</th><th data-i18n="docs.interpretation">Interpretasi</th></tr></thead>
         <tbody>
-          <tr><td><span class="inline-code">−90 dBm</span></td><td>Target KPI operator premium</td><td>Area di bawah ini berpotensi degradasi throughput untuk user aktif</td></tr>
-          <tr><td><span class="inline-code">−95 dBm</span></td><td>Target intermediate</td><td>Border area acceptable coverage</td></tr>
-          <tr><td><span class="inline-code" style="color:var(--cyan)">−100 dBm (default)</span></td><td>Threshold KPI operator umum</td><td>Di bawah ini = coverage lemah, user experience terdegradasi signifikan</td></tr>
-          <tr><td><span class="inline-code">−105 dBm</span></td><td>Near-edge of coverage</td><td>Rawan disconnection, handover failure meningkat</td></tr>
-          <tr><td><span class="inline-code">−110 dBm</span></td><td>Batas minimum operasional</td><td>Radio link failure imminent, de facto blank spot</td></tr>
+          <tr><td><span class="inline-code">−90 dBm</span></td><td data-i18n="docs.gap.t90ctx">Target KPI operator premium</td><td data-i18n="docs.gap.t90int">Area di bawah ini berpotensi degradasi throughput untuk user aktif</td></tr>
+          <tr><td><span class="inline-code">−95 dBm</span></td><td data-i18n="docs.gap.t95ctx">Target intermediate</td><td data-i18n="docs.gap.t95int">Border area acceptable coverage</td></tr>
+          <tr><td><span class="inline-code" style="color:var(--cyan)">−100 dBm (default)</span></td><td data-i18n="docs.gap.t100ctx">Threshold KPI operator umum</td><td data-i18n="docs.gap.t100int">Di bawah ini = coverage lemah, user experience terdegradasi signifikan</td></tr>
+          <tr><td><span class="inline-code">−105 dBm</span></td><td>Near-edge of coverage</td><td data-i18n="docs.gap.t105int">Rawan disconnection, handover failure meningkat</td></tr>
+          <tr><td><span class="inline-code">−110 dBm</span></td><td data-i18n="docs.gap.t110ctx">Batas minimum operasional</td><td data-i18n="docs.gap.t110int">Radio link failure imminent, de facto blank spot</td></tr>
         </tbody>
       </table>
 
-      <h3 class="subsection-title">Cara Membaca Hasil</h3>
-      <p class="doc-p">
+      <h3 class="subsection-title" data-i18n="docs.howToReadResults">Cara Membaca Hasil</h3>
+      <p class="doc-p" data-i18n-html="docs.gap.readResultsP1">
         Perhatikan tiga kolom utama pada tabel Coverage Gap: <strong>Avg RSRP</strong> menunjukkan rata-rata kualitas di segmen tersebut, <strong>Min RSRP</strong> menunjukkan titik terburuk, dan <strong>Panjang</strong> menunjukkan berapa banyak data point yang masuk dalam segmen. Semakin panjang segmen dan semakin rendah Min RSRP, semakin prioritas segmen ini untuk ditangani.
       </p>
 
       <div class="callout callout-warn">
-        <div class="callout-title">Pertimbangan Penting</div>
-        Coverage gap yang pendek (2–5 titik) di area dengan kecepatan tinggi bisa jadi hanya shadow fading sesaat, bukan blank spot struktural. Bandingkan dengan data historis atau lakukan re-drive test untuk konfirmasi. Gap yang konsisten muncul di lokasi yang sama di beberapa sesi drive test mengindikasikan masalah struktural coverage.
+        <div class="callout-title" data-i18n="docs.importantConsideration">Pertimbangan Penting</div>
+        <span data-i18n="docs.gap.warnBody">Coverage gap yang pendek (2–5 titik) di area dengan kecepatan tinggi bisa jadi hanya shadow fading sesaat, bukan blank spot struktural. Bandingkan dengan data historis atau lakukan re-drive test untuk konfirmasi. Gap yang konsisten muncul di lokasi yang sama di beberapa sesi drive test mengindikasikan masalah struktural coverage.</span>
       </div>
 
-      <h3 class="subsection-title">Tindak Lanjut Rekomendasi</h3>
+      <h3 class="subsection-title" data-i18n="docs.recommendedFollowUp">Tindak Lanjut Rekomendasi</h3>
       <table class="param-table">
-        <thead><tr><th>Kondisi</th><th>Kemungkinan Penyebab</th><th>Solusi</th></tr></thead>
+        <thead><tr><th data-i18n="docs.condition">Kondisi</th><th data-i18n="docs.possibleCause">Kemungkinan Penyebab</th><th data-i18n="docs.solution">Solusi</th></tr></thead>
         <tbody>
-          <tr><td>Gap terisolasi, pendek</td><td>Shadow fading, obstacle sementara</td><td>Re-drive test, tambah data point</td></tr>
-          <tr><td>Gap memanjang di jalan utama</td><td>Jarak BTS terlalu jauh, terrain blocking</td><td>Evaluasi tilting antena, pertimbangkan site baru / indoor repeater</td></tr>
-          <tr><td>Gap di area densely built</td><td>Penetration loss gedung tinggi</td><td>Indoor coverage solution (femtocell, DAS)</td></tr>
-          <tr><td>Gap muncul di banyak sesi berbeda</td><td>Masalah hardware antena atau kabel</td><td>Drive ke site, cek alarm OMC, inspeksi fisik antena</td></tr>
-          <tr><td>Gap tepat di batas antar dua sel</td><td>Coverage border terlalu agresif</td><td>Adjust antenna azimuth, electrical tilt, atau TX power</td></tr>
+          <tr><td data-i18n="docs.gap.c1.cond">Gap terisolasi, pendek</td><td data-i18n="docs.gap.c1.cause">Shadow fading, obstacle sementara</td><td data-i18n="docs.gap.c1.sol">Re-drive test, tambah data point</td></tr>
+          <tr><td data-i18n="docs.gap.c2.cond">Gap memanjang di jalan utama</td><td data-i18n="docs.gap.c2.cause">Jarak BTS terlalu jauh, terrain blocking</td><td data-i18n="docs.gap.c2.sol">Evaluasi tilting antena, pertimbangkan site baru / indoor repeater</td></tr>
+          <tr><td data-i18n="docs.gap.c3.cond">Gap di area densely built</td><td data-i18n="docs.gap.c3.cause">Penetration loss gedung tinggi</td><td data-i18n="docs.gap.c3.sol">Indoor coverage solution (femtocell, DAS)</td></tr>
+          <tr><td data-i18n="docs.gap.c4.cond">Gap muncul di banyak sesi berbeda</td><td data-i18n="docs.gap.c4.cause">Masalah hardware antena atau kabel</td><td data-i18n="docs.gap.c4.sol">Drive ke site, cek alarm OMC, inspeksi fisik antena</td></tr>
+          <tr><td data-i18n="docs.gap.c5.cond">Gap tepat di batas antar dua sel</td><td data-i18n="docs.gap.c5.cause">Coverage border terlalu agresif</td><td>Adjust antenna azimuth, electrical tilt, atau TX power</td></tr>
         </tbody>
       </table>
     </section>
