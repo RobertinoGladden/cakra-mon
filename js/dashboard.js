@@ -347,14 +347,14 @@ function buildEvents() {
     return `<tr>
       <td style="color:var(--text3);font-size:9px">${startIndex + i + 1}</td>
       <td><span class="${tagClass}">${tagLabel}</span>${nrBadge}</td>
-      <td style="font-size:9px;color:var(--cyan)">${ev.type || '—'}</td>
-      <td>${ev.timeDisp || ev.time}</td>
-      <td>${ev.fromCell}</td>
-      <td>${ev.toCell}</td>
+      <td style="font-size:9px;color:var(--cyan)" title="${ev.type || '—'}">${ev.type || '—'}</td>
+      <td title="${ev.timeDisp || ev.time}">${ev.timeDisp || ev.time}</td>
+      <td title="${ev.fromCell || '—'}">${ev.fromCell || '—'}</td>
+      <td title="${ev.toCell || '—'}">${ev.toCell || '—'}</td>
       <td style="color:${parseInt(ev.rsrp)<-100?'var(--red)':parseInt(ev.rsrp)<-80?'var(--yellow)':'var(--green)'}">${ev.rsrp}</td>
       <td>${ev.rsrq}</td>
       <td>${ev.snr}</td>
-      <td style="color:var(--text2)">${ev.enb||'—'}</td>
+      <td style="color:var(--text2)" title="${ev.enb||'—'}">${ev.enb||'—'}</td>
     </tr>`;
   }).join('');
 
@@ -571,14 +571,14 @@ function buildRawan() {
             if (d.snr<-10)   issues.push('SNR');
             return `<tr>
               <td style="color:var(--text3);font-size:9px">${start+i+1}</td>
-              <td>${d.timePart || (d.tsDisp ? d.tsDisp.substring(11) : '')}</td>
+              <td title="${d.timePart || (d.tsDisp ? d.tsDisp.substring(11) : '')}">${d.timePart || (d.tsDisp ? d.tsDisp.substring(11) : '')}</td>
               <td class="${d.rsrp<-100?'td-bad':'td-warn'}">${d.rsrp}</td>
               <td class="${d.rsrq<-19?'td-bad':'td-warn'}">${d.rsrq}</td>
               <td class="${d.snr<-10?'td-bad':d.snr<0?'td-warn':''}">${d.snr}</td>
-              <td>${d.cellname||'—'}</td>
+              <td title="${d.cellname||'—'}">${d.cellname||'—'}</td>
               <td style="color:var(--text3);font-size:9px">${d.lat?d.lat.toFixed(5):'—'}</td>
               <td style="color:var(--text3);font-size:9px">${d.lon?d.lon.toFixed(5):'—'}</td>
-              <td>${issues.map(is=>`<span class="badge-bad" style="margin-right:2px">${is}</span>`).join('')}</td>
+              <td title="${issues.join(', ')}">${issues.map(is=>`<span class="badge-bad" style="margin-right:2px">${is}</span>`).join('')}</td>
             </tr>`;
           }).join('')}</tbody>
         </table>
@@ -780,11 +780,11 @@ function buildCoverageGapPanel() {
     const cell = seg[0].cellname || '—';
     return `<tr>
       <td style="color:var(--text3);font-size:9px">${i+1}</td>
-      <td style="font-size:10px;color:var(--cyan)">${start}${end&&end!==start?' — '+end:''}</td>
+      <td style="font-size:10px;color:var(--cyan)" title="${start}${end&&end!==start?' — '+end:''}">${start}${end&&end!==start?' — '+end:''}</td>
       <td class="td-bad">${avg}</td>
       <td class="td-bad">${min}</td>
       <td style="color:var(--text2)">${seg.length}</td>
-      <td style="font-size:10px">${cell}</td>
+      <td style="font-size:10px" title="${cell}">${cell}</td>
     </tr>`;
   }).join('');
 
@@ -875,7 +875,7 @@ function buildCellChurnPanel() {
 
   const cellRows = topCells.map(([cell, cnt], i) => `<tr>
     <td style="color:var(--text3);font-size:9px">${i+1}</td>
-    <td style="color:var(--text2)">${cell}</td>
+    <td style="color:var(--text2)" title="${cell}">${cell}</td>
     <td style="color:var(--orange);font-weight:600">${cnt}</td>
     <td style="font-size:10px;color:var(--text3)">${((cnt/churnPts.length)*100).toFixed(1)}%</td>
   </tr>`).join('');
@@ -1046,8 +1046,8 @@ function buildSiteView() {
     const badColor = parseFloat(s.badPct) > 20 ? 'var(--red)' : parseFloat(s.badPct) > 10 ? 'var(--yellow)' : 'var(--green)';
     return `<tr>
       <td style="color:var(--text3);font-size:9px">${i+1}</td>
-      <td style="font-family:var(--mono);font-size:11px;color:var(--cyan)">${s.node}</td>
-      <td style="color:var(--text3)">${s.cells.slice(0,3).join(', ')}${s.cells.length>3?' +'+( s.cells.length-3):''}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--cyan)" title="${s.node}">${s.node}</td>
+      <td style="color:var(--text3)" title="${s.cells.join(', ')}">${s.cells.slice(0,3).join(', ')}${s.cells.length>3?' +'+( s.cells.length-3):''}</td>
       <td style="text-align:center">${s.cells.length}</td>
       <td style="text-align:right;font-weight:600;color:${rsrpColor}">${s.avgRsrpStr}</td>
       <td style="text-align:right;color:var(--text2)">${s.avgDl}</td>
@@ -1176,9 +1176,9 @@ function buildPciConflictPanel() {
     const sevColor = c.occurrences > 20 ? 'var(--red)' : c.occurrences > 8 ? 'var(--orange)' : 'var(--yellow)';
     return `<tr>
       <td style="color:var(--text3);font-size:9px">${i+1}</td>
-      <td style="color:var(--text2);font-family:var(--mono);font-size:10px">${c.cellA}</td>
+      <td style="color:var(--text2);font-family:var(--mono);font-size:10px" title="${c.cellA}">${c.cellA}</td>
       <td style="text-align:center;color:var(--cyan);font-family:var(--mono);font-weight:600">${c.pciA}</td>
-      <td style="color:var(--text2);font-family:var(--mono);font-size:10px">${c.cellB}</td>
+      <td style="color:var(--text2);font-family:var(--mono);font-size:10px" title="${c.cellB}">${c.cellB}</td>
       <td style="text-align:center;color:var(--cyan);font-family:var(--mono);font-weight:600">${c.pciB}</td>
       <td style="text-align:center;color:var(--orange);font-weight:600">${c.mod3}</td>
       <td style="text-align:right;color:${sevColor};font-weight:600">${c.occurrences}</td>

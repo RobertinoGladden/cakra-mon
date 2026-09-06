@@ -1631,11 +1631,11 @@ window.CakraI18n = (() => {
     },
   };
 
-  let currentLang = localStorage.getItem('cakra_lang') || 'id';
+  let currentLang = localStorage.getItem('cakra_lang') || 'en';
 
   // t('some.key', { n: 5, pct: '12.3' }) → mengganti token {n}, {pct}, dst di dalam string dictionary.
   function t(key, params) {
-    let str = (DICT[currentLang] && DICT[currentLang][key]) || (DICT.id[key]) || key;
+    let str = (DICT[currentLang] && DICT[currentLang][key]) || (DICT.en[key]) || (DICT.id[key]) || key;
     if (params) {
       Object.keys(params).forEach(k => {
         str = str.replace(new RegExp(`\\{${k}\\}`, 'g'), params[k]);

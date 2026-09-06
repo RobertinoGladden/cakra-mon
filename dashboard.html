@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
@@ -218,8 +218,10 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  padding-bottom: 112px;
 }
-#dashContent { flex: 1; display: flex; flex-direction: column; }
+#dashContent { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .no-data-state {
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; min-height: 70vh; gap: 14px; text-align: center;
@@ -280,26 +282,34 @@ body {
 .bento-card .section-title { font-size: 10.5px; }
 .bento-card .section-sub { font-size: 10px; }
 
-.bento-overview { grid-template-columns: repeat(3, 1fr); grid-auto-rows: minmax(min-content, auto); }
-.bento-overview .bento-span-2 { grid-column: span 2; }
-.bento-overview .bento-span-3 { grid-column: span 3; }
+.bento-overview { grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: minmax(min-content, auto); }
+.bento-overview .bento-span-2 { grid-column: span 8; }
+.bento-overview .bento-span-3 { grid-column: span 12; }
+#bento_cell { grid-column: span 4; }
 
-.bento-grafik { grid-template-columns: 1.3fr 1fr; align-items: start; }
+.bento-grafik { grid-template-columns: repeat(12, minmax(0, 1fr)); align-items: start; }
 .bento-grafik .bento-card { min-height: 480px; }
+#bento_grafik { grid-column: span 7; }
+#bento_distribusi { grid-column: span 5; }
 
-.bento-peta { grid-template-columns: 2fr 1fr; }
+.bento-peta { grid-template-columns: repeat(12, minmax(0, 1fr)); }
 .bento-peta .bento-map { grid-row: span 2; min-height: 560px; }
 .bento-peta .bento-card:not(.bento-map) { min-height: 340px; }
+#bento_map { grid-column: span 7; }
+#bento_events, #bento_rawan { grid-column: span 5; }
 
-.bento-analisis { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); grid-auto-rows: minmax(520px, auto); align-items: start; }
+.bento-analisis { grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: minmax(420px, auto); align-items: start; }
+#bento_covgap, #bento_cellchurn, #bento_throughputcorr, #bento_pciconflict { grid-column: span 6; }
+#bento_siteview { grid-column: 1 / -1; }
 
 @media (max-width: 1400px) {
-  .bento-analisis { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+  .bento-analisis { grid-template-columns: repeat(12, minmax(0, 1fr)); }
 }
 @media (max-width: 980px) {
   .bento-overview, .bento-grafik, .bento-peta, .bento-analisis { grid-template-columns: 1fr; }
   .bento-overview .bento-span-2, .bento-overview .bento-span-3 { grid-column: span 1; }
   .bento-peta .bento-map { grid-row: auto; }
+  #bento_cell, #bento_grafik, #bento_distribusi, #bento_map, #bento_events, #bento_rawan, #bento_covgap, #bento_cellchurn, #bento_throughputcorr, #bento_siteview, #bento_pciconflict { grid-column: span 1; }
 }
 .section-hdr {
   display: flex; align-items: flex-start; gap: 14px;
@@ -526,8 +536,23 @@ body {
 .map-container {
   position: relative; border-radius:10px; overflow: hidden;
   border: 1px solid var(--border); background: var(--bg2);
+  min-height: 420px;
 }
-#map { height: 380px; }
+#map { height: calc(100vh - 220px); min-height: 420px; max-height: 780px; position: relative; z-index: 0; }
+.map-legend-panel, .map-stats-overlay { z-index: 10; }
+.map-skeleton {
+  position: absolute; inset: 0; z-index: 8;
+  display: none; align-items: center; justify-content: center; flex-direction: column; gap: 10px;
+  background: linear-gradient(180deg, rgba(8,9,10,0.95), rgba(8,9,10,0.88));
+  font-family: var(--mono); letter-spacing: 0.08em;
+}
+.map-skeleton.active { display: flex; }
+.map-skeleton-dot {
+  width: 12px; height: 12px; border-radius: 999px; background: var(--cyan);
+  animation: pulse 1.3s ease-in-out infinite;
+}
+.map-skeleton-text { font-size: 10px; color: var(--text2); }
+@keyframes pulse { 0%,100%{transform:scale(0.8);opacity:.6;}50%{transform:scale(1);opacity:1;} }
 
 /* Compact map overlays */
 .map-legend-panel {
@@ -588,10 +613,10 @@ body {
 }
 .event-stat-lbl { font-family: var(--mono); font-size: 10px; color: var(--text2); margin-top: 4px; }
 .events-table-wrap {
-  overflow-x: auto; border-radius:10px;
+  width: 100%; min-width: 0; overflow-x: auto; border-radius:10px;
   border: 1px solid var(--border); background: var(--bg2);
 }
-.events-table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 580px; }
+.events-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; min-width: 860px; }
 .events-table th {
   background: var(--bg3); padding: 8px 12px;
   font-family: var(--mono); font-size: 9px; font-weight: 600;
@@ -602,7 +627,9 @@ body {
 .events-table td {
   padding: 7px 12px; border-bottom: 1px solid var(--border);
   font-family: var(--mono); color: var(--text2); vertical-align: middle;
+  max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+.events-table thead th { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(8px); }
 .events-table tr:last-child td { border-bottom: none; }
 .events-table tr:hover td { background: rgba(255,255,255,0.03); }
 .tag-ho {
@@ -635,7 +662,7 @@ body {
 .std-cyan   { background: var(--cyan-dim);   color: var(--cyan-hi); border-bottom: 1px solid rgba(6,182,212,0.15); }
 .std-purple { background: var(--purple-dim); color: var(--purple);  border-bottom: 1px solid rgba(168,85,247,0.15); }
 .std-green  { background: var(--green-dim);  color: var(--green);   border-bottom: 1px solid rgba(34,197,94,0.15); }
-.std-table { width: 100%; border-collapse: collapse; }
+.std-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .std-table th {
   font-family: var(--mono); font-size: 9px; color: var(--text3);
   padding: 6px 10px; border-bottom: 1px solid var(--border);
@@ -646,7 +673,9 @@ body {
   font-size: 11px; padding: 6px 10px;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
+  max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+.std-table thead th { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(8px); }
 .std-table tr:last-child td { border-bottom: none; }
 .fw { font-weight: 600; }
 .c-blue   { color: #60a5fa; }
@@ -706,8 +735,8 @@ body {
   font-weight: 600; color: var(--text2); background: var(--bg3);
   letter-spacing: 0.06em; border-bottom: 1px solid var(--border);
 }
-.danger-scroll { overflow-x: auto; }
-.rawan-table { width: 100%; border-collapse: collapse; min-width: 680px; }
+.danger-scroll { width: 100%; min-width: 0; overflow-x: auto; }
+.rawan-table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 860px; }
 .rawan-table th {
   background: var(--bg2); padding: 8px 12px;
   font-family: var(--mono); font-size: 9px; font-weight: 600;
@@ -718,7 +747,9 @@ body {
 .rawan-table td {
   padding: 7px 12px; border-bottom: 1px solid var(--border);
   font-family: var(--mono); font-size: 10.5px; color: var(--text2);
+  max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+.rawan-table thead th { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(8px); }
 .rawan-table tr:last-child td { border-bottom: none; }
 .rawan-table tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
 .rawan-table tr:hover td { background: rgba(255,255,255,0.04); }
@@ -1025,6 +1056,15 @@ body {
 }
 .lang-btn:hover { color: var(--text); }
 .lang-btn.active { color: var(--cyan); }
+.icon-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px; cursor: pointer;
+  color: var(--text2); transition: background 0.1s,color 0.1s,border-color 0.1s;
+}
+.icon-btn:hover { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
 
 .scroll-top {
   position: fixed; bottom: 20px; left: 20px; z-index: 200;
@@ -1138,6 +1178,7 @@ body {
 [data-theme="light"] .topbar  { background: rgba(248,249,250,0.93); border-color: rgba(0,0,0,0.08); }
 [data-theme="light"] .info-card { background: var(--bg3); border-color: var(--border); }
 [data-theme="light"] .events-table tr:hover td { background: rgba(6,182,212,0.06); }
+[data-theme="light"] .map-skeleton { background: linear-gradient(180deg, rgba(248,250,252,0.94), rgba(241,245,249,0.92)); }
 
 /* FIELD TOOLS */
 .field-tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 12px; }
@@ -1165,10 +1206,11 @@ body {
 .check-val { font-family: var(--mono); font-size: 10px; font-weight: 600; }
 
 /* Threshold table */
-.threshold-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 9.5px; }
+.threshold-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-family: var(--mono); font-size: 9.5px; }
 .threshold-table th { color: var(--text3); font-weight: 500; padding: 4px 6px; text-align: left; border-bottom: 1px solid var(--border); letter-spacing: 0.04em; }
 .threshold-table td { padding: 5px 6px; border-bottom: 1px solid var(--border); color: var(--text2); }
 .threshold-table tr:last-child td { border-bottom: none; }
+.threshold-table thead th { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(8px); background: var(--bg3); }
 .thr-good { color: var(--cyan); font-weight: 600; }
 .thr-warn { color: #facc15; font-weight: 600; }
 .thr-bad  { color: #f87171; font-weight: 600; }
@@ -1190,8 +1232,8 @@ body {
 
 </style>
 <script>
-// Inline theme preset (prevents flash) — synced with cakra_theme key
-(function(){var s=sessionStorage.getItem('cakra_theme')||'system';var t=s==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):s;document.documentElement.setAttribute('data-theme',t)})();
+// Inline theme preset (prevents flash) — default light, no system auto mode
+(function(){var t=localStorage.getItem('cakra_theme')||'light';if(t!=='dark'&&t!=='light')t='light';document.documentElement.setAttribute('data-theme',t)})();
 </script>
 
 <link rel="stylesheet" href="css/maritime-theme.css">
@@ -1250,10 +1292,11 @@ body {
     <button id="exportExcelBtn" title="Export Excel" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;color:var(--green);transition:background 0.1s,color 0.1s,border-color 0.1s;font-size:14px;font-weight:600" onclick="CakraExport.exportExcel()" onmouseover="this.style.background='var(--green-dim)';this.style.borderColor='var(--green)'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg></button>
     <button id="compareBtn" title="Compare Sessions" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;color:#a78bfa;transition:background 0.1s,color 0.1s,border-color 0.1s;font-size:14px;margin-left:4px;font-weight:600" onclick="if(typeof openCompareDialog==='function')openCompareDialog()" onmouseover="this.style.background='rgba(168,85,247,0.1)';this.style.borderColor='#a78bfa'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><rect x="2" y="3" width="7" height="18" rx="1"/><rect x="15" y="3" width="7" height="18" rx="1"/><line x1="12" y1="6" x2="12" y2="18" stroke-dasharray="3 3"/></svg></button>
     <button id="virtualDtBtn" title="Virtual Drive Test — Prediksi Coverage" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;color:#4ade80;transition:background 0.1s,color 0.1s,border-color 0.1s;font-size:14px;margin-left:4px;font-weight:600" onclick="window.location.href='predict.html'" onmouseover="this.style.background='rgba(74,222,128,0.1)';this.style.borderColor='#4ade80'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9"/><path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5"/><circle cx="12" cy="9" r="2"/><path d="M16.2 4.8c2 2 2.26 5.11.8 7.47"/><path d="M19.1 1.9a10.75 10.75 0 0 1 0 15.2"/><line x1="12" y1="9" x2="12" y2="22"/></svg></button>
+    <button id="themeBtnDash" class="icon-btn" title="Theme" onclick="cycleThemeDash()"></button>
     <div class="lang-switch" id="langSwitch" role="group" aria-label="Language">
-      <button class="lang-btn active" id="langBtnId" data-lang="id" onclick="CakraI18n.setLanguage('id')">ID</button>
+      <button class="lang-btn" id="langBtnId" data-lang="id" onclick="CakraI18n.setLanguage('id')">ID</button>
       <span class="lang-sep">|</span>
-      <button class="lang-btn" id="langBtnEn" data-lang="en" onclick="CakraI18n.setLanguage('en')">EN</button>
+      <button class="lang-btn active" id="langBtnEn" data-lang="en" onclick="CakraI18n.setLanguage('en')">EN</button>
     </div>
     <div id="exportStatus" style="font-size:10px;color:var(--text2);margin-left:12px;min-width:140px;text-align:right;font-family:var(--mono)"></div>
   </div>
@@ -1630,6 +1673,10 @@ body {
       </div>
       <div class="map-container">
         <div id="map"></div>
+        <div class="map-skeleton active" id="mapSkeleton">
+          <div class="map-skeleton-dot"></div>
+          <div class="map-skeleton-text">INITIALIZING RF MAP ENGINE...</div>
+        </div>
         <div class="map-legend-panel" id="mapLegend"></div>
         <div class="map-stats-overlay" id="mapStats"></div>
       </div>
@@ -1796,43 +1843,33 @@ body {
 
 <script>
 // THEME SYSTEM — Dashboard
-const DASH_THEMES = ['dark','light','system'];
+const DASH_THEMES = ['light','dark'];
 const DASH_ICONS  = [
-  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
-  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>'
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
 ];
 let dashThemeIdx = 0;
 
 function initThemeDash() {
-  const saved = sessionStorage.getItem('cakra_theme') || 'system';
+  const saved = localStorage.getItem('cakra_theme') || 'light';
   dashThemeIdx = DASH_THEMES.indexOf(saved);
   if (dashThemeIdx < 0) dashThemeIdx = 0;
   applyThemeDash();
 }
 function cycleThemeDash() {
   dashThemeIdx = (dashThemeIdx + 1) % DASH_THEMES.length;
-  sessionStorage.setItem('cakra_theme', DASH_THEMES[dashThemeIdx]);
+  localStorage.setItem('cakra_theme', DASH_THEMES[dashThemeIdx]);
   applyThemeDash();
 }
 function applyThemeDash() {
   const theme = DASH_THEMES[dashThemeIdx];
   const btn = document.getElementById('themeBtnDash');
-  let isDark = true;
-  if (theme === 'system') {
-    isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-  } else {
-    isDark = theme === 'dark';
-    document.documentElement.setAttribute('data-theme', theme);
-  }
+  const isDark = theme === 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
   if (btn) btn.innerHTML = DASH_ICONS[dashThemeIdx];
   // Update peta ikut theme
   if (window.CakraMap) CakraMap.updateTheme(isDark);
 }
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-  if (DASH_THEMES[dashThemeIdx] === 'system') applyThemeDash();
-});
 document.addEventListener('DOMContentLoaded', initThemeDash);
 
 // COMPARE SESSIONS

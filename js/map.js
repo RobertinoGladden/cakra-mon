@@ -47,12 +47,26 @@ window.CakraMap = (() => {
       tileLayer = L.maplibreGL({ style: url }).addTo(map);
       tileLayer.getContainer && tileLayer.getContainer().style && (tileLayer.getContainer().style.zIndex = 0);
     }
+
+    function setMapSkeleton(active, text) {
+      const el = document.getElementById('mapSkeleton');
+      if (!el) return;
+      if (text) {
+        const label = el.querySelector('.map-skeleton-text');
+        if (label) label.textContent = text;
+      }
+      el.classList.toggle('active', !!active);
+    }
   }
 
   // Container Leaflet map perlu di-resize saat baru saja ditampilkan lagi
   // (mis. setelah sebelumnya display:none via dashboard panel-switch).
   function invalidateSize() {
-    if (map) setTimeout(() => map.invalidateSize(), 50);
+    if (!map) return;
+    const run = () => map.invalidateSize();
+    requestAnimationFrame(run);
+    setTimeout(run, 60);
+    setTimeout(run, 180);
   }
 
   function makePopupHtml(d) {
@@ -69,6 +83,7 @@ window.CakraMap = (() => {
   }
 
   function build(DATA) {
+    setMapSkeleton(true, 'INITIALIZING RF MAP ENGINE...');
     if (map) { map.remove(); map = null; tileLayer = null; }
 
     const gps = DATA.filter(d => d.lat && d.lon);
@@ -80,6 +95,10 @@ window.CakraMap = (() => {
     ];
 
     map = L.map('map', { zoomControl: true, attributionControl: true }).setView(center, 14);
+    map.whenReady(() => {
+      invalidateSize();
+      setMapSkeleton(false);
+    });
 
     tileLayer = L.maplibreGL({ style: getCurrentStyleUrl() }).addTo(map);
 

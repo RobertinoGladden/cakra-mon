@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="theme-color" content="#06b6d4">
@@ -30,7 +30,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .theme-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;cursor:pointer;color:var(--text2);transition:0.1s}
 .theme-btn:hover{border-color:var(--cyan);color:var(--cyan)}
 
-.container{max-width:1440px;margin:0 auto;padding:20px}
+.container{max-width:1440px;margin:0 auto;padding:20px 20px 112px}
 .header{margin:76px 0 14px}
 .header-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--cyan);text-transform:uppercase;margin-bottom:6px}
 .title{font-family:var(--mono);font-size:30px;font-weight:600;margin-bottom:6px}
@@ -85,12 +85,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .ghost-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:10px;padding:11px 14px;font-family:var(--mono);font-size:12px;cursor:pointer;transition:0.1s}
 .ghost-btn:hover{border-color:var(--cyan);color:var(--cyan)}
 
-.map-col{display:flex;flex-direction:column;gap:14px;min-width:0}
-.map-card{position:relative;padding:0;overflow:hidden}
-#predictMap{height:560px;width:100%}
+.map-col{display:flex;flex-direction:column;gap:14px;min-width:0;padding-bottom:96px}
+.map-card{position:relative;padding:0;overflow:hidden;z-index:0}
+#predictMap{height:560px;width:100%;position:relative;z-index:0}
 @media(max-width:700px){#predictMap{height:400px}}
 
-.legend-box{position:absolute;bottom:14px;left:14px;z-index:500;background:rgba(10,10,11,0.88);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;font-family:var(--mono);font-size:9.5px;color:var(--text2);backdrop-filter:blur(6px)}
+.legend-box{position:absolute;bottom:14px;left:14px;z-index:10;background:rgba(10,10,11,0.88);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;font-family:var(--mono);font-size:9.5px;color:var(--text2);backdrop-filter:blur(6px)}
 [data-theme="light"] .legend-box{background:rgba(255,255,255,0.9)}
 .legend-title{color:var(--text3);margin-bottom:6px;letter-spacing:0.06em}
 .legend-row{display:flex;align-items:center;gap:6px;margin-bottom:3px}
@@ -102,7 +102,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .cakra-map-popup{font-family:var(--mono);font-size:10.5px;color:#ececee}
 .maplibregl-popup-content{background:#111214;border:1px solid rgba(255,255,255,0.12);padding:6px 9px;border-radius:10px;box-shadow:none}
 .maplibregl-popup-tip{border-top-color:#111214!important;border-bottom-color:#111214!important}
-.map-view-toggle{position:absolute;top:10px;right:10px;z-index:900;display:flex;gap:6px}
+.map-view-toggle{position:absolute;top:10px;right:10px;z-index:10;display:flex;gap:6px}
 .map-view-toggle .run-btn.active{background:var(--cyan-dim);border-color:var(--cyan);color:var(--cyan)}
 
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
@@ -128,7 +128,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
 .report-box{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:var(--mono);font-size:11px;line-height:1.7;color:var(--text2);white-space:pre-wrap}
 
-.map-hint{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:500;background:var(--cyan);border:1px solid var(--cyan);color:#04141a;font-family:var(--mono);font-size:11px;font-weight:600;padding:8px 16px;border-radius:10px;display:none}
+.map-hint{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:10;background:var(--cyan);border:1px solid var(--cyan);color:#04141a;font-family:var(--mono);font-size:11px;font-weight:600;padding:8px 16px;border-radius:10px;display:none}
 .map-hint.show{display:block}
 
 .draw-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
@@ -167,7 +167,7 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
 <link rel="stylesheet" href="css/maritime-theme.css">
 </head>
 <body>
-<script>(function(){var s=sessionStorage.getItem('cakra_theme')||'system';var t=s==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):s;document.documentElement.setAttribute('data-theme',t)})();</script>
+<script>(function(){var t=localStorage.getItem('cakra_theme')||'light';if(t!=='dark'&&t!=='light')t='light';document.documentElement.setAttribute('data-theme',t)})();</script>
 
 <nav class="nav">
   <a href="/" class="nav-logo" data-route>
@@ -177,9 +177,9 @@ footer{text-align:center;padding:20px 24px;font-family:var(--mono);font-size:10p
   <div class="nav-right">
     <a href="/dashboard" class="nav-back" data-route data-i18n="common.backDashboard">← Dashboard</a>
     <div class="lang-switch" id="langSwitch" role="group" aria-label="Language">
-      <button class="lang-btn active" id="langBtnId" data-lang="id" onclick="CakraI18n.setLanguage('id')">ID</button>
+      <button class="lang-btn" id="langBtnId" data-lang="id" onclick="CakraI18n.setLanguage('id')">ID</button>
       <span class="lang-sep">|</span>
-      <button class="lang-btn" id="langBtnEn" data-lang="en" onclick="CakraI18n.setLanguage('en')">EN</button>
+      <button class="lang-btn active" id="langBtnEn" data-lang="en" onclick="CakraI18n.setLanguage('en')">EN</button>
     </div>
     <button class="theme-btn" id="themeBtn" onclick="cycleTheme()">◐</button>
   </div>
