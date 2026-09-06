@@ -41,74 +41,142 @@
 /* ── SPLASH SCREEN ── */
 #cakraSplash{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity 0.4s ease,visibility 0.4s ease}
 #cakraSplash.hide{opacity:0;visibility:hidden;pointer-events:none}
-.splash-mark{width:56px;height:56px;border-radius:0;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;color:var(--cyan);font-size:26px}
+.splash-mark{width:56px;height:56px;border-radius:10px;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;color:var(--cyan);font-size:26px}
 .splash-name{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:0.16em;color:var(--text);text-align:center}
 .splash-tagline{font-family:var(--mono);font-size:9.5px;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;text-align:center;margin-top:4px}
 .splash-bar-wrap{width:140px;display:flex;flex-direction:column;align-items:center;gap:8px}
-.splash-bar{width:100%;height:1.5px;background:var(--bg4);border-radius:0;overflow:hidden}
-.splash-fill{height:100%;background:var(--cyan);border-radius:0;animation:splashLoad 1.2s cubic-bezier(0.4,0,0.2,1) forwards}
+.splash-bar{width:100%;height:1.5px;background:var(--bg4);border-radius:10px;overflow:hidden}
+.splash-fill{height:100%;background:var(--cyan);border-radius:10px;animation:splashLoad 1.2s cubic-bezier(0.4,0,0.2,1) forwards}
 @keyframes splashLoad{0%{width:0%}60%{width:75%}85%{width:92%}100%{width:100%}}
 .splash-status{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:0.08em}
 .splash-copy{position:absolute;bottom:20px;font-family:var(--mono);font-size:8.5px;color:var(--text3);letter-spacing:0.06em;text-align:center;line-height:1.8}
 
 html{scroll-behavior:smooth}
-body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background var(--transition),color var(--transition)}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background var(--transition),color var(--transition);position:relative;overflow-x:hidden}
+
+/* ── AMBIENT BACKGROUND — layered radial glow, fixed behind all content ── */
+.bg-mesh{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.bg-mesh::before,.bg-mesh::after{content:'';position:absolute;border-radius:50%;filter:blur(90px);opacity:0.16}
+.bg-mesh::before{width:640px;height:640px;top:-220px;right:-160px;background:radial-gradient(circle,var(--cyan) 0%,transparent 70%)}
+.bg-mesh::after{width:560px;height:560px;bottom:-260px;left:-180px;background:radial-gradient(circle,#a78bfa 0%,transparent 70%)}
+[data-theme="light"] .bg-mesh::before,[data-theme="light"] .bg-mesh::after{opacity:0.10}
+.bg-grid{position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 70% 55% at 50% 0%,#000 40%,transparent 100%)}
 
 /* ── NAV ── */
-.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 24px;height:52px;background:rgba(10,10,11,0.9);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:space-between;gap:12px}
-[data-theme="light"] .nav{background:rgba(248,249,250,0.92)}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 24px;height:56px;background:rgba(10,10,11,0.72);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:space-between;gap:12px}
+[data-theme="light"] .nav{background:rgba(248,249,250,0.85)}
 .nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text)}
 .nav-logo-icon{color:var(--cyan);font-size:18px;line-height:1}
 .nav-logo-text{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:0.08em}
-.nav-logo-tag{font-family:var(--mono);font-size:8.5px;color:var(--text3);letter-spacing:0.06em;padding:2px 7px;background:var(--bg3);border:1px solid var(--border2);border-radius:0}
+.nav-logo-tag{font-family:var(--mono);font-size:8.5px;color:var(--text3);letter-spacing:0.06em;padding:2px 7px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px}
 .nav-right{display:flex;align-items:center;gap:8px}
-.theme-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--border2);border-radius:0;cursor:pointer;font-size:13px;color:var(--text2);transition:0.1s}
+.theme-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;cursor:pointer;font-size:13px;color:var(--text2);transition:0.1s}
 .theme-btn:hover{border-color:var(--cyan);color:var(--cyan)}
-.nav-ver{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--text3);padding:2px 7px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;letter-spacing:0.06em}
+.nav-ver{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--text3);padding:2px 7px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;letter-spacing:0.06em}
 
-/* ── HERO ── */
-.hero{padding:120px 24px 64px;text-align:center;max-width:680px;margin:0 auto}
-.hero-tag{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:0.14em;color:var(--cyan);background:var(--cyan-dim);border:1px solid rgba(6,182,212,0.2);padding:4px 14px;border-radius:0;margin-bottom:28px;text-transform:uppercase}
-.hero-tag-dot{width:5px;height:5px;border-radius:0;background:var(--cyan);animation:blink 2s infinite;flex-shrink:0}
+/* ── HERO — asymmetric two-column: pitch + CTA left, signal graphic right ── */
+.hero{padding:132px 24px 56px;max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1fr 420px;gap:56px;align-items:center}
+.hero-copy{max-width:520px}
+.hero-tag{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:0.02em;color:var(--cyan);background:var(--cyan-dim);border:1px solid rgba(6,182,212,0.2);padding:5px 13px;border-radius:20px;margin-bottom:22px}
+.hero-tag-dot{width:5px;height:5px;border-radius:10px;background:var(--cyan);animation:blink 2s infinite;flex-shrink:0}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
-.hero-title{font-family:var(--mono);font-size:clamp(52px,10vw,88px);font-weight:600;line-height:0.95;letter-spacing:-0.04em;color:var(--text);margin-bottom:14px}
-.hero-tagline{font-family:var(--mono);font-size:clamp(10px,2vw,13px);color:var(--cyan);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:18px;font-weight:400}
-.hero-sub{font-size:14px;color:var(--text2);line-height:1.7;max-width:480px;margin:0 auto 38px;font-weight:300}
+.hero-title{font-family:var(--sans);font-size:clamp(44px,5.4vw,68px);font-weight:700;line-height:0.98;letter-spacing:-0.035em;color:var(--text);margin-bottom:10px}
+.hero-title .accent{color:var(--cyan)}
+.hero-tagline{font-size:clamp(15px,2vw,18px);color:var(--text2);line-height:1.5;margin-bottom:32px;font-weight:400;max-width:440px}
+.hero-cta-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.hero-cta-btn{font-family:var(--sans);font-size:14px;font-weight:600;padding:13px 24px;border-radius:12px;background:var(--cyan);border:1px solid var(--cyan);color:#001217;cursor:pointer;transition:transform 0.15s,background 0.15s;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.hero-cta-btn:hover{transform:translateY(-1px);background:var(--cyan-hi)}
+.hero-cta-secondary{font-family:var(--sans);font-size:13.5px;font-weight:500;color:var(--text2);text-decoration:none;padding:13px 6px;transition:color 0.1s}
+.hero-cta-secondary:hover{color:var(--text)}
 
-/* ── TOOL BADGES ── */
-.tool-badges{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px}
-.tool-badge{font-family:var(--mono);font-size:9px;font-weight:600;padding:4px 10px;border-radius:0;border:1px solid var(--border2);color:var(--text2);background:var(--bg3);letter-spacing:0.06em;transition:0.1s}
-.tool-badge.supported{color:var(--cyan);border-color:rgba(6,182,212,0.3);background:var(--cyan-dim)}
+/* Hero visual: layered signal-wave graphic, the product's own signature motif */
+.hero-visual{position:relative;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center}
+.hero-visual svg{width:100%;height:100%}
+.hero-visual .ring{fill:none;stroke:var(--border2);stroke-width:1}
+.hero-visual .wave{fill:none;stroke:var(--cyan);stroke-width:2;stroke-linecap:round;opacity:0.9}
+.hero-visual .wave.dim{stroke:#a78bfa;opacity:0.55}
+.hero-visual .node{fill:var(--cyan)}
+.hero-visual .pulse{animation:pulseRing 2.6s ease-out infinite}
+@keyframes pulseRing{0%{r:6;opacity:0.9}100%{r:52;opacity:0}}
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr;text-align:center;padding:112px 20px 40px;gap:32px}
+  .hero-copy{max-width:100%;margin:0 auto}
+  .hero-cta-row{justify-content:center}
+  .hero-visual{max-width:280px;margin:0 auto}
+}
 
-/* ── PILLS ── */
-.feature-pills{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:40px}
-.pill{font-family:var(--mono);font-size:9.5px;font-weight:500;padding:4px 10px;border-radius:0;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);letter-spacing:0.04em}
+/* ── TRUST ROW (compatible tools) ── */
+.trust-row{max-width:1180px;margin:0 auto;padding:0 24px 48px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.trust-label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.04em;white-space:nowrap}
+.trust-items{display:flex;flex-wrap:wrap;gap:8px}
+.trust-item{font-size:12.5px;font-weight:500;color:var(--text2);padding:6px 13px;border-radius:20px;border:1px solid var(--border2);background:var(--bg2)}
+.trust-item.soon{border-style:dashed;color:var(--text3)}
+
+/* ── SECTION LABEL (shared) ── */
+.section-wrap{max-width:1180px;margin:0 auto;padding:64px 24px}
+.section-head{margin-bottom:32px;max-width:560px}
+.section-head h2{font-size:clamp(22px,3vw,30px);font-weight:700;letter-spacing:-0.02em;margin-bottom:8px}
+.section-head p{font-size:14px;color:var(--text2)}
+
+/* ── FEATURE BENTO GRID ── */
+.feature-bento{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:150px;gap:14px}
+.fb-card{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:20px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;position:relative;overflow:hidden;transition:border-color 0.15s,transform 0.15s}
+.fb-card:hover{border-color:rgba(6,182,212,0.35);transform:translateY(-2px)}
+.fb-card.big{grid-column:span 2;grid-row:span 2}
+.fb-icon{position:absolute;top:16px;left:18px;font-size:17px;color:var(--cyan)}
+.fb-card.accent-purple .fb-icon{color:#a78bfa}
+.fb-card.accent-green .fb-icon{color:var(--green)}
+.fb-title{font-size:14px;font-weight:600;color:var(--text)}
+.fb-desc{font-size:12px;color:var(--text3);line-height:1.5}
+.fb-card.big .fb-title{font-size:18px}
+.fb-card.big .fb-desc{font-size:13px;color:var(--text2)}
+.fb-card.link{text-decoration:none;cursor:pointer}
+@media(max-width:900px){
+  .feature-bento{grid-template-columns:repeat(2,1fr);grid-auto-rows:140px}
+  .fb-card.big{grid-column:span 2;grid-row:span 1;min-height:150px}
+}
+@media(max-width:560px){
+  .feature-bento{grid-template-columns:1fr}
+  .fb-card.big{grid-column:span 1}
+}
+
+/* ── HOW IT WORKS ── */
+.steps-row{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.step-card{position:relative;padding-top:8px}
+.step-num{font-family:var(--mono);font-size:12px;color:var(--cyan);font-weight:600;margin-bottom:14px;display:block}
+.step-card h3{font-size:15.5px;font-weight:600;margin-bottom:6px}
+.step-card p{font-size:12.5px;color:var(--text3);line-height:1.55}
+.step-connector{position:absolute;top:12px;left:calc(100% + 10px);width:calc(100% - 20px);height:1px;background:linear-gradient(90deg,var(--border2),transparent);display:none}
+@media(min-width:769px){.step-card:not(:last-child) .step-connector{display:block}}
+@media(max-width:768px){.steps-row{grid-template-columns:1fr;gap:26px}}
 
 /* ── UPLOAD ZONE ── */
-.upload-zone{max-width:760px;margin:0 auto;background:var(--bg2);border:1px solid var(--border2);border-radius:0;padding:26px;overflow:hidden}
-.upload-label{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:16px;text-align:left}
+.upload-zone{max-width:1180px;margin:0 auto;padding:0 24px}
+.upload-card{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:30px;overflow:hidden;position:relative}
+.upload-card::before{content:'';position:absolute;inset:0;border-radius:20px;padding:1px;background:linear-gradient(135deg,rgba(6,182,212,0.25),transparent 40%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.upload-label{font-size:15px;font-weight:600;color:var(--text);margin-bottom:18px;text-align:left}
 .upload-cols{display:grid;grid-template-columns:1fr 1px 1fr;gap:0;align-items:stretch}
 .upload-divider{background:var(--border);position:relative;display:flex;align-items:center;justify-content:center}
-.upload-divider::after{content:'+';font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--bg2);padding:3px 5px;border-radius:0;position:absolute}
+.upload-divider::after{content:'+';font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--bg2);padding:3px 5px;border-radius:10px;position:absolute}
 .upload-col{padding:0 22px;min-width:0;display:flex;flex-direction:column}
 .upload-col-title{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text);margin-bottom:3px;letter-spacing:0.04em}
 .upload-col-sub{font-size:11px;color:var(--text2);margin-bottom:12px}
 
-.drop-area{border:1.5px dashed var(--border2);border-radius:0;padding:22px 14px;text-align:center;cursor:pointer;transition:background 0.1s,color 0.1s,border-color 0.1s;background:var(--bg);flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.drop-area{border:1.5px dashed var(--border2);border-radius:10px;padding:22px 14px;text-align:center;cursor:pointer;transition:background 0.1s,color 0.1s,border-color 0.1s;background:var(--bg);flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .drop-area:hover,.drop-area.drag-over{border-color:var(--cyan);background:var(--cyan-dim)}
 .drop-icon{font-size:20px;margin-bottom:7px}
 .drop-label{font-family:var(--mono);font-size:10.5px;font-weight:500;color:var(--text2);margin-bottom:2px}
 .drop-sub{font-size:10px;color:var(--text3)}
 .drop-file-tags{display:flex;gap:4px;justify-content:center;margin-top:8px;flex-wrap:wrap}
-.tag{font-family:var(--mono);font-size:8.5px;font-weight:600;padding:2px 6px;border-radius:0;background:var(--bg4);border:1px solid var(--border2);color:var(--text3);letter-spacing:0.06em}
-.upload-file-btn{display:block;width:100%;margin-top:8px;font-family:var(--mono);font-size:10px;font-weight:500;padding:8px;border-radius:0;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);cursor:pointer;transition:0.1s;letter-spacing:0.04em}
+.tag{font-family:var(--mono);font-size:8.5px;font-weight:600;padding:2px 6px;border-radius:10px;background:var(--bg4);border:1px solid var(--border2);color:var(--text3);letter-spacing:0.06em}
+.upload-file-btn{display:block;width:100%;margin-top:8px;font-family:var(--mono);font-size:10px;font-weight:500;padding:8px;border-radius:10px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);cursor:pointer;transition:0.1s;letter-spacing:0.04em}
 .upload-file-btn:hover{border-color:var(--cyan);color:var(--cyan)}
 
 .file-list{margin-top:8px;display:flex;flex-direction:column;gap:4px;max-height:120px;overflow-y:auto}
-.file-item{display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--border);border-radius:0;padding:6px 9px;font-family:var(--mono);font-size:10px}
+.file-item{display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:var(--mono);font-size:10px}
 .file-item-name{flex:1;color:var(--text2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .file-item-ok{color:var(--green);flex-shrink:0}
-.file-item-badge{font-size:8px;padding:1px 5px;border-radius:0;background:var(--cyan-dim);border:1px solid rgba(6,182,212,0.2);color:var(--cyan);font-weight:600;flex-shrink:0}
+.file-item-badge{font-size:8px;padding:1px 5px;border-radius:10px;background:var(--cyan-dim);border:1px solid rgba(6,182,212,0.2);color:var(--cyan);font-weight:600;flex-shrink:0}
 .file-item-rm{color:var(--text3);cursor:pointer;transition:0.1s;background:none;border:none;font-size:13px;flex-shrink:0;padding:0;line-height:1}
 .file-item-rm:hover{color:#ef4444}
 
@@ -116,13 +184,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
 /* ── ANALYZE BTN ── */
 .analyze-wrap{margin-top:20px;display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
-.analyze-btn{flex:1;min-width:160px;font-family:var(--mono);font-size:12px;font-weight:600;padding:13px 16px;border-radius:0;background:var(--cyan);border:1px solid var(--cyan);color:#000;cursor:pointer;transition:background 0.1s,color 0.1s;letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:8px}
+.analyze-btn{flex:1;min-width:160px;font-family:var(--mono);font-size:12px;font-weight:600;padding:13px 16px;border-radius:10px;background:var(--cyan);border:1px solid var(--cyan);color:#000;cursor:pointer;transition:background 0.1s,color 0.1s;letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:8px}
 .analyze-btn:hover:not(:disabled){background:var(--bg2);color:var(--cyan)}
 .analyze-btn:disabled{opacity:0.35;cursor:not-allowed}
 .analyze-note{font-size:10.5px;color:var(--text3);font-family:var(--mono)}
 
 /* ── FOOTER ── */
-.footer{padding:32px 24px;text-align:center;border-top:1px solid var(--border);margin-top:60px}
+.footer{padding:32px 24px;text-align:center;border-top:1px solid var(--border);margin-top:60px;max-width:1180px;margin-left:auto;margin-right:auto}
 .footer-text{font-family:var(--mono);font-size:9.5px;color:var(--text3);letter-spacing:0.06em}
 .footer-links{display:flex;gap:16px;justify-content:center;margin-top:8px}
 .footer-link{font-family:var(--mono);font-size:9.5px;color:var(--text3);text-decoration:none;transition:0.1s}
@@ -131,18 +199,18 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 /* ── PROGRESS ── */
 .progress-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(10,10,11,0.92);backdrop-filter:blur(12px);align-items:center;justify-content:center;flex-direction:column;gap:14px}
 .progress-overlay.show{display:flex}
-.progress-ring{width:36px;height:36px;border:2px solid var(--border2);border-top-color:var(--cyan);border-radius:0;animation:spin 0.75s linear infinite}
+.progress-ring{width:36px;height:36px;border:2px solid var(--border2);border-top-color:var(--cyan);border-radius:10px;animation:spin 0.75s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .progress-text{font-family:var(--mono);font-size:11px;color:var(--text2)}
 .progress-sub{font-family:var(--mono);font-size:9.5px;color:var(--text3)}
 
 /* ── PWA INSTALL BANNER ── */
-.pwa-banner{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:150;background:var(--bg2);border:1px solid rgba(6,182,212,0.3);border-radius:0;padding:14px 20px;font-family:var(--mono);font-size:11px;color:var(--text);max-width:340px;width:90%;align-items:center;gap:12px}
+.pwa-banner{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:150;background:var(--bg2);border:1px solid rgba(6,182,212,0.3);border-radius:10px;padding:14px 20px;font-family:var(--mono);font-size:11px;color:var(--text);max-width:340px;width:90%;align-items:center;gap:12px}
 .pwa-banner.show{display:flex}
 .pwa-banner-text{flex:1}
 .pwa-banner-title{font-weight:600;color:var(--cyan);margin-bottom:2px}
 .pwa-banner-sub{font-size:9.5px;color:var(--text3)}
-.pwa-install-btn{padding:6px 12px;background:var(--cyan);color:#000;border:none;border-radius:0;cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:600;white-space:nowrap}
+.pwa-install-btn{padding:6px 12px;background:var(--cyan);color:#000;border:none;border-radius:10px;cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:600;white-space:nowrap}
 .pwa-dismiss{color:var(--text3);cursor:pointer;font-size:16px;background:none;border:none;padding:0;line-height:1;flex-shrink:0}
 
 @media(max-width:580px){
@@ -150,8 +218,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   .upload-divider{display:none}
   .upload-col{padding:0;margin-top:16px}
   .upload-col:first-child{margin-top:0}
-  .hero{padding:88px 18px 48px}
   .nav{padding:0 16px}
+  .upload-card{padding:20px}
 }
 
 /* LANGUAGE SWITCH (ID/EN) */
@@ -207,39 +275,120 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   </div>
 </nav>
 
+<div class="bg-mesh"></div>
+<div class="bg-grid"></div>
+
 <div class="hero">
-  <div class="hero-tag">
-    <span class="hero-tag-dot"></span>
-    <span data-i18n="home.heroTag">RF Engineer Field Tool · LTE / 5G NR</span>
-  </div>
-  <div class="hero-title">CAKRA</div>
-  <div class="hero-tagline" data-i18n="home.heroTagline">Sinyal terbaca. Jaringan terpetakan.</div>
-  <p class="hero-sub" data-i18n="home.heroSub">
-    Upload file dari tool drive test apapun — analisis parameter LTE & 5G NR, peta sinyal interaktif, deteksi titik rawan, dan AI analyst langsung di browser.
-  </p>
-
-  <div class="tool-badges">
-    <span class="tool-badge supported">◈ G-NetTrack Pro</span>
-    <span class="tool-badge supported">◈ TEMS Investigation</span>
-    <span class="tool-badge supported">◈ NEMO Outdoor</span>
-    <span class="tool-badge supported">◈ NEMO Handy</span>
-    <span class="tool-badge supported">◈ SIGMON</span>
-    <span class="tool-badge" style="border-style:dashed" data-i18n="home.moreFormatsSoon">+ format baru segera</span>
+  <div class="hero-copy">
+    <div class="hero-tag">
+      <span class="hero-tag-dot"></span>
+      <span data-i18n="home.heroTag">RF Engineer Field Tool · LTE / 5G NR</span>
+    </div>
+    <h1 class="hero-title">CAKRA</h1>
+    <p class="hero-tagline" data-i18n="home.heroTagline">Sinyal terbaca. Jaringan terpetakan.</p>
+    <div class="hero-cta-row">
+      <a href="#upload" class="hero-cta-btn">
+        <span data-i18n="home.startAnalysis">Mulai Analisis</span>
+        <span>→</span>
+      </a>
+      <a href="/docs" data-route class="hero-cta-secondary" data-i18n="common.footer.guide">Panduan Penggunaan</a>
+    </div>
   </div>
 
-  <div class="feature-pills">
-    <span class="pill">RSRP / RSRQ / SNR</span>
-    <span class="pill">5G NR-RSRP / SS-SINR</span>
-    <span class="pill" data-i18n="home.pill.map">Peta Interaktif</span>
-    <span class="pill" data-i18n="home.pill.handover">Handover Events</span>
-    <span class="pill" data-i18n="home.pill.kpiDist">Distribusi KPI</span>
-    <span class="pill" data-i18n="home.pill.weakPoints">Titik Rawan</span>
-    <span class="pill">✦ <span data-i18n="home.pill.aiAnalyst">AI Analyst</span></span>
-    <span class="pill" data-i18n="home.pill.offline">Offline (PWA)</span>
-    <a href="/predict" class="pill" style="text-decoration:none;border-color:rgba(74,222,128,0.3);color:var(--green,#4ade80);background:rgba(74,222,128,0.07)" data-i18n="home.pill.virtualDt">◈ Virtual Drive Test</a>
+  <div class="hero-visual" aria-hidden="true">
+    <svg viewBox="0 0 400 400" fill="none">
+      <circle class="ring" cx="200" cy="200" r="190"/>
+      <circle class="ring" cx="200" cy="200" r="140"/>
+      <circle class="ring" cx="200" cy="200" r="90"/>
+      <circle class="node pulse" cx="200" cy="200" r="6"/>
+      <circle class="node" cx="200" cy="200" r="5"/>
+      <path class="wave" d="M30,230 Q80,180 120,225 T210,215 T300,235 T370,205"/>
+      <path class="wave dim" d="M40,270 Q100,240 150,268 T240,255 T330,270 T380,250"/>
+      <circle class="node" cx="120" cy="225" r="3.5"/>
+      <circle class="node" cx="300" cy="235" r="3.5"/>
+    </svg>
   </div>
+</div>
 
-  <div class="upload-zone">
+<div class="trust-row">
+  <span class="trust-label" data-i18n="home.trustLabel">Kompatibel dengan</span>
+  <div class="trust-items">
+    <span class="trust-item">G-NetTrack Pro</span>
+    <span class="trust-item">TEMS Investigation</span>
+    <span class="trust-item">NEMO Outdoor</span>
+    <span class="trust-item">NEMO Handy</span>
+    <span class="trust-item">SIGMON</span>
+    <span class="trust-item soon" data-i18n="home.moreFormatsSoon">+ format baru segera</span>
+  </div>
+</div>
+
+<div class="section-wrap" style="padding-top:8px">
+  <div class="feature-bento">
+    <a href="#upload" class="fb-card big link">
+      <span class="fb-icon">✦</span>
+      <span class="fb-title" data-i18n="home.pill.aiAnalyst">AI Analyst</span>
+      <span class="fb-desc" data-i18n="home.feat.aiDesc">Chat & laporan otomatis dari Llama 3.3 70B.</span>
+    </a>
+    <div class="fb-card accent-green">
+      <span class="fb-icon">◈</span>
+      <span class="fb-title" data-i18n="home.pill.map">Peta Interaktif</span>
+      <span class="fb-desc" data-i18n="home.feat.mapDesc">RSRP/RSRQ/SNR di peta 3D.</span>
+    </div>
+    <div class="fb-card">
+      <span class="fb-icon">⇄</span>
+      <span class="fb-title" data-i18n="home.pill.handover">Handover Events</span>
+      <span class="fb-desc" data-i18n="home.feat.hoDesc">Deteksi ping-pong & cell churn.</span>
+    </div>
+    <div class="fb-card accent-purple">
+      <span class="fb-icon">▤</span>
+      <span class="fb-title" data-i18n="home.pill.kpiDist">Distribusi KPI</span>
+      <span class="fb-desc" data-i18n="home.feat.kpiDesc">Benchmark vs standar 3GPP.</span>
+    </div>
+    <a href="/predict" data-route class="fb-card link accent-green">
+      <span class="fb-icon">◈</span>
+      <span class="fb-title" data-i18n="home.pill.virtualDt">Virtual Drive Test</span>
+      <span class="fb-desc" data-i18n="home.feat.vdtDesc">Simulasi coverage 3D sebelum ke lapangan.</span>
+    </a>
+    <div class="fb-card">
+      <span class="fb-icon">⚠</span>
+      <span class="fb-title" data-i18n="home.pill.weakPoints">Titik Rawan</span>
+      <span class="fb-desc" data-i18n="home.feat.weakDesc">Auto-flag coverage gap.</span>
+    </div>
+    <div class="fb-card">
+      <span class="fb-icon">⬇</span>
+      <span class="fb-title" data-i18n="home.pill.offline">Offline (PWA)</span>
+      <span class="fb-desc" data-i18n="home.feat.offlineDesc">Install & pakai tanpa internet.</span>
+    </div>
+  </div>
+</div>
+
+<div class="section-wrap" style="padding-top:0">
+  <div class="section-head">
+    <h2 data-i18n="home.howItWorksTitle">Cara kerjanya</h2>
+  </div>
+  <div class="steps-row">
+    <div class="step-card">
+      <span class="step-num">01</span>
+      <h3 data-i18n="home.step1.title">Upload log</h3>
+      <p data-i18n="home.step1.desc">Drag & drop file dari tool drive test kamu.</p>
+      <span class="step-connector"></span>
+    </div>
+    <div class="step-card">
+      <span class="step-num">02</span>
+      <h3 data-i18n="home.step2.title">Cakra memproses</h3>
+      <p data-i18n="home.step2.desc">Parsing, KPI, dan deteksi titik rawan otomatis.</p>
+      <span class="step-connector"></span>
+    </div>
+    <div class="step-card">
+      <span class="step-num">03</span>
+      <h3 data-i18n="home.step3.title">Jelajahi hasil</h3>
+      <p data-i18n="home.step3.desc">Peta, grafik, dan laporan AI siap dibaca.</p>
+    </div>
+  </div>
+</div>
+
+<div class="upload-zone" id="upload">
+  <div class="upload-card">
     <div class="upload-label" data-i18n="home.uploadLabel">Upload File Drive Test</div>
     <div class="upload-cols">
       <!-- LOG FILE -->
@@ -281,8 +430,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
         <div class="file-list" id="kmlList"></div>
       </div>
     </div>
-
-
 
     <div class="analyze-wrap">
       <button class="analyze-btn" id="analyzeBtn" onclick="startAnalyze()" disabled>

@@ -1,7 +1,7 @@
 // predict.js — Virtual Drive Test controller (multi-step wizard, multi-site) — Cakra v2.2
-// Menghubungkan propagation.js (model RF) + buildings.js (data OSM) ke peta MapLibre GL JS
-// native (3D, tanpa Leaflet), mendukung banyak site sekaligus (best-server / handover),
-// lalu menyimulasikan "virtual drive" sepanjang rute dan memvalidasi vs data nyata.
+// Menghubungkan propagation.js (model RF) + buildings.js (data OSM) ke peta Leaflet,
+// mendukung banyak site sekaligus (best-server / handover), lalu menyimulasikan
+// "virtual drive" sepanjang rute dan memvalidasi vs data nyata.
 // © 2026 — dikembangkan sebagai ekstensi Cakra Drive Test Intelligence.
 
 'use strict';
@@ -1251,9 +1251,10 @@ Filter Coeff. k : ${lastRoute.hoParams.filterK}</div>`;
     return `<div class="stat-card"><div class="stat-label">${label}</div><div class="stat-value ${cls || ''}">${value}</div></div>`;
   }
 
-  // Snapshot state mentah (sites, hasil prediksi, hasil simulasi rute) — tersedia
-  // sebagai API publik untuk kebutuhan lain (mis. debugging/testing) meski modal
-  // peta 3D terpisah (map3d.js) sudah tidak dipakai lagi sejak peta utama native 3D.
+  // Data mentah snapshot skenario saat ini (sites, hasil prediksi, rute).
+  // Sudah tidak dipakai oleh modul viewer 3D terpisah (map3d.js) karena peta
+  // utama sekarang sudah native 3D — disimpan sebagai API publik yang mungkin
+  // berguna utk fitur lain (mis. export/debug) di masa depan.
   function getSceneData() {
     return { sites, lastResult, lastRoute, routePts: routePts.slice() };
   }
@@ -1281,6 +1282,7 @@ Filter Coeff. k : ${lastRoute.hoParams.filterK}</div>`;
   return {
     init, goto, useRealCentroid, runPrediction, toggleDraw, finishDraw, clearRoute, simulateRoute,
     exportCSV, exportPNG, openInDashboard, addSite, removeSite, selectSite, getSceneData, refreshDynamicUI,
+    setMapView,
   };
 })();
 

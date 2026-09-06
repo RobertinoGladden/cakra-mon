@@ -22,7 +22,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text)}
 .nav-logo-icon{color:var(--cyan);font-size:18px}
 .nav-logo-text{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:0.08em}
-.theme-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--border2);border-radius:0;cursor:pointer;color:var(--text2);transition:0.1s}
+.theme-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;cursor:pointer;color:var(--text2);transition:0.1s}
 .theme-btn:hover{border-color:var(--cyan);color:var(--cyan)}
 .container{max-width:1300px;margin:0 auto;padding:20px}
 .header{text-align:center;margin:80px 0 28px;padding:28px}
@@ -32,12 +32,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 /* PANEL */
 .panel-grid{display:grid;grid-template-columns:320px 1fr;gap:20px;margin-bottom:24px;align-items:start}
 @media(max-width:900px){.panel-grid{grid-template-columns:1fr}}
-.card{background:var(--bg2);border:1px solid var(--border2);border-radius:0;padding:20px}
+.card{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:20px}
 .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
 .card-label{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em}
 
 /* BADGES */
-.badge{font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 8px;border-radius:0;letter-spacing:0.05em}
+.badge{font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;letter-spacing:0.05em}
 .b0{background:rgba(6,182,212,0.12);color:#06b6d4;border:1px solid rgba(6,182,212,0.22)}
 .b1{background:rgba(34,197,94,0.10);color:#22c55e;border:1px solid rgba(34,197,94,0.22)}
 .b2{background:rgba(249,115,22,0.10);color:#f97316;border:1px solid rgba(249,115,22,0.22)}
@@ -59,25 +59,25 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .stat-value{font-family:var(--mono);font-weight:600;color:var(--cyan)}
 
 /* UPLOAD ZONE */
-.upload-zone{background:var(--bg3);border:2px dashed var(--border2);border-radius:0;padding:20px;text-align:center;cursor:pointer;transition:border-color 0.2s,background 0.2s;display:flex;flex-direction:column;align-items:center;gap:8px;min-height:110px;justify-content:center}
+.upload-zone{background:var(--bg3);border:2px dashed var(--border2);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border-color 0.2s,background 0.2s;display:flex;flex-direction:column;align-items:center;gap:8px;min-height:110px;justify-content:center}
 .upload-zone:hover,.upload-zone.drag-over{border-color:var(--cyan);background:var(--cyan-dim)}
-.upload-icon{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:var(--bg4);border-radius:0;color:var(--text3);transition:0.2s}
+.upload-icon{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:var(--bg4);border-radius:10px;color:var(--text3);transition:0.2s}
 .upload-zone:hover .upload-icon,.upload-zone.drag-over .upload-icon{background:var(--cyan-dim);color:var(--cyan)}
 
 /* SESSION LIST */
 .sess-list{margin-top:14px;display:flex;flex-direction:column;gap:8px}
 .sess-empty{text-align:center;padding:14px;color:var(--text3);font-size:11.5px;font-style:italic}
-.sess-item{background:var(--bg3);border:1px solid var(--border);border-radius:0;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.sess-item{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
 .sess-item:hover{border-color:var(--border2)}
 .sess-item-info{flex:1;min-width:0}
 .sess-item-name{font-size:11.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sess-item-meta{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:2px}
-.sess-remove{width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid var(--border);border-radius:0;cursor:pointer;color:var(--text3);transition:0.1s;flex-shrink:0}
+.sess-remove{width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid var(--border);border-radius:10px;cursor:pointer;color:var(--text3);transition:0.1s;flex-shrink:0}
 .sess-remove:hover{color:var(--red);border-color:var(--red);background:var(--red-dim)}
 
 /* ACTIONS */
 .actions{display:flex;gap:12px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
-.btn{font-family:var(--mono);font-size:11px;font-weight:600;padding:11px 22px;border-radius:0;border:none;cursor:pointer;transition:0.1s;letter-spacing:0.04em;display:inline-flex;align-items:center;gap:7px}
+.btn{font-family:var(--mono);font-size:11px;font-weight:600;padding:11px 22px;border-radius:10px;border:none;cursor:pointer;transition:0.1s;letter-spacing:0.04em;display:inline-flex;align-items:center;gap:7px}
 .btn-primary{background:var(--cyan);color:#000}
 .btn-primary:hover{background:var(--cyan-hi)}
 .btn-primary:disabled{opacity:0.35;cursor:not-allowed}
@@ -85,7 +85,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .btn-secondary:hover{border-color:var(--cyan);color:var(--cyan)}
 
 /* RESULT TABLES */
-.result-section{background:var(--bg2);border:1px solid var(--border2);border-radius:0;padding:24px;margin-bottom:20px;overflow:hidden}
+.result-section{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:24px;margin-bottom:20px;overflow:hidden}
 .sect-title{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px}
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .cmp-table{width:100%;border-collapse:collapse;font-size:12px}

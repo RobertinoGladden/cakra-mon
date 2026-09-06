@@ -78,9 +78,9 @@ body {
 }
 
 /* SCROLLBAR */
-::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--bg5); border-radius:0; }
+::-webkit-scrollbar-thumb { background: var(--bg5); border-radius: 8px; border: 2px solid var(--bg); background-clip: padding-box; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
 
 /* SIDEBAR */
@@ -112,7 +112,7 @@ body {
 .sidebar-close {
   display: none; background: none; border: none;
   color: var(--text3); cursor: pointer; font-size: 15px;
-  padding: 4px; line-height: 1; border-radius:0;
+  padding: 4px; line-height: 1; border-radius:10px;
   transition: color 0.15s, background 0.15s;
 }
 .sidebar-close:hover { background: var(--bg4); color: var(--text); }
@@ -129,7 +129,7 @@ body {
 }
 .nav-item {
   display: flex; align-items: center; gap: 8px;
-  padding: 7px 9px; border-radius:0;
+  padding: 7px 9px; border-radius:10px;
   text-decoration: none; color: var(--text3);
   font-size: 12.5px; font-weight: 400;
   transition:background 0.1s,color 0.1s,border-color 0.1s;
@@ -145,7 +145,7 @@ body {
 .nav-badge {
   background: var(--bg5); color: var(--text3);
   font-family: var(--mono); font-size: 9px;
-  padding: 1px 5px; border-radius:0;
+  padding: 1px 5px; border-radius:10px;
   min-width: 18px; text-align: center; flex-shrink: 0;
 }
 .nav-badge-red { background: var(--red-dim); color: var(--red); }
@@ -159,7 +159,7 @@ body {
 }
 .back-btn {
   display: flex; align-items: center; gap: 7px;
-  padding: 7px 9px; border-radius:0;
+  padding: 7px 9px; border-radius:10px;
   text-decoration: none; color: var(--text3);
   font-size: 12px; transition:background 0.1s,color 0.1s,border-color 0.1s;
 }
@@ -186,11 +186,11 @@ body {
 .menu-toggle {
   display: none; flex-direction: column; gap: 4px;
   background: none; border: none; cursor: pointer; padding: 5px;
-  border-radius:0;
+  border-radius:10px;
 }
 .menu-toggle span {
   width: 17px; height: 1.5px; background: var(--text2);
-  border-radius:0; transition: 0.2s; display: block;
+  border-radius:10px; transition: 0.2s; display: block;
 }
 .menu-toggle:hover span { background: var(--text); }
 
@@ -205,21 +205,21 @@ body {
   color: var(--cyan); padding: 2px 8px;
   background: var(--cyan-dim2);
   border: 1px solid rgba(6,182,212,0.18);
-  border-radius:0;
+  border-radius:10px;
   max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-/* MAIN — viewport-fit, TANPA scroll di level halaman. Tiap page (dash-section)
-   punya tinggi = viewport, dan hanya bento-card individual yang scroll internal. */
+/* MAIN — halaman scroll normal (bukan viewport-fit lagi). Tiap page (dash-section)
+   tumbuh sesuai konten; kartu individual tetap boleh scroll internal untuk tabel
+   yang sangat panjang, tapi tidak lagi dipaksa muat dalam satu layar. */
 .dashboard-main {
   margin-left: var(--sidebar-w);
   padding-top: var(--topbar-h);
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
-#dashContent { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+#dashContent { flex: 1; display: flex; flex-direction: column; }
 .no-data-state {
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; min-height: 70vh; gap: 14px; text-align: center;
@@ -232,7 +232,7 @@ body {
 .skel-body { display: flex; flex: 1; }
 .skel-sidebar { width: 192px; flex-shrink: 0; background: var(--bg2); border-right: 1px solid var(--border); padding: 14px 10px; display: flex; flex-direction: column; gap: 7px; }
 .skel-main { flex: 1; padding: 24px 20px; display: flex; flex-direction: column; gap: 22px; overflow: hidden; }
-.sk { background: var(--bg3); border-radius:0; position: relative; overflow: hidden; flex-shrink: 0; }
+.sk { background: var(--bg3); border-radius:10px; position: relative; overflow: hidden; flex-shrink: 0; }
 .sk::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.055) 50%, transparent 100%); animation: shimmer 2.4s ease-in-out infinite; transform: translateX(-100%); }
 @keyframes shimmer { to { transform: translateX(200%); } }
 .sk.d1::after{animation-delay:0s}.sk.d2::after{animation-delay:0.22s}.sk.d3::after{animation-delay:0.44s}.sk.d4::after{animation-delay:0.66s}.sk.d5::after{animation-delay:0.88s}
@@ -243,21 +243,20 @@ body {
 .no-data-icon { font-size: 36px; opacity: 0.6; }
 .no-data-state h2 { font-family: var(--mono); font-size: 16px; }
 .back-home-btn {
-  margin-top: 4px; padding: 7px 16px; border-radius:0;
+  margin-top: 4px; padding: 7px 16px; border-radius:10px;
   background: var(--bg3); border: 1px solid var(--border2);
   color: var(--text); text-decoration: none; font-size: 12px;
   font-family: var(--mono); transition:0.1s;
 }
 .back-home-btn:hover { border-color: var(--cyan); color: var(--cyan); }
 
-/* SECTIONS — panel-switch (bukan scroll-spy): hanya section aktif yang tampil,
-   dan tiap page mengisi PERSIS tinggi viewport (tanpa scroll halaman). */
+/* SECTIONS — panel-switch (hanya section aktif yang tampil), tapi sekarang
+   setiap page tumbuh natural sesuai konten dan halaman ikut scroll normal. */
 .dash-section {
-  padding: 16px 20px;
+  padding: 20px 24px 64px;
   display: none;
   flex-direction: column;
   min-height: 0;
-  flex: 1;
 }
 .dash-section.active-section { display: flex; }
 
@@ -266,40 +265,39 @@ body {
 .dash-page-title { font-family: var(--mono); font-size: 14px; font-weight: 600; letter-spacing:0.02em; color: var(--text); }
 .dash-page-sub { font-size: 11px; color: var(--text3); }
 
-/* BENTO GRID — beberapa fitur relevan dipadatkan dalam satu page, mengisi
-   tinggi tersisa (flex:1) dan tiap kartu scroll SENDIRI (bukan halaman) */
-.bento-grid { display: grid; gap: 12px; flex: 1; min-height: 0; }
+/* BENTO GRID — beberapa fitur relevan ditata dalam grid responsif; kartu
+   tumbuh sesuai konten (dengan tinggi minimum yang nyaman) dan halaman scroll
+   normal kalau kontennya melebihi satu layar. */
+.bento-grid { display: grid; gap: 14px; }
 .bento-card {
   background: var(--bg2); border: 1px solid var(--border);
-  padding: 14px 16px; min-width: 0; min-height: 0;
+  border-radius: var(--radius-lg);
+  padding: 16px 18px; min-width: 0;
   display: flex; flex-direction: column;
-  overflow: hidden;
 }
-.bento-card-body { overflow-y: auto; min-height: 0; flex: 1; }
+.bento-card-body { min-height: 0; flex: 1; }
 .bento-card .section-hdr { margin-bottom: 10px; flex-shrink: 0; }
 .bento-card .section-title { font-size: 10.5px; }
 .bento-card .section-sub { font-size: 10px; }
 
-.bento-overview { grid-template-columns: repeat(3, 1fr); grid-template-rows: auto auto 1fr; }
+.bento-overview { grid-template-columns: repeat(3, 1fr); grid-auto-rows: minmax(min-content, auto); }
 .bento-overview .bento-span-2 { grid-column: span 2; }
 .bento-overview .bento-span-3 { grid-column: span 3; }
 
-.bento-grafik { grid-template-columns: 1.3fr 1fr; grid-template-rows: 1fr; }
+.bento-grafik { grid-template-columns: 1.3fr 1fr; align-items: start; }
+.bento-grafik .bento-card { min-height: 480px; }
 
-.bento-peta { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; }
-.bento-peta .bento-map { grid-row: span 2; }
+.bento-peta { grid-template-columns: 2fr 1fr; }
+.bento-peta .bento-map { grid-row: span 2; min-height: 560px; }
+.bento-peta .bento-card:not(.bento-map) { min-height: 340px; }
 
-.bento-analisis { grid-template-columns: repeat(5, 1fr); grid-template-rows: 1fr; }
+.bento-analisis { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); grid-auto-rows: minmax(520px, auto); align-items: start; }
 
 @media (max-width: 1400px) {
-  .bento-analisis { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); }
+  .bento-analisis { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
 }
 @media (max-width: 980px) {
-  .dashboard-main { height: auto; overflow: visible; }
-  .dash-section, .dash-section.active-section { display: block; height: auto; }
-  .bento-grid { display: grid; height: auto; }
-  .bento-card { max-height: 70vh; }
-  .bento-overview, .bento-grafik, .bento-peta, .bento-analisis { grid-template-columns: 1fr; grid-template-rows: none; }
+  .bento-overview, .bento-grafik, .bento-peta, .bento-analisis { grid-template-columns: 1fr; }
   .bento-overview .bento-span-2, .bento-overview .bento-span-3 { grid-column: span 1; }
   .bento-peta .bento-map { grid-row: auto; }
 }
@@ -324,7 +322,7 @@ body {
   font-size: 9px; font-family: var(--mono);
   color: var(--green); background: var(--green-dim);
   border: 1px solid rgba(34,197,94,0.2);
-  padding: 2px 6px; border-radius:0;
+  padding: 2px 6px; border-radius:10px;
   margin-left: 8px; vertical-align: middle; font-weight: 500;
   letter-spacing: 0.04em;
 }
@@ -337,7 +335,7 @@ body {
 }
 .info-card {
   background: var(--bg2); border: 1px solid var(--border);
-  border-radius:0; padding: 14px 15px;
+  border-radius:10px; padding: 14px 15px;
   transition: border-color 0.15s, transform 0.15s;
 }
 .info-card:hover { border-color: var(--cyan); }
@@ -365,7 +363,7 @@ body {
 }
 .kpi-card {
   background: var(--bg2); border: 1px solid var(--border);
-  border-radius:0; padding: 18px 18px 14px;
+  border-radius:10px; padding: 18px 18px 14px;
   position: relative; overflow: hidden;
   transition: border-color 0.15s, transform 0.15s;
 }
@@ -387,7 +385,7 @@ body {
 .kpi-badge-wrap { margin-bottom: 9px; }
 .kpi-badge {
   display: inline-block; font-family: var(--mono); font-size: 9px; font-weight: 600;
-  padding: 2px 7px; border-radius:0; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 2px 7px; border-radius:10px; letter-spacing: 0.05em; text-transform: uppercase;
 }
 .badge-best    { background: var(--green-dim);  color: var(--green);  border: 1px solid rgba(34,197,94,0.2); }
 .badge-good    { background: var(--cyan-dim);   color: var(--cyan);   border: 1px solid rgba(6,182,212,0.2); }
@@ -402,7 +400,7 @@ body {
 }
 .kpi-extra-card {
   background: var(--bg2); border: 1px solid var(--border);
-  border-radius:0; padding: 9px 11px;
+  border-radius:10px; padding: 9px 11px;
 }
 .kpi-extra-label {
   font-family: var(--mono); font-size: 9px; color: var(--text3);
@@ -418,7 +416,7 @@ body {
 }
 .chart-tab {
   font-family: var(--mono); font-size: 10px; font-weight: 500;
-  padding: 5px 12px; border-radius:0;
+  padding: 5px 12px; border-radius:10px;
   background: var(--bg2); border: 1px solid var(--border);
   color: var(--text2); cursor: pointer; transition:background 0.1s,color 0.1s,border-color 0.1s;
   letter-spacing: 0.06em;
@@ -429,7 +427,7 @@ body {
 .chart-panel.active { display: block; }
 .chart-card {
   background: var(--bg2); border: 1px solid var(--border);
-  border-radius:0; padding: 18px;
+  border-radius:10px; padding: 18px;
 }
 .chart-card-hdr {
   display: flex; justify-content: space-between; align-items: flex-start;
@@ -442,12 +440,12 @@ body {
 }
 .chart-legend-row { display: flex; flex-wrap: wrap; gap: 10px; }
 .leg { display: flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 10px; color: var(--text2); }
-.leg-dot { width: 6px; height: 6px; border-radius:0; flex-shrink: 0; }
+.leg-dot { width: 6px; height: 6px; border-radius:10px; flex-shrink: 0; }
 .chart-wrap { position: relative; height: 200px; }
 .chart-wrap-tall { height: 280px; }
 .dl-btn {
   font-family: var(--mono); font-size: 9px;
-  padding: 4px 9px; border-radius:0;
+  padding: 4px 9px; border-radius:10px;
   background: var(--bg3); border: 1px solid var(--border);
   color: var(--text2); cursor: pointer; transition:0.1s;
   white-space: nowrap; flex-shrink: 0;
@@ -459,7 +457,7 @@ body {
   display: flex; align-items: center; gap: 0;
   margin-bottom: 10px; flex-wrap: nowrap; overflow-x: auto;
   background: var(--bg2); border: 1px solid var(--border);
-  border-radius:0; padding: 4px 6px;
+  border-radius:10px; padding: 4px 6px;
   scrollbar-width: none;
 }
 .map-toolbar::-webkit-scrollbar { display: none; }
@@ -479,7 +477,7 @@ body {
   font-family: var(--mono); font-size: 10px; font-weight: 500;
   padding: 0 9px; height: 26px;
   display: inline-flex; align-items: center; justify-content: center; gap: 5px;
-  border-radius:0;
+  border-radius:10px;
   background: transparent; border: 1px solid transparent;
   color: var(--text2); cursor: pointer; transition:0.1s;
   letter-spacing: 0.04em; white-space: nowrap; flex-shrink: 0;
@@ -492,7 +490,7 @@ body {
   font-family: var(--mono); font-size: 10px; font-weight: 500;
   padding: 0 9px; height: 26px;
   display: inline-flex; align-items: center; justify-content: center; gap: 5px;
-  border-radius:0;
+  border-radius:10px;
   background: transparent; border: 1px solid transparent;
   color: var(--text2); cursor: pointer; transition:background 0.1s,color 0.1s,border-color 0.1s;
   letter-spacing: 0.04em; white-space: nowrap; flex-shrink: 0;
@@ -506,7 +504,7 @@ body {
 .map-analysis-btn.active { font-weight: 600; }
 .map-stat-badge {
   font-family: var(--mono); font-size: 9px; padding: 2px 7px; height: 20px;
-  display: inline-flex; align-items: center; border-radius:0;
+  display: inline-flex; align-items: center; border-radius:10px;
   white-space: nowrap; flex-shrink: 0; line-height: 1;
 }
 /* RF Overlay toggle buttons (Opsi A) */
@@ -526,7 +524,7 @@ body {
 .map-stat-churn      { background: rgba(249,115,22,0.12); color: #f97316; border: 1px solid rgba(249,115,22,0.25); }
 .map-stat-throughput { background: rgba(250,204,21,0.12); color: #facc15; border: 1px solid rgba(250,204,21,0.25); }
 .map-container {
-  position: relative; border-radius:0; overflow: hidden;
+  position: relative; border-radius:10px; overflow: hidden;
   border: 1px solid var(--border); background: var(--bg2);
 }
 #map { height: 380px; }
@@ -536,7 +534,7 @@ body {
   position: absolute; bottom: 12px; left: 12px; z-index: 500;
   background: rgba(10,10,11,0.88);
   border: 1px solid var(--border2);
-  border-radius:0;
+  border-radius:10px;
   padding: 8px 10px;
   font-family: var(--mono);
   font-size: 9.5px;
@@ -553,7 +551,7 @@ body {
   position: absolute; top: 10px; right: 10px; z-index: 500;
   background: rgba(10,10,11,0.88);
   border: 1px solid var(--border2);
-  border-radius:0;
+  border-radius:10px;
   padding: 7px 10px;
   backdrop-filter: blur(10px);
   font-family: var(--mono);
@@ -568,7 +566,7 @@ body {
 .leaflet-popup-content-wrapper {
   background: rgba(10,10,11,0.97) !important;
   border: 1px solid var(--border2) !important;
-  border-radius:0;
+  border-radius:10px;
 }
 .leaflet-popup-tip { background: rgba(10,10,11,0.97) !important; }
 .leaflet-popup-content { margin: 10px 13px !important; }
@@ -582,7 +580,7 @@ body {
 .events-summary { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
 .event-stat {
   background: var(--bg2); border: 1px solid var(--border);
-  border-radius:0; padding: 10px 14px;
+  border-radius:10px; padding: 10px 14px;
 }
 .event-stat-val {
   font-family: var(--mono); font-size: 20px; font-weight: 500;
@@ -590,7 +588,7 @@ body {
 }
 .event-stat-lbl { font-family: var(--mono); font-size: 10px; color: var(--text2); margin-top: 4px; }
 .events-table-wrap {
-  overflow-x: auto; border-radius:0;
+  overflow-x: auto; border-radius:10px;
   border: 1px solid var(--border); background: var(--bg2);
 }
 .events-table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 580px; }
@@ -611,13 +609,13 @@ body {
   background: rgba(234,179,8,0.12); color: var(--yellow);
   border: 1px solid rgba(234,179,8,0.25);
   font-family: var(--mono); font-size: 9px;
-  padding: 2px 6px; border-radius:0; display: inline-block;
+  padding: 2px 6px; border-radius:10px; display: inline-block;
 }
 .tag-rs {
   background: var(--purple-dim); color: var(--purple);
   border: 1px solid rgba(168,85,247,0.25);
   font-family: var(--mono); font-size: 9px;
-  padding: 2px 6px; border-radius:0; display: inline-block;
+  padding: 2px 6px; border-radius:10px; display: inline-block;
 }
 
 /* DISTRIBUTION */
@@ -627,7 +625,7 @@ body {
 .std-tables { display: flex; flex-direction: column; gap: 10px; }
 .std-card {
   background: var(--bg2); border: 1px solid var(--border);
-  border-radius:0; overflow: hidden; min-width: 220px;
+  border-radius:10px; overflow: hidden; min-width: 220px;
 }
 .std-card-hdr {
   font-family: var(--mono); font-size: 9px; font-weight: 600;
@@ -663,12 +661,12 @@ body {
   color: var(--c);
   border: 1px solid color-mix(in srgb, var(--c) 28%, transparent);
   font-family: var(--mono); font-size: 9px;
-  padding: 1px 6px; border-radius:0;
+  padding: 1px 6px; border-radius:10px;
 }
 .dist-bars-col { display: flex; flex-direction: column; gap: 10px; }
 .dist-card {
   background: var(--bg2); border: 1px solid var(--border);
-  border-radius:0; padding: 14px;
+  border-radius:10px; padding: 14px;
 }
 .dist-card-hdr {
   font-family: var(--mono); font-size: 10px; font-weight: 600;
@@ -682,11 +680,11 @@ body {
   width: 72px; flex-shrink: 0;
 }
 .dist-track {
-  flex: 1; height: 8px; background: var(--bg4); border-radius:0;
+  flex: 1; height: 8px; background: var(--bg4); border-radius:10px;
   overflow: hidden; position: relative;
 }
 .dist-fill {
-  height: 100%; border-radius:0; transition: width 0.65s cubic-bezier(0.4,0,0.2,1);
+  height: 100%; border-radius:10px; transition: width 0.65s cubic-bezier(0.4,0,0.2,1);
   min-width: 6px;
 }
 .dist-pct {
@@ -701,7 +699,7 @@ body {
 /* TITIK RAWAN */
 .danger-wrap {
   background: var(--bg2); border: 1px solid var(--border);
-  border-radius:0; overflow: hidden;
+  border-radius:10px; overflow: hidden;
 }
 .danger-hdr {
   padding: 10px 14px; font-family: var(--mono); font-size: 10px;
@@ -728,7 +726,7 @@ body {
 .td-warn { color: var(--yellow); }
 .badge-bad {
   display: inline-block; font-family: var(--mono); font-size: 8.5px; font-weight: 600;
-  padding: 1px 5px; border-radius:0;
+  padding: 1px 5px; border-radius:10px;
   background: var(--red-dim); color: var(--red);
   border: 1px solid rgba(239,68,68,0.2);
   text-transform: uppercase; letter-spacing: 0.05em;
@@ -740,7 +738,7 @@ body {
 .events-pagination button, .tbl-pg-btn {
   font-family: var(--mono); font-size: 10px; color: var(--text);
   background: var(--bg3); border: 1px solid var(--border);
-  border-radius:0;
+  border-radius:10px;
   padding: 6px 14px; cursor: pointer; transition:background 0.1s,color 0.1s,border-color 0.1s;
 }
 .events-pagination button:hover, .tbl-pg-btn:hover { background: var(--bg2); border-color: var(--cyan); color: var(--cyan); }
@@ -751,7 +749,7 @@ body {
 /* EMPTY STATE */
 .empty-state {
   background: var(--bg2); border: 1px solid var(--border);
-  border-radius:0; padding: 36px 24px;
+  border-radius:10px; padding: 36px 24px;
   text-align: center; display: flex; flex-direction: column;
   align-items: center; gap: 10px;
 }
@@ -759,12 +757,12 @@ body {
 .empty-state p { font-size: 13px; color: var(--text2); line-height: 1.55; }
 .empty-state code {
   font-family: var(--mono); font-size: 12px;
-  background: var(--bg4); padding: 1px 5px; border-radius:0;
+  background: var(--bg4); padding: 1px 5px; border-radius:10px;
   color: var(--cyan);
 }
 .upload-kml-inline {
   margin-top: 4px; font-family: var(--mono); font-size: 10px; font-weight: 600;
-  padding: 7px 16px; border-radius:0;
+  padding: 7px 16px; border-radius:10px;
   background: var(--bg3); border: 1px solid var(--border2);
   color: var(--text2); cursor: pointer; transition:0.1s;
   position: relative; overflow: hidden;
@@ -774,7 +772,7 @@ body {
 /* AI CHATBOT */
 .ai-chatbot-wrap {
   background: var(--bg2); border: 1px solid var(--border);
-  border-radius:0; overflow: hidden;
+  border-radius:10px; overflow: hidden;
   display: flex; flex-direction: column;
   min-height: 580px; max-height: 720px;
 }
@@ -785,7 +783,7 @@ body {
 }
 .ai-chat-header-left { display: flex; align-items: center; gap: 9px; }
 .ai-chat-avatar {
-  width: 26px; height: 26px; border-radius:0;
+  width: 26px; height: 26px; border-radius:10px;
   background: var(--cyan-dim); border: 1px solid rgba(6,182,212,0.2);
   display: flex; align-items: center; justify-content: center;
   color: var(--cyan-hi); font-size: 12px; flex-shrink: 0;
@@ -799,14 +797,14 @@ body {
   display: flex; align-items: center; gap: 5px; margin-top: 1px;
 }
 .ai-status-dot {
-  width: 5px; height: 5px; border-radius:0; background: var(--green);
+  width: 5px; height: 5px; border-radius:10px; background: var(--green);
   animation: pulse-dot 2.5s infinite;
   flex-shrink: 0;
 }
 @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
 .ai-model-badge {
   font-family: var(--mono); font-size: 9px; font-weight: 600;
-  padding: 2px 7px; border-radius:0;
+  padding: 2px 7px; border-radius:10px;
   background: var(--green-dim); color: var(--green);
   border: 1px solid rgba(34,197,94,0.2);
   letter-spacing: 0.04em;
@@ -825,7 +823,7 @@ body {
 }
 .ai-chip {
   font-family: var(--mono); font-size: 10px;
-  padding: 4px 10px; border-radius:0;
+  padding: 4px 10px; border-radius:10px;
   background: var(--bg3); border: 1px solid var(--border2);
   color: var(--text2); cursor: pointer; transition:background 0.1s,color 0.1s,border-color 0.1s;
   white-space: nowrap; letter-spacing: 0.02em;
@@ -845,7 +843,7 @@ body {
 }
 .ai-welcome-icon {
   font-size: 22px; color: var(--cyan-hi);
-  width: 46px; height: 46px; border-radius:0;
+  width: 46px; height: 46px; border-radius:10px;
   background: var(--cyan-dim); border: 1px solid rgba(6,182,212,0.2);
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 2px;
@@ -859,22 +857,22 @@ body {
 @keyframes msg-in { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
 .ai-message-user { flex-direction: row-reverse; }
 .ai-msg-avatar {
-  width: 24px; height: 24px; border-radius:0; flex-shrink: 0;
+  width: 24px; height: 24px; border-radius:10px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center; font-size: 11px;
 }
 .ai-msg-avatar-ai { background: var(--cyan-dim); border: 1px solid rgba(6,182,212,0.18); color: var(--cyan-hi); }
 .ai-msg-avatar-user { background: var(--bg4); border: 1px solid var(--border2); color: var(--text2); font-size: 10px; }
 .ai-msg-bubble {
-  max-width: 80%; padding: 10px 13px; border-radius:0;
+  max-width: 80%; padding: 10px 13px; border-radius:10px;
   font-size: 12.5px; line-height: 1.6;
 }
 .ai-msg-bubble-ai {
   background: var(--bg3); border: 1px solid var(--border);
-  color: var(--text); border-radius:0;
+  color: var(--text); border-radius:10px;
 }
 .ai-msg-bubble-user {
   background: var(--cyan-dim); border: 1px solid rgba(6,182,212,0.18);
-  color: var(--text); border-radius:0; text-align: right;
+  color: var(--text); border-radius:10px; text-align: right;
 }
 .ai-msg-bubble-ai h3 {
   font-family: var(--mono); font-size: 11px; font-weight: 600;
@@ -886,30 +884,30 @@ body {
 .ai-msg-bubble-ai strong { color: var(--text); font-weight: 600; }
 .ai-msg-bubble-ai code {
   font-family: var(--mono); font-size: 10.5px;
-  background: var(--bg4); padding: 1px 5px; border-radius:0; color: var(--cyan-hi);
+  background: var(--bg4); padding: 1px 5px; border-radius:10px; color: var(--cyan-hi);
 }
 .ai-msg-bubble-ai pre {
   font-family: var(--mono); font-size: 10.5px;
   background: var(--bg4); border: 1px solid var(--border);
-  padding: 9px 11px; border-radius:0; overflow-x: auto;
+  padding: 9px 11px; border-radius:10px; overflow-x: auto;
   margin: 7px 0; white-space: pre-wrap;
 }
 .ai-msg-bubble-ai hr { border: none; border-top: 1px solid var(--border); margin: 9px 0; }
-.ai-badge-good { background: var(--green-dim); color: var(--green); padding: 1px 5px; border-radius:0; font-family: var(--mono); font-size: 10.5px; }
-.ai-badge-warn { background: var(--yellow-dim); color: var(--yellow); padding: 1px 5px; border-radius:0; font-family: var(--mono); font-size: 10.5px; }
-.ai-badge-bad  { background: var(--red-dim); color: var(--red); padding: 1px 5px; border-radius:0; font-family: var(--mono); font-size: 10.5px; }
+.ai-badge-good { background: var(--green-dim); color: var(--green); padding: 1px 5px; border-radius:10px; font-family: var(--mono); font-size: 10.5px; }
+.ai-badge-warn { background: var(--yellow-dim); color: var(--yellow); padding: 1px 5px; border-radius:10px; font-family: var(--mono); font-size: 10.5px; }
+.ai-badge-bad  { background: var(--red-dim); color: var(--red); padding: 1px 5px; border-radius:10px; font-family: var(--mono); font-size: 10.5px; }
 .ai-typing {
   display: none; align-items: center; gap: 9px; padding: 0 16px 11px; flex-shrink: 0;
 }
 .ai-typing-avatar {
-  width: 24px; height: 24px; border-radius:0;
+  width: 24px; height: 24px; border-radius:10px;
   background: var(--cyan-dim); border: 1px solid rgba(6,182,212,0.18);
   display: flex; align-items: center; justify-content: center;
   color: var(--cyan-hi); font-size: 11px; flex-shrink: 0;
 }
 .ai-typing-dots { display: flex; gap: 4px; align-items: center; }
 .ai-typing-dots span {
-  width: 5px; height: 5px; border-radius:0;
+  width: 5px; height: 5px; border-radius:10px;
   background: var(--text3); animation: dot-bounce 1.3s infinite;
 }
 .ai-typing-dots span:nth-child(2) { animation-delay: 0.18s; }
@@ -917,7 +915,7 @@ body {
 @keyframes dot-bounce { 0%,100%{transform:translateY(0)} 40%{transform:translateY(-5px);background:var(--cyan-hi)} }
 .ai-cursor {
   display: inline-block; width: 2px; height: 12px;
-  background: var(--cyan); border-radius:0;
+  background: var(--cyan); border-radius:10px;
   margin-left: 2px; vertical-align: middle;
   animation: blink 0.8s infinite;
 }
@@ -929,7 +927,7 @@ body {
 }
 .ai-chat-input {
   flex: 1; background: var(--bg3);
-  border: 1px solid var(--border2); border-radius:0;
+  border: 1px solid var(--border2); border-radius:10px;
   color: var(--text); font-family: var(--sans); font-size: 12.5px;
   padding: 10px 13px; resize: none; outline: none;
   min-height: 40px; max-height: 130px;
@@ -941,7 +939,7 @@ body {
 }
 .ai-chat-input::placeholder { color: var(--text4); }
 .ai-send-btn {
-  width: 40px; height: 40px; border-radius:0; flex-shrink: 0;
+  width: 40px; height: 40px; border-radius:10px; flex-shrink: 0;
   background: var(--cyan); border: 1px solid var(--cyan);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; transition: background 0.1s, color 0.1s; color: var(--bg);
@@ -1030,7 +1028,7 @@ body {
 
 .scroll-top {
   position: fixed; bottom: 20px; left: 20px; z-index: 200;
-  width: 34px; height: 34px; border-radius:0;
+  width: 34px; height: 34px; border-radius:10px;
   background: var(--bg3); border: 1px solid var(--border2);
   color: var(--text2); font-size: 13px; cursor: pointer;
   display: none; align-items: center; justify-content: center;
@@ -1041,7 +1039,7 @@ body {
 .toast {
   position: fixed; bottom: 64px; right: 20px; z-index: 300;
   background: var(--bg3); border: 1px solid var(--border2);
-  border-radius:0; padding: 9px 14px;
+  border-radius:10px; padding: 9px 14px;
   font-size: 11px; color: var(--text2); font-family: var(--mono);
   opacity: 0; pointer-events: none; transition: opacity 0.2s;
 }
@@ -1143,10 +1141,10 @@ body {
 
 /* FIELD TOOLS */
 .field-tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 12px; }
-.field-card { background: var(--bg2); border: 1px solid var(--border2); border-radius:0; padding: 18px; transition:0.1s; }
+.field-card { background: var(--bg2); border: 1px solid var(--border2); border-radius:10px; padding: 18px; transition:0.1s; }
 .field-card:hover { border-color: rgba(6,182,212,0.3); }
 .field-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-.field-card-icon { width: 34px; height: 34px; border-radius:0; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.field-card-icon { width: 34px; height: 34px; border-radius:10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
 .field-card-title { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--text); }
 .field-card-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
 
@@ -1154,15 +1152,15 @@ body {
 .sig-gauge-wrap { display: flex; flex-direction: column; gap: 8px; }
 .sig-gauge-row { display: flex; align-items: center; gap: 8px; }
 .sig-gauge-label { font-family: var(--mono); font-size: 9.5px; color: var(--text3); width: 52px; flex-shrink: 0; }
-.sig-gauge-bar { flex: 1; height: 6px; background: var(--bg4); border-radius:0; overflow: hidden; }
-.sig-gauge-fill { height: 100%; border-radius:0; transition: width 0.5s ease; }
+.sig-gauge-bar { flex: 1; height: 6px; background: var(--bg4); border-radius:10px; overflow: hidden; }
+.sig-gauge-fill { height: 100%; border-radius:10px; transition: width 0.5s ease; }
 .sig-gauge-val { font-family: var(--mono); font-size: 10px; font-weight: 600; width: 60px; text-align: right; flex-shrink: 0; }
 
 /* Checklist */
 .field-checklist { display: flex; flex-direction: column; gap: 6px; }
 .check-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); }
 .check-item:last-child { border-bottom: none; }
-.check-dot { width: 7px; height: 7px; border-radius:0; flex-shrink: 0; }
+.check-dot { width: 7px; height: 7px; border-radius:10px; flex-shrink: 0; }
 .check-label { font-size: 11px; color: var(--text2); flex: 1; }
 .check-val { font-family: var(--mono); font-size: 10px; font-weight: 600; }
 
@@ -1177,8 +1175,8 @@ body {
 
 /* Compass / heading */
 .compass-wrap { display: flex; align-items: center; justify-content: center; padding: 8px 0; }
-.compass { width: 80px; height: 80px; border-radius:0; border: 2px solid var(--border2); position: relative; display: flex; align-items: center; justify-content: center; background: var(--bg3); }
-.compass-needle { width: 3px; height: 32px; background: linear-gradient(to bottom, #f87171 50%, var(--text3) 50%); border-radius:0; position: absolute; transform-origin: bottom center; bottom: 50%; transition: transform 0.5s ease; }
+.compass { width: 80px; height: 80px; border-radius:10px; border: 2px solid var(--border2); position: relative; display: flex; align-items: center; justify-content: center; background: var(--bg3); }
+.compass-needle { width: 3px; height: 32px; background: linear-gradient(to bottom, #f87171 50%, var(--text3) 50%); border-radius:10px; position: absolute; transform-origin: bottom center; bottom: 50%; transition: transform 0.5s ease; }
 .compass-label { font-family: var(--mono); font-size: 8.5px; color: var(--text3); position: absolute; }
 .compass-label.n { top: 4px; left: 50%; transform: translateX(-50%); color: #f87171; }
 .compass-label.s { bottom: 4px; left: 50%; transform: translateX(-50%); }
@@ -1246,10 +1244,10 @@ body {
   <div class="topbar-title" id="topbarTitle">Drive Test Analysis</div>
   <div class="topbar-actions">
     <div class="file-info-badge" id="fileInfoBadge">—</div>
-    <button id="exportPdfBtn" title="Export PDF" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:0;cursor:pointer;color:var(--cyan);transition:background 0.1s,color 0.1s,border-color 0.1s;font-size:14px;margin-left:8px;font-weight:600" onclick="CakraExport.exportPDF()" onmouseover="this.style.background='var(--cyan-dim)';this.style.borderColor='var(--cyan)'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></button>
-    <button id="exportExcelBtn" title="Export Excel" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:0;cursor:pointer;color:var(--green);transition:background 0.1s,color 0.1s,border-color 0.1s;font-size:14px;font-weight:600" onclick="CakraExport.exportExcel()" onmouseover="this.style.background='var(--green-dim)';this.style.borderColor='var(--green)'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg></button>
-    <button id="compareBtn" title="Compare Sessions" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:0;cursor:pointer;color:#a78bfa;transition:background 0.1s,color 0.1s,border-color 0.1s;font-size:14px;margin-left:4px;font-weight:600" onclick="if(typeof openCompareDialog==='function')openCompareDialog()" onmouseover="this.style.background='rgba(168,85,247,0.1)';this.style.borderColor='#a78bfa'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><rect x="2" y="3" width="7" height="18" rx="1"/><rect x="15" y="3" width="7" height="18" rx="1"/><line x1="12" y1="6" x2="12" y2="18" stroke-dasharray="3 3"/></svg></button>
-    <button id="virtualDtBtn" title="Virtual Drive Test — Prediksi Coverage" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:0;cursor:pointer;color:#4ade80;transition:background 0.1s,color 0.1s,border-color 0.1s;font-size:14px;margin-left:4px;font-weight:600" onclick="window.location.href='predict.html'" onmouseover="this.style.background='rgba(74,222,128,0.1)';this.style.borderColor='#4ade80'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9"/><path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5"/><circle cx="12" cy="9" r="2"/><path d="M16.2 4.8c2 2 2.26 5.11.8 7.47"/><path d="M19.1 1.9a10.75 10.75 0 0 1 0 15.2"/><line x1="12" y1="9" x2="12" y2="22"/></svg></button>
+    <button id="exportPdfBtn" title="Export PDF" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;color:var(--cyan);transition:background 0.1s,color 0.1s,border-color 0.1s;font-size:14px;margin-left:8px;font-weight:600" onclick="CakraExport.exportPDF()" onmouseover="this.style.background='var(--cyan-dim)';this.style.borderColor='var(--cyan)'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></button>
+    <button id="exportExcelBtn" title="Export Excel" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;color:var(--green);transition:background 0.1s,color 0.1s,border-color 0.1s;font-size:14px;font-weight:600" onclick="CakraExport.exportExcel()" onmouseover="this.style.background='var(--green-dim)';this.style.borderColor='var(--green)'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg></button>
+    <button id="compareBtn" title="Compare Sessions" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;color:#a78bfa;transition:background 0.1s,color 0.1s,border-color 0.1s;font-size:14px;margin-left:4px;font-weight:600" onclick="if(typeof openCompareDialog==='function')openCompareDialog()" onmouseover="this.style.background='rgba(168,85,247,0.1)';this.style.borderColor='#a78bfa'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><rect x="2" y="3" width="7" height="18" rx="1"/><rect x="15" y="3" width="7" height="18" rx="1"/><line x1="12" y1="6" x2="12" y2="18" stroke-dasharray="3 3"/></svg></button>
+    <button id="virtualDtBtn" title="Virtual Drive Test — Prediksi Coverage" style="background:var(--bg3);border:1px solid var(--border2);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;color:#4ade80;transition:background 0.1s,color 0.1s,border-color 0.1s;font-size:14px;margin-left:4px;font-weight:600" onclick="window.location.href='predict.html'" onmouseover="this.style.background='rgba(74,222,128,0.1)';this.style.borderColor='#4ade80'" onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9"/><path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5"/><circle cx="12" cy="9" r="2"/><path d="M16.2 4.8c2 2 2.26 5.11.8 7.47"/><path d="M19.1 1.9a10.75 10.75 0 0 1 0 15.2"/><line x1="12" y1="9" x2="12" y2="22"/></svg></button>
     <div class="lang-switch" id="langSwitch" role="group" aria-label="Language">
       <button class="lang-btn active" id="langBtnId" data-lang="id" onclick="CakraI18n.setLanguage('id')">ID</button>
       <span class="lang-sep">|</span>
@@ -1266,43 +1264,43 @@ body {
       <div class="skel-topbar">
         <div class="sk d1" style="width:70px;height:13px"></div>
         <div class="sk-ml">
-          <div class="sk d2" style="width:28px;height:28px;border-radius:0"></div>
-          <div class="sk d3" style="width:28px;height:28px;border-radius:0"></div>
-          <div class="sk d4" style="width:28px;height:28px;border-radius:0"></div>
+          <div class="sk d2" style="width:28px;height:28px;border-radius:10px"></div>
+          <div class="sk d3" style="width:28px;height:28px;border-radius:10px"></div>
+          <div class="sk d4" style="width:28px;height:28px;border-radius:10px"></div>
         </div>
       </div>
       <div class="skel-body">
         <div class="skel-sidebar">
-          <div class="sk d1" style="width:100%;height:26px;border-radius:0"></div>
-          <div class="sk d2" style="width:88%;height:26px;border-radius:0"></div>
-          <div class="sk d3" style="width:92%;height:26px;border-radius:0"></div>
-          <div class="sk d2" style="width:80%;height:26px;border-radius:0"></div>
-          <div class="sk d4" style="width:95%;height:26px;border-radius:0"></div>
-          <div class="sk d1" style="width:85%;height:26px;border-radius:0"></div>
-          <div class="sk d3" style="width:90%;height:26px;border-radius:0"></div>
-          <div class="sk d2" style="width:78%;height:26px;border-radius:0"></div>
-          <div class="sk d5" style="width:88%;height:26px;border-radius:0"></div>
+          <div class="sk d1" style="width:100%;height:26px;border-radius:10px"></div>
+          <div class="sk d2" style="width:88%;height:26px;border-radius:10px"></div>
+          <div class="sk d3" style="width:92%;height:26px;border-radius:10px"></div>
+          <div class="sk d2" style="width:80%;height:26px;border-radius:10px"></div>
+          <div class="sk d4" style="width:95%;height:26px;border-radius:10px"></div>
+          <div class="sk d1" style="width:85%;height:26px;border-radius:10px"></div>
+          <div class="sk d3" style="width:90%;height:26px;border-radius:10px"></div>
+          <div class="sk d2" style="width:78%;height:26px;border-radius:10px"></div>
+          <div class="sk d5" style="width:88%;height:26px;border-radius:10px"></div>
         </div>
         <div class="skel-main">
           <div class="sk d1" style="width:180px;height:14px"></div>
           <div class="skel-info-grid">
-            <div class="sk d1" style="height:44px;border-radius:0;border:1px solid var(--border)"></div>
-            <div class="sk d2" style="height:44px;border-radius:0;border:1px solid var(--border)"></div>
-            <div class="sk d3" style="height:44px;border-radius:0;border:1px solid var(--border)"></div>
-            <div class="sk d2" style="height:44px;border-radius:0;border:1px solid var(--border)"></div>
-            <div class="sk d4" style="height:44px;border-radius:0;border:1px solid var(--border)"></div>
-            <div class="sk d1" style="height:44px;border-radius:0;border:1px solid var(--border)"></div>
+            <div class="sk d1" style="height:44px;border-radius:10px;border:1px solid var(--border)"></div>
+            <div class="sk d2" style="height:44px;border-radius:10px;border:1px solid var(--border)"></div>
+            <div class="sk d3" style="height:44px;border-radius:10px;border:1px solid var(--border)"></div>
+            <div class="sk d2" style="height:44px;border-radius:10px;border:1px solid var(--border)"></div>
+            <div class="sk d4" style="height:44px;border-radius:10px;border:1px solid var(--border)"></div>
+            <div class="sk d1" style="height:44px;border-radius:10px;border:1px solid var(--border)"></div>
           </div>
           <div class="sk d2" style="width:140px;height:14px;margin-top:6px"></div>
           <div class="skel-kpi-grid">
-            <div class="sk d1" style="height:74px;border-radius:0;border:1px solid var(--border)"></div>
-            <div class="sk d2" style="height:74px;border-radius:0;border:1px solid var(--border)"></div>
-            <div class="sk d3" style="height:74px;border-radius:0;border:1px solid var(--border)"></div>
-            <div class="sk d4" style="height:74px;border-radius:0;border:1px solid var(--border)"></div>
+            <div class="sk d1" style="height:74px;border-radius:10px;border:1px solid var(--border)"></div>
+            <div class="sk d2" style="height:74px;border-radius:10px;border:1px solid var(--border)"></div>
+            <div class="sk d3" style="height:74px;border-radius:10px;border:1px solid var(--border)"></div>
+            <div class="sk d4" style="height:74px;border-radius:10px;border:1px solid var(--border)"></div>
           </div>
           <div class="sk d3" style="width:120px;height:14px;margin-top:6px"></div>
-          <div class="sk d2" style="height:140px;border-radius:0;border:1px solid var(--border)"></div>
-          <div class="sk d4" style="height:180px;border-radius:0;border:1px solid var(--border)"></div>
+          <div class="sk d2" style="height:140px;border-radius:10px;border:1px solid var(--border)"></div>
+          <div class="sk d4" style="height:180px;border-radius:10px;border:1px solid var(--border)"></div>
         </div>
       </div>
     </div>
@@ -2030,10 +2028,10 @@ function buildFieldTools() {
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:7px">
-          <button onclick="CakraGoToSection('peta')" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='var(--border2)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> ${T('dyn.openSignalMap')}</button>
-          <button onclick="CakraGoToSection('peta','bento_rawan')" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='#f87171'" onmouseout="this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ${T('dyn.viewRawanPoints')}</button>
-          <button onclick="CakraOpenCaca('full')" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='#a78bfa'" onmouseout="this.style.borderColor='var(--border2)'">${T('dyn.generateAiReport')}</button>
-          <button onclick="window.location.href='index.html'" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:0;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border2)'">${T('dyn.uploadNewFile')}</button>
+          <button onclick="CakraGoToSection('peta')" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='var(--border2)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> ${T('dyn.openSignalMap')}</button>
+          <button onclick="CakraGoToSection('peta','bento_rawan')" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='#f87171'" onmouseout="this.style.borderColor='var(--border2)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ${T('dyn.viewRawanPoints')}</button>
+          <button onclick="CakraOpenCaca('full')" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='#a78bfa'" onmouseout="this.style.borderColor='var(--border2)'">${T('dyn.generateAiReport')}</button>
+          <button onclick="window.location.href='index.html'" style="font-family:var(--mono);font-size:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;color:var(--text2);cursor:pointer;text-align:left;transition:0.1s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border2)'">${T('dyn.uploadNewFile')}</button>
         </div>
       </div>
 
