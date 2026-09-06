@@ -1,0 +1,156 @@
+:root {
+  --bg: #070b11;
+  --bg2: #0d121b;
+  --bg3: #131b27;
+  --bg4: #1a2433;
+  --bg5: #243042;
+  --border: rgba(148, 163, 184, 0.16);
+  --border2: rgba(148, 163, 184, 0.24);
+  --text: #e8edf5;
+  --text2: #a3b1c2;
+  --text3: #6d7e93;
+  --cyan: #7dd3fc;
+  --cyan-hi: #bae6fd;
+  --cyan-dim: rgba(125, 211, 252, 0.14);
+}
+
+[data-theme="light"] {
+  --bg: #f3f6fb;
+  --bg2: #ffffff;
+  --bg3: #f1f5f9;
+  --bg4: #e2e8f0;
+  --bg5: #cbd5e1;
+  --border: rgba(15, 23, 42, 0.12);
+  --border2: rgba(15, 23, 42, 0.18);
+  --text: #0f172a;
+  --text2: #334155;
+  --text3: #64748b;
+  --cyan: #0369a1;
+  --cyan-hi: #0284c7;
+  --cyan-dim: rgba(3, 105, 161, 0.1);
+}
+
+body {
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-attachment: fixed;
+}
+
+.nav,
+.topnav,
+.topbar,
+.sidebar,
+.upload-card,
+.card,
+.result-section,
+.fb-card,
+.step-card,
+.about-section,
+.cta-section,
+.kpi-card,
+.chart-card,
+.map-card,
+.stat-card,
+.phil-card,
+.tech-item,
+.name-card,
+.code-block,
+.callout,
+.doc-section {
+  border-radius: 14px !important;
+  border-color: var(--border2) !important;
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.2);
+}
+
+.nav,
+.topnav,
+.topbar {
+  backdrop-filter: blur(12px);
+  border-bottom-color: var(--border2) !important;
+}
+
+.sidebar {
+  border-right-color: var(--border2) !important;
+}
+
+.hero,
+.section-wrap,
+.upload-zone,
+.about-content,
+.doc-main,
+.container {
+  max-width: 1200px;
+}
+
+.hero-title,
+.page-title,
+.title,
+.cta-title {
+  letter-spacing: -0.03em;
+}
+
+.hero-tag,
+.page-tag,
+.card-label,
+.section-label,
+.nav-logo-tag,
+.topbar-title,
+.file-info-badge,
+.nav-ver,
+.badge,
+.tag,
+.topnav-section {
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase;
+}
+
+.hero-cta-btn,
+.analyze-btn,
+.btn-primary,
+.run-btn,
+.cta-primary,
+.topnav-cta,
+.nav-cta {
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+}
+
+.hero-cta-secondary,
+.nav-back,
+.btn-secondary,
+.ghost-btn,
+.cta-secondary,
+.nav-btn,
+.topnav-btn {
+  border-radius: 12px !important;
+}
+
+.drop-area,
+.upload-zone,
+.file-item,
+.sess-item,
+.route-item,
+.site-chip,
+.info-note,
+.legend-box,
+.param-table,
+.maplibregl-popup-content {
+  border-radius: 12px !important;
+}
+
+.chart-tabs,
+.stepper,
+.feature-bento,
+.kpi-grid,
+.stats-grid,
+.panel-grid {
+  gap: 12px !important;
+}
+
+@media (max-width: 900px) {
+  body {
+    background-size: 32px 32px;
+  }
+}
