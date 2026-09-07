@@ -1,0 +1,9 @@
+'use client';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { Card, CardBody, CardHeader } from '@/components/ui/Card';
+import { DataTable, type DataTableColumn } from '@/components/ui/DataTable';
+import { MapContainer } from '@/components/map/MapContainer';
+import { useDriveTest } from '@/context/DriveTestContext';
+import { FilterBar } from '@/components/FilterBar';
+import type { DriveTestEvent, DriveTestPoint } from '@/lib/types';
+export default function MapEventsPage(){const{points,events}=useDriveTest();const weak=points.filter(p=>p.rsrp<=-100).slice(0,100);const ec:DataTableColumn<DriveTestEvent>[]=[{key:'type',header:'Type',render:r=>r.isPingPong?'PING-PONG':r.type},{key:'timestamp',header:'Time',render:r=>r.timestamp},{key:'from',header:'From',truncate:true,tooltip:r=>r.fromCell,render:r=>r.fromCell||'—'},{key:'to',header:'To',truncate:true,tooltip:r=>r.toCell,render:r=>r.toCell||'—'}];const wc:DataTableColumn<DriveTestPoint>[]=[{key:'ts',header:'Time',render:r=>r.ts.slice(11)||r.ts},{key:'rsrp',header:'RSRP',align:'right',render:r=>r.rsrp},{key:'rsrq',header:'RSRQ',align:'right',render:r=>r.rsrq},{key:'cell',header:'Cell',truncate:true,render:r=>r.cellname||r.cellid}];return <DashboardLayout><div className="mx-auto max-w-[1500px] space-y-4"><h1 className="text-lg font-semibold">Map & Events</h1><FilterBar/><div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.5fr_1fr]"><Card><CardHeader title="Signal route map"/><CardBody><MapContainer points={points}/></CardBody></Card><div className="space-y-4"><Card><CardHeader title={`Handover / Reselection · ${events.length}`}/><CardBody><DataTable columns={ec} rows={events} rowKey={r=>r.id} maxHeight="max-h-[250px]"/></CardBody></Card><Card><CardHeader title={`Weak points · ${weak.length}`}/><CardBody><DataTable columns={wc} rows={weak} rowKey={r=>r.id} maxHeight="max-h-[250px]"/></CardBody></Card></div></div></div></DashboardLayout>}

@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply dark:bg-zinc-950 dark:text-zinc-100;
+}
+
+/* Subtle dot-grid backdrop, per design spec */
+.bg-app-grid {
+  background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+.dark .bg-app-grid {
+  background-image: radial-gradient(#27272a 1px, transparent 1px);
+}
+
+/* Thin, unobtrusive scrollbars everywhere */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225) transparent;
+}
+.dark * {
+  scrollbar-color: rgb(63 63 70) transparent;
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgb(203 213 225); border-radius: 8px; }
+.dark ::-webkit-scrollbar-thumb { background: rgb(63 63 70); }
+::-webkit-scrollbar-thumb:hover { background: rgb(148 163 184); }
+.dark ::-webkit-scrollbar-thumb:hover { background: rgb(82 82 91); }
+
+/* Data/numeric text — always monospace, per spec (Cell IDs, PCI, RSRP, coords, timestamps) */
+.data-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.leaflet-container { height: 100%; width: 100%; font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif; }
+@media (max-width: 767px) {
+  .cakra-shell-main { padding-left: 0 !important; }
+}
